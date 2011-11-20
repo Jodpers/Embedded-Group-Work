@@ -1,0 +1,23 @@
+ARCH=arm
+CC=/opt/igep/usr/bin/arm-linux-gcc
+CFLAGS=
+obj-m := fabboard-igep.o
+
+KDIR  := /usr/src/kernels/linux-omap-2.6.35.10-0
+PWD   := $(shell pwd)
+
+default:
+	$(MAKE) -C $(KDIR) ARCH=arm CROSS_COMPILE=/opt/igep/usr/bin/arm-linux- M=$(PWD) modules
+
+clean:
+	rm -f modules.order fabboard-igep.ko .fabboard-igep.ko.cmd .fabboard-igep.fabboard-igep.o.cmd .fabboard-igep.o.cmd Module.symvers mod.mod.c fabboard-igep.fabboard-igep.o fabboard-igep.o
+	rm -rdf .tmp_versions
+
+ins: fabboard-igep.ko
+	sudo insmod fabboard-igep.ko
+
+rmm: fabboard-igep.ko
+	sudo rmmod fabboard-igep.ko cdc_acm
+
+ls:
+	@ls -l /dev/ | grep dio[0-9]*$

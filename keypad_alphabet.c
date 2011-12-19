@@ -22,7 +22,7 @@
 #define COLSX 4
 #define ROWSX 4
 
-#define BIGLOOP   3
+#define BIGLOOP   4
 
 typedef unsigned char BYTE;
 typedef unsigned int DWORD;
@@ -101,22 +101,6 @@ void display_char(char key){
   }
 }
 
-void display_string(char *in){
-  int i,j;
-
-  while(*in!='\0'){
-    for(j=0;j<BIGLOOP;j++){
-      display();
-    }
-    display_char(*in);
-    in++;
-    /*
-    if(in == '\0')
-    break;*/
-  }
-}
-
-
 void display_number(int key){
   if((key >= 0) && (key < 10)){
     digits[0] = digits[1];
@@ -136,11 +120,27 @@ void display(void){
       portCstatus = digits[i];
       writeFAB(DIOA, portAstatus);    // next col/digit sel
       writeFAB(DIOC, portCstatus);    // next LEDs pattern on
-      usleep(500); 
-      portBstatus = 0x0F & ~readFAB(DIOB);
+      // usleep(500); 
+      //portBstatus = 0x0F & ~readFAB(DIOB);
     }
 }
 
+void display_string(char *in){
+  int i,j;
+
+  while(*in!='\0'){
+    for(j=0;j<BIGLOOP;j++){
+      display();
+    }
+    display_char(*in);
+    in++;
+    /*
+    if(in == '\0')
+    break;*/
+  }
+}
+
+#define DELAY 8
 int main () {
   char key;
   int i, l;
@@ -150,29 +150,46 @@ int main () {
   BYTE colsel=-1;
   char *menu="menu";
   char *info="info";
+  char *track="track";
+  char *time="time";
   char *welcome="Hello World.\0";
-  char *abc="now i know my abc.\0";
   char* ptr;
 
   ptr = welcome;
-
+  l = 0;
   inithw();
+  /*
+ for(i=0;i<4;i++){
+   digits[i] = menu[i]-0x61;
+   }*/
 
-/* for(i=0;i<4;i++){
-   digits[i] = *menu[i]-0x61;
- }
-*/
- l = 0;
-
+ /*
  digits[0]=alphaU[l++];
  digits[1]=alphaU[l++];
  digits[2]=alphaU[l++];
  digits[3]=alphaU[l++];
- i = BIGLOOP;
+ */
 
  display_string(welcome);
-  while(1) {
+ for(i=0;i<DELAY;i++)display();
 
+ display_string(track);
+ for(i=0;i<DELAY;i++)display();
+ display_char('.');
+
+ display_string(menu);
+ for(i=0;i<DELAY;i++)display();
+ display_char('.');
+
+ display_string(info);
+ for(i=0;i<DELAY;i++)display();
+ display_char('.');
+
+ display_string(time);
+ for(i=0;i<DELAY;i++)display();
+ display_char('.');
+
+  while(1) {
     for(i=0;i<BIGLOOP;i++)display();
 
     digits[0] = digits[1];
@@ -180,15 +197,12 @@ int main () {
     digits[2] = digits[3];
     digits[3] = alphaU[l++];
       
-    if (l == 27){
+    if (l == 26){
       display_char(' ');
-      display_char(' ');
-      display_char('l');
-      display_char('.');
-      display_number(0);
-      display_char(' ');
-      display_char(' ');
+      for(i=0;i<DELAY;i++)display();
       l=0;
+      display_string(welcome);
+      for(i=0;i<DELAY;i++)display();
     }
   }
   ad_close(pio);

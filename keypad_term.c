@@ -56,17 +56,16 @@ const BYTE alphaL[] = {0x77,0x7C,0x58,0x5E,0x79,0x71,0x6F,0x74,0x04,0x1E,0x76,
 /*    l,   M,   n,   o,   P,   Q,   r,   S,   t,   U,   V,   W,   X,   Y,   Z*/
    0x18,0x15,0x54,0x5C,0x73,0x67,0x50,0x6D,0x78,0x3E,0x1C,0x2A,0x76,0x6E,0x5B};
 
-BYTE key[DEBOUNCE];
-BYTE keytrue = 0;
 pthread_t keypad_thread;
 BYTE alive = TRUE;
+DWORD buttons;
 
 /*----------------------------------------------------------------
  * error handling - exit subroutine
  *----------------------------------------------------------------
  */
 void closing_time() {
-  alive = 0;
+  alive = FALSE;
   pthread_join(keypad_thread, NULL);
 }
 
@@ -137,62 +136,57 @@ int rs232_close(void){
  */
 void setup_ports(){
   char out[4];
-  write(fd_RS232,"@00D000\r",8);
+  write(fd_RS232,"@00D000\r",8); //Port A output
   read(fd_RS232,out,4);
   usleep(SLEEP);
-  write(fd_RS232,"@00D1FF\r",8);
+  write(fd_RS232,"@00D1FF\r",8); //Port B input
   read(fd_RS232,out,4);
   usleep(SLEEP);
-  write(fd_RS232,"@00D200\r",8);
+  write(fd_RS232,"@00D200\r",8); //Port C output
   read(fd_RS232,out,4);
   usleep(SLEEP);
 }
 
 void write_to_port(int port, int bits){
   char out[4];
-  char str[10];
+  char str[12]; //MUST have enough space here, or weird things happen when trying to read the buttons
 
-  snprintf(str,8,"@00P%d%02x\r",port,bits);
+  snprintf(str,10,"@00P%d%02x\r",port,bits);
   write(fd_RS232,str,8);
+  usleep(SLEEP);
   read(fd_RS232,out,4);
   usleep(SLEEP);
 }
 
-void read_buttons() {
-  char str[10], in[12];
-  int out, button;
-
-
-/*printf("%04x\n",out);
-  out |= ((0x0F & (str[i+1])) << (4 * i));      // 0-9
-printf("%04x\n",out);
-*/
-}
 /****************
  keypad thread - this function continiously outputs to LEDs and occasionally reads for button presses
 ****************/
 void * keypad(){
   int i;
-  int colsel;
-  int read_timeout = READ_TIMEOUT;
-  char out[12];
+  int row;
+  char str[7];
+  int out;
 
   while(alive){
-    for(i=0;i<4;i++){
-  /* Write the the LED's */  
+  for (i=0;i<4;i++){
       write_to_port(A ,(BYTE) (01 << i));    /* next col/digit sel */
       write_to_port(C ,digits[i]);		/* next LEDs pattern on */
       write_to_port(C ,0);     			/* LEDS off */
-//      if (read_timeout-- == 0) {
-//      read_buttons();
-//      read_timeout = READ_TIMEOUT;
-      write(fd_RS232,"@00P1?\r",7);
-      usleep(3000);
-      read(fd_RS232,out,8);
-      usleep(3000);
-      printf("%s\n",out);
+      write(fd_RS232,"@00P1?\r",7);          /* Read the column to find buttons*/
+      usleep(SLEEP);
+      read(fd_RS232,str,7);
 
+      out = 0;
+      if(str[4] > 0x40) {	  // Convert output from ASCII to binary
+        out |= (0x0F & (str[4]-0x07)); // A-F
+      }
+      else{
+        out |= (0x0F & (str[4]));      // 0-9
+      }
+      keyflag = keyflag & (out << (4 * i));
+      printf("%d - %x\n",i,out);
     }
+
   }
 }
 
@@ -306,8 +300,8 @@ int main () {
  digits[1]=alphaU[l++];
  digits[2]=alphaU[l++];
  digits[3]=alphaU[l++];
- * /
-while(1){
+ */
+while(alive){
  display_string(welcome);
  delay();
 }

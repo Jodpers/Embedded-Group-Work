@@ -152,7 +152,7 @@ int main () {
   char *info="info";
   char *track="track";
   char *time="time";
-  char *welcome="Hello World.\0";
+  char *welcome="Hello Edwardo..\0";
   char* ptr;
 
   ptr = welcome;
@@ -169,7 +169,7 @@ int main () {
  digits[2]=alphaU[l++];
  digits[3]=alphaU[l++];
  */
-
+/*
  display_string(welcome);
  for(i=0;i<DELAY;i++)display();
 
@@ -188,8 +188,9 @@ int main () {
  display_string(time);
  for(i=0;i<DELAY;i++)display();
  display_char('.');
-
+*/
   while(1) {
+/*
     for(i=0;i<BIGLOOP;i++)display();
 
     digits[0] = digits[1];
@@ -201,9 +202,11 @@ int main () {
       display_char(' ');
       for(i=0;i<DELAY;i++)display();
       l=0;
+*/
       display_string(welcome);
       for(i=0;i<DELAY;i++)display();
-    }
+
+//    }
   }
   ad_close(pio);
   return 0;

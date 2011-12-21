@@ -112,7 +112,8 @@ int 	rs232_close(void)
 #define A 0
 #define B 1
 #define C 2
-#define SLEEP 1000
+#define SLEEP 1300
+#define RSLEEP 5000
 
 void setup_ports(){
   char out[4];
@@ -137,7 +138,6 @@ void write_to_port(int port, int bits){
   write(fd_RS232,str,8);
   read(fd_RS232,out,4);
   usleep(SLEEP);
-  
 }
 
 /*----------------------------------------------------------------
@@ -147,7 +147,7 @@ void write_to_port(int port, int bits){
 int main(void)
 {
   char	c;
-  char out[4];
+  char out[12];
   int i;
   
   term_initio();
@@ -155,25 +155,31 @@ int main(void)
   
   setup_ports();
 
+  write_to_port(A,0x08);
+  usleep(SLEEP);
+  write_to_port(C,0xFF);
+  
+
+/*
   for(i=0;i<1000;i++){
     write_to_port(A,0x01);
-    write_to_port(C,0x80);
     write_to_port(C,0x00);
+    write_to_port(C,0xFF);
 
     write_to_port(A,0x02);
-    write_to_port(C,0x70);
     write_to_port(C,0x00);
+    write_to_port(C,0xFF);
 
     write_to_port(A,0x04);
-    write_to_port(C,0x80);
     write_to_port(C,0x00);
+    write_to_port(C,0xFF);
 
     write_to_port(A,0x08);
-    write_to_port(C,0x01);
     write_to_port(C,0x00);
+    write_to_port(C,0xFF);
   }
-
-  /*
+*/
+  
   for(i=0;i<1000;i++){
     write(fd_RS232,"@00P001\r",8);
     read(fd_RS232,out,4);
@@ -186,6 +192,13 @@ int main(void)
     read(fd_RS232,out,4);
     usleep(SLEEP);
 
+    write(fd_RS232,"@00P1?\r",7);
+    usleep(SLEEP);
+    read(fd_RS232,out,12);
+    usleep(SLEEP);
+    printf("%s\n",out);
+
+
     write(fd_RS232,"@00P002\r",8);
     read(fd_RS232,out,4);
     usleep(SLEEP);
@@ -196,6 +209,13 @@ int main(void)
     write(fd_RS232,"@00P200\r",8);
     read(fd_RS232,out,4);
     usleep(SLEEP);
+
+    write(fd_RS232,"@00P1?\r",7);
+    usleep(SLEEP);
+    read(fd_RS232,out,12);
+    usleep(SLEEP);
+    printf("%s\n",out);
+
 
     write(fd_RS232,"@00P004\r",8);
     read(fd_RS232,out,4);
@@ -208,6 +228,13 @@ int main(void)
     read(fd_RS232,out,4);
     usleep(SLEEP);
 
+    write(fd_RS232,"@00P1?\r",7);
+    usleep(SLEEP);
+    read(fd_RS232,out,12);
+    usleep(SLEEP);
+    printf("%s\n",out);
+
+
     write(fd_RS232,"@00P008\r",8);
     read(fd_RS232,out,4);
     usleep(SLEEP);
@@ -218,8 +245,14 @@ int main(void)
     write(fd_RS232,"@00P200\r",8);
     read(fd_RS232,out,4);
     usleep(SLEEP);
+
+    write(fd_RS232,"@00P1?\r",7);
+    usleep(SLEEP);
+    read(fd_RS232,out,12);
+    usleep(SLEEP);
+    printf("%s\n",out);
   }
-  */
+  
   /* discard any incoming text
    */
   /*

@@ -28,7 +28,8 @@
 #define A 0
 #define B 1
 #define C 2
-#define SLEEP 1300
+#define WSLEEP 1300
+#define RSLEEP 5300
 #define DELAY 70000000
 #define READ_TIMEOUT 10
 #define DEBOUNCE 4
@@ -50,17 +51,16 @@ const BYTE numtab[] = {0x3F,0x06,0x5B,0x4F,0x66,0x6D,0x7D,0x07,0x7F,0x6F};
 const BYTE keytab[] = {1,4,7,10, 2,5,8,0, 3,6,9,11, 15,14,13,12};
 /*                        A,   b,   C,   d,   E,   F,   g,   H,   I,   J,   K*/
 const BYTE alphaU[] = {0x77,0x7C,0x39,0x5E,0x79,0x71,0x6F,0x76,0x30,0x1E,0x76,
-/*    L,   M,   n,   O,   P,   Q,   r,   S,   t,   U,   V,   W,   X,   Y,   Z*/
-   0x38,0x15,0x54,0x3F,0x73,0x67,0x50,0x6D,0x78,0x3E,0x1C,0x2A,0x76,0x6E,0x5B};
+		       /*    L,   M,   n,   O,   P,   Q,   r,   S,   t,   U,   V,   W,   X,   Y,   Z*/
+		       0x38,0x15,0x54,0x3F,0x73,0x67,0x50,0x6D,0x78,0x3E,0x1C,0x2A,0x76,0x6E,0x5B};
 /*                        A,   b,   c,   d,   E,   F,   g,   h   i,   J,   K*/
 const BYTE alphaL[] = {0x77,0x7C,0x58,0x5E,0x79,0x71,0x6F,0x74,0x04,0x1E,0x76,
-/*    l,   M,   n,   o,   P,   Q,   r,   S,   t,   U,   V,   W,   X,   Y,   Z*/
-   0x18,0x15,0x54,0x5C,0x73,0x67,0x50,0x6D,0x78,0x3E,0x1C,0x2A,0x76,0x6E,0x5B};
+		       /*    l,   M,   n,   o,   P,   Q,   r,   S,   t,   U,   V,   W,   X,   Y,   Z*/
+		       0x18,0x15,0x54,0x5C,0x73,0x67,0x50,0x6D,0x78,0x3E,0x1C,0x2A,0x76,0x6E,0x5B};
 
 pthread_t keypad_thread;
 BYTE alive = TRUE;
-BYTE buttonstrue = FALSE;
-BYTE button;
+BYTE button = FALSE;
 
 /*----------------------------------------------------------------
  * error handling - exit subroutine
@@ -140,72 +140,75 @@ void setup_ports(){
   char out[4];
   write(fd_RS232,"@00D000\r",8); //Port A output
   read(fd_RS232,out,4);
-  usleep(SLEEP);
+  usleep(WSLEEP);
   write(fd_RS232,"@00D1FF\r",8); //Port B input
   read(fd_RS232,out,4);
-  usleep(SLEEP);
+  usleep(WSLEEP);
   write(fd_RS232,"@00D200\r",8); //Port C output
   read(fd_RS232,out,4);
-  usleep(SLEEP);
+  usleep(WSLEEP);
 }
 
 void write_to_port(int port, int bits){
   char out[4];
-  char str[12]; //MUST have enough space here, or weird things happen when trying to read the buttons
+  char str[12]; //MUST have enough space here, or weirdness during read
 
   snprintf(str,10,"@00P%d%02x\r",port,bits);
   write(fd_RS232,str,8);
-  usleep(SLEEP);
+  //usleep(WSLEEP);
   read(fd_RS232,out,4);
-  usleep(SLEEP);
+  usleep(WSLEEP);
 }
 
 /****************
- keypad thread - this function continiously outputs to LEDs and occasionally reads for button presses
+ keypad thread - this function continiously outputs to LEDs and reads buttons
 ****************/
 void * keypad(){
   int i;
   int col;
-  char str[7];
+  char str[12];
   int out;
+  BYTE keypresses = 0;
 
 
   while(alive){
     for (col=0;col<4;col++){
-      write_to_port(C ,0);     			/* LEDS off */  
-      write_to_port(A ,(BYTE) (01 << col));       /* next col/digit sel */
-      write_to_port(C ,digits[col]);		/* next LED pattern */
-  
-      write(fd_RS232,"@00P1?\r",7);          /* Read the column to find buttons*/
-      usleep(SLEEP);
-      read(fd_RS232,str,7);
+      write_to_port(C ,0);     			// LEDS off
+      write_to_port(A ,(BYTE) (01 << col));     // select column
+      write_to_port(C ,digits[col]);		// next LED pattern  
+      write(fd_RS232,"@00P1?\r",7);             // Read the column
+      usleep(RSLEEP);
+      read(fd_RS232,str,12);
+      usleep(RSLEEP);
 
       out = 0;
       if(str[4] > 0x40) {	  // Convert output from ASCII to binary
-        out |= (0x0F & (str[4]-0x07)); // A-F
+        out |= (0x0F & (str[8]-0x07)); // A-F
       }
       else{
-        out |= (0x0F & (str[4]));      // 0-9
+        out |= (0x0F & (str[8]));      // 0-9
       }
 
-      if(col == 0){
-        button=0;
-        buttonstrue=FALSE;
-      }
       for(i=0; i<4; i++){
         if((out >> i) & 0x01){
-          button++;
+          keypresses++;
+	  button = ((col+1)+(i*4));
+	  //printf("row %d - button %d - keypresses %x\n",i,button,keypresses);
         }
       }
       if(col == 3){
-        if(button){
-          buttonstrue=TRUE;
-          if(button > 1){
-            buttonstrue=ERROR;
-            button=0;
+        if(keypresses){
+          if(keypresses > 1){
+            button=ERROR;
           }
+	  else{
+	    button=0;
+	  }
+	  keypresses=0;
         }
-        printf("buttons true %d - %x\n",buttonstrue,button);
+	else{
+	  button=FALSE;
+	}
       }
     }
   }
@@ -272,7 +275,7 @@ void display_char(char key){
 }
 
 void display_string(char *in){
-  while(*in!='\0'){
+  while(*in!='\0' && alive){
     display_char(*in);
     in++;
   }
@@ -297,6 +300,7 @@ int main () {
   char *welcome="Hello World. =]  ? roFL -_-.\0";
   char* ptr;
   int ret;
+  BYTE button_read = 0;
 
   ptr = welcome;
   l = 0;
@@ -312,34 +316,46 @@ int main () {
   ret = pthread_create( &keypad_thread, NULL, keypad, NULL);
 
   /*
- for(i=0;i<4;i++){
-   digits[i] = menu[i]-0x61;
-   }*/
+    for(i=0;i<4;i++){
+    digits[i] = menu[i]-0x61;
+    }*/
 
- /*
- digits[0]=alphaU[l++];
- digits[1]=alphaU[l++];
- digits[2]=alphaU[l++];
- digits[3]=alphaU[l++];
- */
-while(alive){
- display_string(welcome);
- delay();
-}
-/*
- display_string(track);
- display_char('.');
+  /*
+    digits[0]=alphaU[l++];
+    digits[1]=alphaU[l++];
+    digits[2]=alphaU[l++];
+    digits[3]=alphaU[l++];
+  */
+  while(alive){
+    //    display_string(welcome);
+    //delay();
 
- display_string(menu);
- display_char('.');
+    button_read = button;
+    if(button_read){
+      if(button_read > 16){
+	display_string("E");
+	printf("button = %d\n",button_read);
+      }
+      else{
+	display_string(".");
+	printf("button = %d\n",button_read);
+      }
+    }
+  }
+  /*
+    display_string(track);
+    display_char('.');
 
- display_string(info);
- display_char('.');
+    display_string(menu);
+    display_char('.');
 
- display_string(time);
- display_char('.');
+    display_string(info);
+    display_char('.');
 
-  while(1) {
+    display_string(time);
+    display_char('.');
+
+    while(1) {
 
     digits[0] = digits[1];
     digits[1] = digits[2];
@@ -347,14 +363,14 @@ while(alive){
     digits[3] = alphaU[l++];
       
     if (l == 26){
-      display_char(' ');
-      for(i=0;i<DELAY;i++);
-      l=0;
-      display_string(welcome);
-      for(i=0;i<DELAY;i++);
+    display_char(' ');
+    for(i=0;i<DELAY;i++);
+    l=0;
+    display_string(welcome);
+    for(i=0;i<DELAY;i++);
     }
-  }
-*/
+    }
+  */
   pthread_join(keypad_thread, NULL);
   term_exitio();
   rs232_close();

@@ -19,6 +19,7 @@
 
 #define FALSE 0
 #define TRUE 1
+#define ERROR -1
 
 #define COLSX 4
 #define ROWSX 4
@@ -28,7 +29,7 @@
 #define B 1
 #define C 2
 #define SLEEP 1300
-#define DELAY 50000000
+#define DELAY 70000000
 #define READ_TIMEOUT 10
 #define DEBOUNCE 4
 
@@ -58,7 +59,8 @@ const BYTE alphaL[] = {0x77,0x7C,0x58,0x5E,0x79,0x71,0x6F,0x74,0x04,0x1E,0x76,
 
 pthread_t keypad_thread;
 BYTE alive = TRUE;
-DWORD buttons;
+BYTE buttonstrue = FALSE;
+BYTE button;
 
 /*----------------------------------------------------------------
  * error handling - exit subroutine
@@ -163,15 +165,17 @@ void write_to_port(int port, int bits){
 ****************/
 void * keypad(){
   int i;
-  int row;
+  int col;
   char str[7];
   int out;
 
+
   while(alive){
-  for (i=0;i<4;i++){
-      write_to_port(A ,(BYTE) (01 << i));    /* next col/digit sel */
-      write_to_port(C ,digits[i]);		/* next LEDs pattern on */
-      write_to_port(C ,0);     			/* LEDS off */
+    for (col=0;col<4;col++){
+      write_to_port(C ,0);     			/* LEDS off */  
+      write_to_port(A ,(BYTE) (01 << col));       /* next col/digit sel */
+      write_to_port(C ,digits[col]);		/* next LED pattern */
+  
       write(fd_RS232,"@00P1?\r",7);          /* Read the column to find buttons*/
       usleep(SLEEP);
       read(fd_RS232,str,7);
@@ -183,10 +187,27 @@ void * keypad(){
       else{
         out |= (0x0F & (str[4]));      // 0-9
       }
-      keyflag = keyflag & (out << (4 * i));
-      printf("%d - %x\n",i,out);
-    }
 
+      if(col == 0){
+        button=0;
+        buttonstrue=FALSE;
+      }
+      for(i=0; i<4; i++){
+        if((out >> i) & 0x01){
+          button++;
+        }
+      }
+      if(col == 3){
+        if(button){
+          buttonstrue=TRUE;
+          if(button > 1){
+            buttonstrue=ERROR;
+            button=0;
+          }
+        }
+        printf("buttons true %d - %x\n",buttonstrue,button);
+      }
+    }
   }
 }
 
@@ -208,11 +229,11 @@ void display_char(char key){
     shift_digits();
     digits[3] = numtab[key];
   }
-  else if((key > 0x40) && (key < 0x5B)){/* Upper case alphabet */
+  else if((key > 0x40) && (key < 0x5B)){ /* "Upper case" alphabet */
     shift_digits();
     digits[3] = alphaU[key-0x41];
   }
-  else if((key > 0x60) && (key < 0x7B)){
+  else if((key > 0x60) && (key < 0x7B)){ /* "Lower case" alphabet */
     shift_digits();
     digits[3] = alphaL[key-0x61];
   }
@@ -273,7 +294,7 @@ int main () {
   char *info="info";
   char *track="track";
   char *time="time";
-  char *welcome="Hello World.\0";
+  char *welcome="Hello World. =]  ? roFL -_-.\0";
   char* ptr;
   int ret;
 

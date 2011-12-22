@@ -112,32 +112,38 @@ int 	rs232_close(void)
 #define A 0
 #define B 1
 #define C 2
-#define SLEEP 700
+#define SLEEP 1300
 #define RSLEEP 1300
 
 void setup_ports(){
-  char out[4];
+  char out[12];
+
   write(fd_RS232,"@00D000\r",8);
+    usleep(SLEEP);	//needs time
+    usleep(SLEEP);
   read(fd_RS232,out,4);
-  usleep(SLEEP);
+    //printf("\nC %s\n",out);
   write(fd_RS232,"@00D1FF\r",8);
+    usleep(SLEEP);
   read(fd_RS232,out,4);
-  usleep(SLEEP);
+    //printf("\nB %s\n",out);
+
   write(fd_RS232,"@00D200\r",8);
+    usleep(SLEEP);
   read(fd_RS232,out,4);
-  usleep(SLEEP);
-}
+//    printf("\nC %s\n",out);
+  }
 
 
 void write_to_port(int port, int bits){
-  char out[4];
+  char out[10];
   char str[12];
 
   snprintf(str,8,"@00P%d%02x\r",port,bits);
   //printf("%s\n",str);
   write(fd_RS232,str,8);
   //usleep(SLEEP);
-  read(fd_RS232,out,4);
+  read(fd_RS232,out,6);
   usleep(SLEEP);
 }
 
@@ -156,9 +162,9 @@ int main(void)
   
   setup_ports();
 
-  write_to_port(A,0x08);
+//  write_to_port(A,0x08);
   //usleep(SLEEP);
-  write_to_port(C,0xFF);
+//  write_to_port(C,0xFF);
   
 
 /*
@@ -183,23 +189,83 @@ int main(void)
   
   for(i=0;i<1000;i++){
     write(fd_RS232,"@00P001\r",8);
-    read(fd_RS232,out,4);
     usleep(SLEEP);
+
+/*    read(fd_RS232,out,1);
+    printf("1 %c\n",out[0]);
+    read(fd_RS232,out,1);
+    printf("1 %c\n",out[0]);
+    read(fd_RS232,out,1);
+    printf("1 %c\n",out[0]);
+    read(fd_RS232,out,1);
+    printf("1 %c\n",out[0]);
+*/
+    read(fd_RS232,out,4);
+//    printf("\n1 %s\n",out);
+
+  //  usleep(SLEEP);
+
     write(fd_RS232,"@00P27F\r",8);
-    read(fd_RS232,out,4);
     usleep(SLEEP);
-    printf("        Write v\nv                          %s\n",out);
+
+    read(fd_RS232,out,4);
+//    printf("\n2 %s\n",out);
+
+/*
+    read(fd_RS232,out,1);
+    printf("2 %c\n",out[0]);
+    read(fd_RS232,out,1);
+    printf("2 %c\n",out[0]);
+    read(fd_RS232,out,1);
+    printf("2 %c\n",out[0]);
+    read(fd_RS232,out,1);
+    printf("2 %c\n",out[0]);
+*/
+//    usleep(SLEEP);
+
     write(fd_RS232,"@00P200\r",8);
-    read(fd_RS232,out,4);
     usleep(SLEEP);
+
+    read(fd_RS232,out,4);
+//    printf("\n3 %s\n",out);
+/*
+    read(fd_RS232,out,1);
+    printf("3 %c\n",out[0]);
+    read(fd_RS232,out,1);
+    printf("3 %c\n",out[0]);
+    read(fd_RS232,out,1);
+    printf("3 %c\n",out[0]);
+    read(fd_RS232,out,1);
+    printf("3 %c\n",out[0]);
+*/
+//    usleep(SLEEP);
 
     write(fd_RS232,"@00P1?\r",7);
-    usleep(RSLEEP);
-    read(fd_RS232,out,12);
     usleep(SLEEP);
-    printf("       Read          \n     %s\n",out);
 
+    read(fd_RS232,out,6);
+  
+    out[6]= '\0';
+    printf("\n4 %s\n",out);
+    out[4]= '\0';
+/*
+    read(fd_RS232,out,1);
+    printf("4 %c\n",out[0]);
+    read(fd_RS232,out,1);
+    printf("4 %c\n",out[0]);
+    read(fd_RS232,out,1);
+    printf("4 %c\n",out[0]);
+    read(fd_RS232,out,1);
+    printf("4 %c\n",out[0]);
+    read(fd_RS232,out,1);
+    printf("4 %c\n",out[0]);
+    read(fd_RS232,out,1);
+    printf("4 %c\n",out[0]);
+*/
+//    usleep(SLEEP);
 
+  }
+/*
     write(fd_RS232,"@00P002\r",8);
     read(fd_RS232,out,4);
     usleep(SLEEP);

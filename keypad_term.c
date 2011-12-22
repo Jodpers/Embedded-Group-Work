@@ -57,7 +57,7 @@ const BYTE keytab[] = {1,4,7,10, 2,5,8,0, 3,6,9,11, 15,14,13,12};
 const BYTE uitab[] = {0x00,1, 2, 3, FORWARD, 4, 5, 6, ENTER, 7, 8, 9, MENU, PLAY, 0, BACK, CANCEL};
 /*                        A,   B,   C,   d,   E,   F,   g,   H,   I,   J,   K*/
 const BYTE alphaU[] = {0x77,0x7F,0x39,0x5E,0x79,0x71,0x6F,0x76,0x30,0x1E,0x76,
-		    /*    L,   M,   n,   O,   P,   Q,   r,   S,   t,   U,   V,   W,   X,   Y,   Z*/
+/*                        L,   M,   n,   O,   P,   Q,   r,   S,   t,   U,   V,   W,   X,   Y,   Z*/
 		       0x38,0x15,0x54,0x3F,0x73,0x67,0x50,0x6D,0x78,0x3E,0x1C,0x2A,0x76,0x6E,0x5B};
 /*                        A,   b,   c,   d,   E,   F,   g,   h   i,   J,   K*/
 const BYTE alphaL[] = {0x77,0x7C,0x58,0x5E,0x79,0x71,0x6F,0x74,0x04,0x1E,0x76,

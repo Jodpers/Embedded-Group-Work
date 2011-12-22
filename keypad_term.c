@@ -1,7 +1,9 @@
 /*****
  terminal code from:  http://www.st.ewi.tudelft.nl/~gemund/Courses/In4073/Resources/myterm.c
  used to send ASCII to USB PIO keypad
- 20/12/2011 - Pete Hemery
+
+ Keypad handling routines for Embedded Systems Design coursework
+ 22/12/2011 - Pete Hemery
 *****/
 
 #include <stdio.h>
@@ -133,19 +135,19 @@ int rs232_close(void){
  *----------------------------------------------------------------
  */
 void setup_ports(){
-  char out[4];
+  char str[4];
   write(fd_RS232,"@00D000\r",8); //Port A output
   usleep(SLEEP);                // Needs time for reply
   usleep(SLEEP);
-  read(fd_RS232,out,4);
+  read(fd_RS232,str,4);
 
   write(fd_RS232,"@00D1FF\r",8); //Port B input
   usleep(SLEEP);
-  read(fd_RS232,out,4);
+  read(fd_RS232,str,4);
 
   write(fd_RS232,"@00D200\r",8); //Port C output
   usleep(SLEEP);
-  read(fd_RS232,out,4);
+  read(fd_RS232,str,4);
 }
 
 void write_to_port(int port, BYTE bits){
@@ -301,18 +303,12 @@ void display_string(char *in){
 
 int main () {
   int i;
-
-  BYTE colsel=-1;
-  char *menu="menu";
-  char *info="info";
-  char *track="track";
-  char *time="time";
-  char *welcome="Hello World? =] R0FL .-_-.\0";
+  char *welcome="  Hello World..    ";
   int ret;
   BYTE button_read = 0;
 
 
-  /* error handling - reset led's and close file descriptor & terminal io */
+  /* error handling - reset LEDs */
   atexit(closing_time);
   signal(SIGINT, closing_time);
 
@@ -322,8 +318,9 @@ int main () {
   setup_ports();
   ret = pthread_create( &keypad_thread, NULL, keypad, NULL);
 
+  display_string(welcome);
+
   while(alive){
-//    display_string(welcome);
     delay();
 
     button_read = button;

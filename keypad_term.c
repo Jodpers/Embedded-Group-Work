@@ -28,9 +28,9 @@
 #define A 0
 #define B 1
 #define C 2
-#define SLEEP 1300
-#define DELAY 50000000
-#define SCROLL_DELAY 40000000
+#define SLEEP 1300		// Lowest value needed between write and read
+#define DELAY 50000000		// Key press delay
+#define SCROLL_DELAY 40000000   // LED scrolling
 
 #define PLAY    'A'
 #define BACK    'B'
@@ -172,7 +172,7 @@ void closing_time() {
 void * keypad(){
   int i;
   int col;
-  char str[5];
+  char str[6];
   int out;
   BYTE keypresses = 0;
 
@@ -194,7 +194,7 @@ void * keypad(){
       else{
         out |= (0x0F & (str[4]));      // 0-9
       }
-
+//      printf("\n %s\n",str);
       for(i=0; i<ROWSX; i++){     // Scan the rows for key presses
         if((out >> i) & 0x01){
           keypresses++;
@@ -300,23 +300,17 @@ void display_string(char *in){
  */
 
 int main () {
-  char key;
-  int i, l;
+  int i;
 
-  BYTE know;
-  DWORD keyflags;
   BYTE colsel=-1;
   char *menu="menu";
   char *info="info";
   char *track="track";
   char *time="time";
   char *welcome="Hello World? =] R0FL .-_-.\0";
-  char* ptr;
   int ret;
   BYTE button_read = 0;
 
-  ptr = welcome;
-  l = 0;
 
   /* error handling - reset led's and close file descriptor & terminal io */
   atexit(closing_time);

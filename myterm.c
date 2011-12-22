@@ -264,7 +264,6 @@ int main(void)
 */
 //    usleep(SLEEP);
 
-  }
 /*
     write(fd_RS232,"@00P002\r",8);
     read(fd_RS232,out,4);
@@ -318,6 +317,7 @@ int main(void)
     read(fd_RS232,out,12);
     usleep(SLEEP);
     //printf("%s\n",out);
+*/
   }
   
   /* discard any incoming text

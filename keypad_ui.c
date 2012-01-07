@@ -29,8 +29,8 @@ int fd_RS232;			// Terminal File descriptor
 int state = WAITING_LO;		// State machine variable
 int logged_in = FALSE;		// Client connected to server
 BYTE digits[COLSX] = {0x00,0x00,0x00,0x00};
-char pin[5] = {0};
-char pin_cnt = 0;
+char buffer[10] = {0};
+char buffer_cnt = 0;
 char cur_pos = 0;
 BYTE cursor = 0;
 
@@ -58,7 +58,7 @@ int main () {
   setup_ports();
   ret = pthread_create( &keypad_thread, NULL, keypad, NULL);
 
-//  display_string_nblock(welcome);
+  display_string_nblock(welcome);
 
   while(alive){
     delay();
@@ -84,20 +84,20 @@ int main () {
 	case 7:
 	case 8:
 	case 9:
-          if(pin_cnt != cur_pos){
-            pin_cnt--;
+          if(buffer_cnt != cur_pos){
+            buffer_cnt--;
           }
-          if(++pin_cnt > 4){
-            pin_cnt = 4;
+          if(++buffer_cnt > 4){
+            buffer_cnt = 4;
             cur_pos = 4;
           }
           else{
             digits[cur_pos] = segtab[button_read];
-            pin[cur_pos] = uitab[button_read]+'0';
-            cur_pos = pin_cnt;
+            buffer[cur_pos] = uitab[button_read]+'0';
+            cur_pos = buffer_cnt;
             digits[cur_pos] ^= 0x80;
           }
-printf("pin: %s\npin_cnt: %d\ncur_pos: %d\n",pin,pin_cnt,cur_pos);
+printf("buffer: %s\nbuffer_cnt: %d\ncur_pos: %d\n",buffer,buffer_cnt,cur_pos);
 	  break;
 	case ACCEPT_PLAY:
 	  display_string_block("Play");
@@ -106,53 +106,65 @@ printf("pin: %s\npin_cnt: %d\ncur_pos: %d\n",pin,pin_cnt,cur_pos);
 	  if(--cur_pos<=0){
             cur_pos=0;
 	  }
-printf("pin: %s\npin_cnt: %d\ncur_pos: %d\n",pin,pin_cnt,cur_pos);
+printf("buffer: %s\nbuffer_cnt: %d\ncur_pos: %d\n",buffer,buffer_cnt,cur_pos);
 	  break;
 	case CANCEL:
-	  pin_cnt = 0;
+	  buffer_cnt = 0;
           cur_pos = 0;
 	  for(i=0;i<4;i++){
 	    digits[i]=0;
-	    pin[i]=0;
+	    buffer[i]=0;
 	  }
-printf("pin: %s\npin_cnt: %d\ncur_pos: %d\n",pin,pin_cnt,cur_pos);
-          //cur_blink=FALSE;
+printf("buffer: %s\nbuffer_cnt: %d\ncur_pos: %d\n",buffer,buffer_cnt,cur_pos);
 	  break;
 	case DELETE:
-          if (cur_pos == 4 || cur_pos == pin_cnt){
-            pin[--pin_cnt] = 0;
-            digits[--cur_pos] = 0;
+          if (cur_pos == 4 || cur_pos == buffer_cnt){
+            buffer[--buffer_cnt] = 0;
+            digits[cur_pos] &= 0x7F;
+            digits[--cur_pos] = 0x80;
+//            digits[cur_pos] ^= 0x80;
           }
           else{
-//            digits[cur_pos] &= 0x7F;
+            digits[cur_pos] &= 0x7F;
             for(i=cur_pos;i<4;i++){
               digits[i] = digits[i+1];
-              pin[i] = pin[i+1];
+              buffer[i] = buffer[i+1];
             }
-            pin[pin_cnt--] = 0;
-            //digits[cur_pos] = 0;
+            buffer[buffer_cnt--] = 0;
             digits[3] = 0;
           }
-          if (!pin_cnt || cur_pos < 0){
+          if (!buffer_cnt || cur_pos < 0){
             cur_pos = 0;
-            pin_cnt = 0;
-            pin[pin_cnt] = 0;
+            buffer_cnt = 0;
+            buffer[buffer_cnt] = 0;
           }
-
-printf("pin: %s\npin_cnt: %d\ncur_pos: %d\n",pin,pin_cnt,cur_pos);
+printf("buffer: %s\nbuffer_cnt: %d\ncur_pos: %d\n",buffer,buffer_cnt,cur_pos);
 	  break;
 	case ENTER_MENU:
+	  delay();
+	  if(buffer_cnt < 4){
+            cur_blink=FALSE;
+	    display_string_nblock("PIN too short.   ");
+	    for(i=0;i<4;i++){
+	      digits[i]=numtab[buffer[i]-'0'];
+	    }
+	    for(i=buffer_cnt;i<4;i++){
+	      digits[i]=0;
+	    }
+
+            cur_blink=TRUE;
+	  }
 	  break;
 	case FORWARD:
-	  if(pin_cnt){
-            if(++cur_pos>pin_cnt){
-              cur_pos = pin_cnt;
+	  if(buffer_cnt){
+            if(++cur_pos>buffer_cnt){
+              cur_pos = buffer_cnt;
 	    }
 	  }
-printf("pin: %s\npin_cnt: %d\ncur_pos: %d\n",pin,pin_cnt,cur_pos);
+printf("buffer: %s\nbuffer_cnt: %d\ncur_pos: %d\n",buffer,buffer_cnt,cur_pos);
 	  break;
 	default:
-          display_char('.');
+          //display_char('.');
 	  break;
 	}
       }

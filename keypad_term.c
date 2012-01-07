@@ -30,9 +30,9 @@
 #define A 0
 #define B 1
 #define C 2
-#define SLEEP 1300		// Lowest value needed between write and read
+#define SLEEP 1400		// Lowest value needed between write and read
 #define DELAY 50000000		// Key press delay
-#define SCROLL_DELAY 40000000   // LED scrolling
+#define SCROLL_DELAY 60000000   // LED scrolling
 
 #define PLAY    'A'
 #define BACK    'B'
@@ -53,9 +53,9 @@ typedef unsigned int DWORD;
     --8-- 80
 *******************/
 BYTE digits[COLSX] = {0x73,0x79,0x78,0x79};
-const BYTE segtab[] = {0x00,0x06,0x5B,0x4F,0x71,0x66,0x6D,0x7D,0x79,
+const BYTE segtab[] = {0x3F,0x06,0x5B,0x4F,0x71,0x66,0x6D,0x7D,0x79,
 		       0x07,0x7F,0x6F,0x5E,0x77,0x3F,0x7C,0x39};
-const BYTE keytab[] = {1,4,7,10, 2,5,8,0, 3,6,9,11, 15,14,13,12};
+const BYTE numtab[] = {0x3F,0x06,0x5B,0x4F,0x66,0x6D,0x7D,0x07,0x7F,0x6F};
 const BYTE uitab[] = {0x00,1, 2, 3, FORWARD, 4, 5, 6, ENTER, 7, 8, 9, MENU, PLAY, 0, BACK, CANCEL};
 /*                        A,   B,   C,   d,   E,   F,   g,   H,   I,   J,   K*/
 const BYTE alphaU[] = {0x77,0x7F,0x39,0x5E,0x79,0x71,0x6F,0x76,0x30,0x1E,0x76,
@@ -196,7 +196,7 @@ void * keypad(){
       else{
         out |= (0x0F & (str[4]));      // 0-9
       }
-//      printf("\n %s\n",str);
+
       for(i=0; i<ROWSX; i++){     // Scan the rows for key presses
         if((out >> i) & 0x01){
           keypresses++;
@@ -206,6 +206,7 @@ void * keypad(){
 
       if(col == COLSX-1){         // After reading all the columns
         if(keypresses){           // Check how many buttons were pressed
+//      printf("\n %s\n",str);
           if(keypresses > 1){     // More than one is an error
             button=ERROR;         // Otherwise button has correct value
           }
@@ -223,12 +224,12 @@ void * keypad(){
  *----------------------------------------------------------------
  */
 
-void delay(){
+void delay(){        // Delay between button presses
   int i;
   for(i=0;i<DELAY;i++);
 }
 
-void scroll_delay(){
+void scroll_delay(){ // Delay of text moving across the display
   int i;
   for(i=0;i<SCROLL_DELAY;i++);
 }
@@ -242,49 +243,60 @@ void shift_digits(){
 }
 
 void display_char(char key){
-  if((key >= 0) && (key <= 0x10)){
-    shift_digits();
-    digits[3] = segtab[key];
-  }
-  else if(key == 0x20){                  //space
-    shift_digits();
-    digits[3] = 0x00;
-  }
-  else if(key == 0x2D){                  // hyphen -
-    shift_digits();
-    digits[3] = 0x40;
-  }
-  else if(key == 0x2E){                  // full stop .
-    shift_digits();
-    digits[3] = 0x80;
-  }
-  else if(key == 0x3D){                  // =
-    shift_digits();
-    digits[3] = 0x48;
-  }
-  else if(key == 0x3F){                  // ?
-    shift_digits();
-    digits[3] = 0xD3;
-  }
-  else if(key == 0x5F){                  // _
-    shift_digits();
-    digits[3] = 0x08;
-  }
-  else if((key == 0x28)||(key == 0x5B)||(key == 0x7B)){ // [
-    shift_digits();
-    digits[3] = 0x39;
-  }
-  else if((key == 0x29)||(key == 0x5D)||(key == 0x7D)){ // ]
-    shift_digits();
-    digits[3] = 0x0F;
-  }
-  else if((key > 0x40) && (key < 0x5B)){ // "Upper case" alphabet
-    shift_digits();
-    digits[3] = alphaU[key-0x41];
-  }
-  else if((key > 0x60) && (key < 0x7B)){ // "Lower case" alphabet
-    shift_digits();
-    digits[3] = alphaL[key-0x61];
+  shift_digits();
+
+  switch(key){
+    case ' ':
+      digits[3] = 0x00;
+      break;
+    case '-':
+      digits[3] = 0x40;
+      break;
+    case '.':
+      digits[3] = 0x80;
+      break;
+    case '=':
+      digits[3] = 0x48;
+      break;
+    case '?':
+      digits[3] = 0x83;
+      break;
+    case '!':
+      digits[3] = 0x82;
+      break;
+    case '_':
+      digits[3] = 0x08;
+      break;
+    case '(':
+    case '<':
+    case '[':
+    case '{':
+      digits[3] = 0x39;
+      break;
+    case ')':
+    case '>':
+    case ']':
+    case '}':
+      digits[3] = 0x0F;
+      break;
+    default:
+      if((key >= 0) && (key <= 0x10)){
+       digits[3] = segtab[key];
+      }
+      else if((key >= 0x30) && (key < 0x3A)){ // Numbers 1-9
+        digits[3] = numtab[key-0x30];
+      }
+      else if((key > 0x40) && (key < 0x5B)){ // "Upper case" alphabet
+        digits[3] = alphaU[key-0x41];
+      }
+      else if((key > 0x60) && (key < 0x7B)){ // "Lower case" alphabet
+        digits[3] = alphaL[key-0x61];
+      }
+      else{
+        digits[3] = 0x00;
+      }
+      break;
+    }
   }
 }
 
@@ -318,11 +330,10 @@ int main () {
   setup_ports();
   ret = pthread_create( &keypad_thread, NULL, keypad, NULL);
 
-  display_string(welcome);
+//  display_string(welcome);
 
   while(alive){
     delay();
-
     button_read = button;
     if(button_read){
       if(button_read > 0x11){

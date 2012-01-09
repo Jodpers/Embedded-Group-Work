@@ -45,9 +45,9 @@ char authentication = FALSE;
 
 int main (void) {
 //  int i;
-  char *welcome="Welcome.   Please Enter PIN.    ";
-  char *emergency="! EMERGENCY !   ";
-  char *enter_pin="Please Enter PIN.    ";
+  char *welcome="Welcome.   Please Enter PIN.";
+  char *emergency="! EMERGENCY !";
+  char *enter_pin="Please Enter PIN.";
   int ret;
   char button_read = FALSE;  // Local snapshot of Global 'Button'
   char interrupted = FALSE;
@@ -72,12 +72,11 @@ int main (void) {
       case WAITING_LOGGED_OUT:
         if(button){
           if(button >= '0' && button <= '9'){
-            state = INPUTTING_LOGGED_OUT;
+            state = INPUTTING_LOGGED_OUT; // Fall through to that state
             cur_blink = TRUE;  // Activate the blinking cursor
           }
           else{
-            delay();
-            display_string_nblock(enter_pin);
+            interrupted = display_string_nblock(enter_pin);
             cur_blink = FALSE; // Deactivate the blinking cursor
             break;
           }
@@ -86,15 +85,14 @@ int main (void) {
           break;
         }
       case INPUTTING_LOGGED_OUT:
-        if(button_read = button){
-          input_lo(button_read);
-//          printf("button read %c\n",button_read);
+        if(button_read = button){ // Intentionally Assignment
+          input_lo(button_read);  // Sends a snapshot of button
         }
-        cursor_blink();        
+        cursor_blink();
         break;
       case WAITING_LOGGED_IN:
-        display_string_block("  LOGGED IN    ");
-        state = WAITING_LOGGED_OUT;
+        display_string_block("  LOGGED IN -.-   ");
+//        state = WAITING_LOGGED_OUT;
         break;
       case INPUTTING_LOGGED_IN:
         state = WAITING_LOGGED_OUT;
@@ -145,9 +143,9 @@ void input_lo(char button_read){
       buffer[cur_pos] = button_read; // Copy ASCII button press
       cur_pos = buffer_cnt; // Point at next empty location
       cursor_blink();  // Clear last cursor and move to next empty space
-      delay();
+      delay();  // Wait to make sure button has stopped being pressed
     }
-    printf("buffer: %s\nbuffer_cnt: %d\ncur_pos: %d\n",buffer,buffer_cnt,cur_pos);
+//  printf("buffer: %s\nbuffer_cnt: %d\ncur_pos: %d\n",buffer,buffer_cnt,cur_pos);
     break;
     
   case ACCEPT_PLAY:
@@ -162,21 +160,22 @@ void input_lo(char button_read){
       authentication = TRUE;//check_pin(buffer,strlen(buffer));
       if(authentication == TRUE){
         display_string_nblock("  Logged In.   ");
-        state = WAITING_LOGGED_IN;
-        cur_blink=FALSE;
+        display_string_nblock("  PIN.");
+        display_string_nblock(buffer);
+        display_string_nblock(".   ");
       }
       else{
         display_string_nblock("  Invalid PIN.   ");
-        state = WAITING_LOGGED_OUT;        
       }
+      state = WAITING_LOGGED_IN;
       reset_buffer();
+      
     }
     break;
 
   case CANCEL:
     reset_buffer();
     state = WAITING_LOGGED_OUT; // Go back to waiting
-    delay();
     display_string_nblock("Please Enter PIN.    ");
     break;
 
@@ -187,7 +186,7 @@ void input_lo(char button_read){
       }
     }
     cursor_blink(); //Update Cursor Position
-    printf("cursor_position: %d\n",cur_pos);
+//    printf("cursor_position: %d\n",cur_pos);
     break;
     
   case BACK:
@@ -195,7 +194,7 @@ void input_lo(char button_read){
       cur_pos=0;
     }
     cursor_blink();
-    printf("cursor_position: %d\n",cur_pos);
+//    printf("cursor_position: %d\n",cur_pos);
     break;
     
   case DELETE:
@@ -219,7 +218,7 @@ void input_lo(char button_read){
       buffer_cnt = 0;
       buffer[buffer_cnt] = 0;
     }
-  printf("buffer: %s\nbuffer_cnt: %d\ncur_pos: %d\n",buffer,buffer_cnt,cur_pos);
+//  printf("buffer: %s\nbuffer_cnt: %d\ncur_pos: %d\n",buffer,buffer_cnt,cur_pos);
     break;
   default:
     break;
@@ -290,6 +289,10 @@ void delay(){        // Delay between button presses
   int i;
   for(i=0;i<DELAY;i++);
 }
+void scroll_delay(){ // Delay of text moving across the display
+  int i;
+    for(i=0;i<SCROLL_DELAY;i++);
+}
 
 void reset_buffer(void){ // Reset everything
   int i;
@@ -355,12 +358,17 @@ void shift_digits_left(){
 void shift_digits_right(){
 }
 
-void display_char(char key){
+void shift_digits(){
   int i;
   digits[cur_pos] &= 0x7F;
   for(i=0;i<3;i++){
     digits[i] = digits[i+1];
   }
+  digits[3] = 0;
+}
+
+void display_char(char key){
+  shift_digits();
   switch(key){
     case ' ':
       digits[3] = 0x00;
@@ -414,41 +422,71 @@ void display_char(char key){
       break;
   }
 }
+/*------------------------------------------------------------
+ * Display String Routines - Blocking and Non-Blocking
+ *------------------------------------------------------------
+ */
 
 void display_string_block(char *in){
   int i;
   BYTE temp[4];
+  
   for(i=0;i<4;i++){
    temp[i]=digits[i]; // Save current digits
    digits[i]=0;  // Clear digits before displaying message
   }
+  
   while(*in!='\0' && alive){
     display_char(*in);
     in++;
-    for(i=0;i<SCROLL_DELAY;i++); // Delay of text moving across the display
+    scroll_delay(); // Blocking method
   }
-  for(i=0;i<4;i++) digits[i]=temp[i]; // Replace saved digits
+  
+  for(i=0;i<4;i++){ // Finish Scrolling the message off
+    shift_digits();
+    scroll_delay();
+  }
+  
+  for(i=0;i<4;i++){
+    digits[i]=temp[i]; // Replace saved digits
+  }
 }
 
 char display_string_nblock(char *in){
   int i;
   BYTE temp[4];
-    
+
+  if(button)  // Routine called by a button press
+    while(button && alive);  // Wait until not pressed
+        
   for(i=0;i<4;i++){
    temp[i]=digits[i]; // Save current digits
    digits[i]=0;  // Clear digits before displaying message
   }
-  do{
+    
+  while(*in!='\0' && alive && !button){
     display_char(*in);
     in++;
-    i = SCROLL_DELAY;
-    while(--i && !button); // Delay of text moving across the display
-  }while(*in!='\0' && alive && !button);
-
-  for(i=0;i<4;i++) digits[i]=temp[i]; // Replace saved digits
-
-  if(button) return TRUE; // Interrupted
-  return FALSE;           // Uninterrupted
+    i = SCROLL_DELAY; // Non-blocking method
+    while(--i && alive && !button); // Delay of text moving across the display
+  }
+  
+  if(button){
+    for(i=0;i<4;i++){
+      digits[i]=temp[i]; // Replace saved digits
+    }
+    return TRUE;  // Interrupted
+  }
+  
+  for(i=0;i<4;i++){ // Finish Scrolling the message off
+    shift_digits();
+    scroll_delay(); // Blocking method, just for the end but
+  }
+  
+  for(i=0;i<4;i++){
+    digits[i]=temp[i]; // Replace saved digits
+  }
+  return FALSE;   // Uninterrupted
 }
 
 /*------------------------------------------------------------
@@ -471,13 +509,10 @@ void term_initio(){
 void term_exitio(){
   tcsetattr(0, TCSADRAIN, &savetty);
 }
-
 /*------------------------------------------------------------
  * serial I/O (8 bits, 1 stopbit, no parity, 38,400 baud)
  *------------------------------------------------------------
  */
-
-
 int rs232_open(void){
   char   *name;
   int   result;  

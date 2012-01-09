@@ -83,10 +83,12 @@ void input_lo(char);
 void reset_buffer(void);
 
 void delay();			// Delay between button presses
+void scroll_delay();			// Delay of digits scrolling
 void cursor_blink();
 void del_digit();
 void shift_digits_left();
 void shift_digits_right();
+void shift_digits();
 void display_char(char);
 void display_string_block(char *);
 char display_string_nblock(char *);

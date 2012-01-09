@@ -23,7 +23,6 @@
 
 pthread_t keypad_thread;
 BYTE alive = TRUE;  // Exit condition of while loops
-BYTE cur_blink = TRUE;
 char button = FALSE;  // Button pressed 1-16 or -1 for multiple buttons
 int fd_RS232;   // Terminal File descriptor
 int state = WAITING_LOGGED_OUT;  // State machine variable
@@ -45,12 +44,11 @@ char authentication = FALSE;
 
 int main (void) {
 //  int i;
-  char *welcome="Welcome.   Please Enter PIN.";
-  char *emergency="! EMERGENCY !";
-  char *enter_pin="Please Enter PIN.";
   int ret;
+  char *emergency="! EMERGENCY !";
+  char *welcome="Welcome.";
+  char *enter_pin="Please Enter PIN.";
   char button_read = FALSE;  // Local snapshot of Global 'Button'
-  char interrupted = FALSE;
 
   /* error handling - reset LEDs */
   atexit(closing_time);
@@ -63,6 +61,7 @@ int main (void) {
   ret = pthread_create( &keypad_thread, NULL, keypad, NULL);
 
   display_string_nblock(welcome);
+
   while(alive){
     if(state == EMERGENCY){
         display_string_block(emergency);
@@ -70,32 +69,44 @@ int main (void) {
     }
     switch(state){
       case WAITING_LOGGED_OUT:
-        if(button){
-          if(button >= '0' && button <= '9'){
-            state = INPUTTING_LOGGED_OUT; // Fall through to that state
-            cur_blink = TRUE;  // Activate the blinking cursor
-          }
-          else{
-            interrupted = display_string_nblock(enter_pin);
-            cur_blink = FALSE; // Deactivate the blinking cursor
-            break;
-          }
+        display_string_nblock(enter_pin);
+        digits[0] = 0x80;  // Set cursor position
+        while(!button && alive && state == WAITING_LOGGED_OUT); // Just Wait
+        
+        if(button >= '0' && button <= '9'){
+          state = INPUTTING_PIN; // Fall through to next state
         }
         else{
           break;
         }
-      case INPUTTING_LOGGED_OUT:
+      case INPUTTING_PIN:
         if(button_read = button){ // Intentionally Assignment
-          input_lo(button_read);  // Sends a snapshot of button
+          input_pin(button_read);  // Sends a snapshot of button
         }
         cursor_blink();
         break;
       case WAITING_LOGGED_IN:
-        display_string_block("  LOGGED IN -.-   ");
-//        state = WAITING_LOGGED_OUT;
+        display_string_block("Enter Track Number.");
+        digits[0] = 0x80;  // Set cursor position
+        while(!button && alive && state == WAITING_LOGGED_IN); // Just Wait
+        if(button >= '0' && button <= '9'){
+          state = INPUTTING_TRACK_NUMBER; // Fall through to next state
+        }
+        else if(button == ENTER_MENU){
+          state = MENU_SELECT; // Fall through to next state
+          break;
+        }
+        else{
+          break;
+        }
+      case INPUTTING_TRACK_NUMBER:
+        display_string_block("INPUTTING =)");
+        cursor_blink();
+        state = WAITING_LOGGED_IN;
         break;
-      case INPUTTING_LOGGED_IN:
-        state = WAITING_LOGGED_OUT;
+      case MENU_SELECT:
+        display_string_block("MENU.");
+        state = WAITING_LOGGED_IN;
         break;
       default:
         break;
@@ -115,9 +126,9 @@ int main (void) {
  *----------------------------------------------------------------
  */
 
-/*  INPUTTING_LOGGED_OUT */
+/*  INPUTTING_PIN */
 
-void input_lo(char button_read){
+void input_pin(char button_read){
   int i;
   switch(button_read){
   case '0':
@@ -154,29 +165,25 @@ void input_lo(char button_read){
       cur_pos = buffer_cnt;
     }
     if(buffer_cnt < 4){
-      display_string_block("  PIN too short.   ");
+      display_string_block("PIN too short.");
     }
     else{
       authentication = TRUE;//check_pin(buffer,strlen(buffer));
       if(authentication == TRUE){
-        display_string_nblock("  Logged In.   ");
-        display_string_nblock("  PIN.");
+        display_string_nblock("Logged In.");
         display_string_nblock(buffer);
-        display_string_nblock(".   ");
       }
       else{
-        display_string_nblock("  Invalid PIN.   ");
+        display_string_nblock("Invalid PIN.");
       }
       state = WAITING_LOGGED_IN;
       reset_buffer();
-      
     }
     break;
 
   case CANCEL:
     reset_buffer();
     state = WAITING_LOGGED_OUT; // Go back to waiting
-    display_string_nblock("Please Enter PIN.    ");
     break;
 
   case FORWARD:  // Move the cursor forward 1 digit
@@ -185,7 +192,7 @@ void input_lo(char button_read){
         cur_pos = buffer_cnt;
       }
     }
-    cursor_blink(); //Update Cursor Position
+    cursor_blink(); // Update Cursor Position
 //    printf("cursor_position: %d\n",cur_pos);
     break;
     
@@ -301,7 +308,7 @@ void reset_buffer(void){ // Reset everything
   }
   buffer_cnt = 0;
   cur_pos = 0;
-  cur_blink = FALSE; // Turn off the cursor
+
   for(i=0;i<4;i++){ // Clear the LEDs
     digits[i]=0;
   }
@@ -311,29 +318,28 @@ void cursor_blink(){
   static DWORD timer = CUR_TRIGGER;
   static BYTE prev_pos = 0;
 
-  if(cur_pos != prev_pos){
-    digits[prev_pos] &= 0x7F;
-    if(cur_pos < 4){
-      digits[cur_pos] ^= 0x80;
+  if(cur_pos != prev_pos){ // Cursor has moved
+    digits[prev_pos] &= 0x7F; // Clear the old cursor
+    if(cur_pos < 4){  // Unless pointing off the edge of the display
+      digits[cur_pos] ^= 0x80; // Toggle the cursor
     }
-    prev_pos = cur_pos;
-    timer = CUR_TRIGGER;    
+    prev_pos = cur_pos; // Remember where cursor is
+    timer = CUR_TRIGGER; 
   }
 
-  if(cur_blink){
-    timer--;
-    if(!timer){
-      timer = CUR_TRIGGER;
-      if(cur_pos < 4){
-        digits[cur_pos] ^= 0x80;
-      }
+  timer--;      // Only toggle every few loops
+  if(!timer){   // Gives the blinking effect
+    timer = CUR_TRIGGER;
+    if(cur_pos < 4){ // Unless pointing off the edge of the display
+      digits[cur_pos] ^= 0x80;
     }
-  }
-  else{
-    digits[cur_pos] &= 0x7F;
   }
 }
 
+/*------------------------------------------------------------
+ * Display Digit Shifting Routines
+ *------------------------------------------------------------
+ */
 void shift_digits_left(){
   int i;
   int buf_len;
@@ -366,7 +372,10 @@ void shift_digits(){
   }
   digits[3] = 0;
 }
-
+/*------------------------------------------------------------
+ * Display Char Routine
+ *------------------------------------------------------------
+ */
 void display_char(char key){
   shift_digits();
   switch(key){
@@ -426,7 +435,6 @@ void display_char(char key){
  * Display String Routines - Blocking and Non-Blocking
  *------------------------------------------------------------
  */
-
 void display_string_block(char *in){
   int i;
   BYTE temp[4];
@@ -480,7 +488,7 @@ char display_string_nblock(char *in){
   
   for(i=0;i<4;i++){ // Finish Scrolling the message off
     shift_digits();
-    scroll_delay(); // Blocking method, just for the end but
+    scroll_delay(); // Blocking method, just for the end bit
   }
   
   for(i=0;i<4;i++){

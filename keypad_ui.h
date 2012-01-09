@@ -32,9 +32,10 @@
 enum states{
 	EMERGENCY,
 	WAITING_LOGGED_OUT,
-	INPUTTING_LOGGED_OUT,
+	INPUTTING_PIN,
 	WAITING_LOGGED_IN,
-	INPUTTING_LOGGED_IN
+	INPUTTING_TRACK_NUMBER,
+	MENU_SELECT
 };
 
 typedef unsigned char BYTE;
@@ -79,7 +80,7 @@ void write_to_port(int, BYTE);
 void closing_time();
 void * keypad();
 
-void input_lo(char);
+void input_pin(char);
 void reset_buffer(void);
 
 void delay();			// Delay between button presses

@@ -12,27 +12,29 @@
 #include <string.h>
 #include <unistd.h>
 #include <signal.h>
-#include <fcntl.h>			//file descriptors
+#include <fcntl.h>   //file descriptors
 #include <ctype.h>
-#include <termios.h>		//terminal
+#include <termios.h>  //terminal
 #include <assert.h>
 #include <time.h>
-#include <sys/types.h>		//threads
+#include <sys/types.h>  //threads
 #include <pthread.h>
 #include "keypad_ui.h"
 
 pthread_t keypad_thread;
-BYTE alive = TRUE;		// Exit condition of while loops
+BYTE alive = TRUE;  // Exit condition of while loops
 BYTE cur_blink = TRUE;
-short button = FALSE;		// Button pressed or -1 for multiple buttons
-int fd_RS232;			// Terminal File descriptor
-int state = WAITING_LO;		// State machine variable
-int logged_in = FALSE;		// Client connected to server
+char button = FALSE;  // Button pressed 1-16 or -1 for multiple buttons
+int fd_RS232;   // Terminal File descriptor
+int state = WAITING_LOGGED_OUT;  // State machine variable
+int logged_in = FALSE;  // Client connected to server
 BYTE digits[COLSX] = {0x00,0x00,0x00,0x00};
-char buffer[10] = {0};
+char buffer[BUF_SIZE] = {0};
 char buffer_cnt = 0;
+char buffer_pos = 0;
 char cur_pos = 0;
 BYTE cursor = 0;
+char authentication = FALSE;
 
 
 /*----------------------------------------------------------------
@@ -41,12 +43,14 @@ BYTE cursor = 0;
  *----------------------------------------------------------------
  */
 
-int main () {
-  int i;
-  char *welcome="Welcome. Please Enter PIN Number.    ";
-  char *emergency="EMERGENCY!  !";
-  BYTE button_read = 0;  
+int main (void) {
+//  int i;
+  char *welcome="Welcome.   Please Enter PIN.    ";
+  char *emergency="! EMERGENCY !   ";
+  char *enter_pin="Please Enter PIN.    ";
   int ret;
+  char button_read = FALSE;  // Local snapshot of Global 'Button'
+  char interrupted = FALSE;
 
   /* error handling - reset LEDs */
   atexit(closing_time);
@@ -59,123 +63,167 @@ int main () {
   ret = pthread_create( &keypad_thread, NULL, keypad, NULL);
 
   display_string_nblock(welcome);
-
   while(alive){
-    delay();
-
     if(state == EMERGENCY){
-      display_string_block(emergency);
+        display_string_block(emergency);
       continue;
     }
-
-    cursor_blink();
-
-    button_read = button;
-    if(button_read){
-      if(state == WAITING_LO){
-	switch(uitab[button_read]){
-	case 0:
-	case 1:
-	case 2:
-	case 3:
-	case 4:
-	case 5:
-	case 6:
-	case 7:
-	case 8:
-	case 9:
-          if(buffer_cnt != cur_pos){
-            buffer_cnt--;
-          }
-          if(++buffer_cnt > 4){
-            buffer_cnt = 4;
-            cur_pos = 4;
+    switch(state){
+      case WAITING_LOGGED_OUT:
+        if(button){
+          if(button >= '0' && button <= '9'){
+            state = INPUTTING_LOGGED_OUT;
+            cur_blink = TRUE;  // Activate the blinking cursor
           }
           else{
-            digits[cur_pos] = segtab[button_read];
-            buffer[cur_pos] = uitab[button_read]+'0';
-            cur_pos = buffer_cnt;
-            digits[cur_pos] ^= 0x80;
+            delay();
+            display_string_nblock(enter_pin);
+            cur_blink = FALSE; // Deactivate the blinking cursor
+            break;
           }
-printf("buffer: %s\nbuffer_cnt: %d\ncur_pos: %d\n",buffer,buffer_cnt,cur_pos);
-	  break;
-	case ACCEPT_PLAY:
-	  display_string_block("Play");
-	  break;
-	case BACK:
-	  if(--cur_pos<=0){
-            cur_pos=0;
-	  }
-printf("buffer: %s\nbuffer_cnt: %d\ncur_pos: %d\n",buffer,buffer_cnt,cur_pos);
-	  break;
-	case CANCEL:
-	  buffer_cnt = 0;
-          cur_pos = 0;
-	  for(i=0;i<4;i++){
-	    digits[i]=0;
-	    buffer[i]=0;
-	  }
-printf("buffer: %s\nbuffer_cnt: %d\ncur_pos: %d\n",buffer,buffer_cnt,cur_pos);
-	  break;
-	case DELETE:
-          if (cur_pos == 4 || cur_pos == buffer_cnt){
-            buffer[--buffer_cnt] = 0;
-            digits[cur_pos] &= 0x7F;
-            digits[--cur_pos] = 0x80;
-//            digits[cur_pos] ^= 0x80;
-          }
-          else{
-            digits[cur_pos] &= 0x7F;
-            for(i=cur_pos;i<4;i++){
-              digits[i] = digits[i+1];
-              buffer[i] = buffer[i+1];
-            }
-            buffer[buffer_cnt--] = 0;
-            digits[3] = 0;
-          }
-          if (!buffer_cnt || cur_pos < 0){
-            cur_pos = 0;
-            buffer_cnt = 0;
-            buffer[buffer_cnt] = 0;
-          }
-printf("buffer: %s\nbuffer_cnt: %d\ncur_pos: %d\n",buffer,buffer_cnt,cur_pos);
-	  break;
-	case ENTER_MENU:
-	  delay();
-	  if(buffer_cnt < 4){
-            cur_blink=FALSE;
-	    display_string_nblock("PIN too short.   ");
-	    for(i=0;i<4;i++){
-	      digits[i]=numtab[buffer[i]-'0'];
-	    }
-	    for(i=buffer_cnt;i<4;i++){
-	      digits[i]=0;
-	    }
-
-            cur_blink=TRUE;
-	  }
-	  break;
-	case FORWARD:
-	  if(buffer_cnt){
-            if(++cur_pos>buffer_cnt){
-              cur_pos = buffer_cnt;
-	    }
-	  }
-printf("buffer: %s\nbuffer_cnt: %d\ncur_pos: %d\n",buffer,buffer_cnt,cur_pos);
-	  break;
-	default:
-          //display_char('.');
-	  break;
-	}
-      }
+        }
+        else{
+          break;
+        }
+      case INPUTTING_LOGGED_OUT:
+        if(button_read = button){
+          input_lo(button_read);
+//          printf("button read %c\n",button_read);
+        }
+        cursor_blink();        
+        break;
+      case WAITING_LOGGED_IN:
+        display_string_block("  LOGGED IN    ");
+        state = WAITING_LOGGED_OUT;
+        break;
+      case INPUTTING_LOGGED_IN:
+        state = WAITING_LOGGED_OUT;
+        break;
+      default:
+        break;
     }
+    delay();
   }
+
 
   pthread_join(keypad_thread, NULL);
 
   term_exitio();
   rs232_close();
   return 0;
+}
+/*----------------------------------------------------------------
+ * User Interface State Machines
+ *----------------------------------------------------------------
+ */
+
+/*  INPUTTING_LOGGED_OUT */
+
+void input_lo(char button_read){
+  int i;
+  switch(button_read){
+  case '0':
+  case '1':
+  case '2':
+  case '3':
+  case '4':
+  case '5':
+  case '6':
+  case '7':
+  case '8':
+  case '9':
+    if(buffer_cnt != cur_pos){  // If cursor isn't at the end
+      buffer_cnt--;  // Decrement it before next line, lest we wrongly add 1
+    }
+    if(++buffer_cnt > 4){ // Button has been pressed, let's up the buffer count
+      buffer_cnt = 4; // Limit PIN to 4 digits
+      cur_pos = 4; // Cursor is off the edge of the array and won't blink
+      buffer[cur_pos] = 0; // Null terminate string containing PIN
+    }
+    else{   // Less than 4 digits already? Well, get it in there!
+      digits[cur_pos] = numtab[button_read-'0'];// Display the digit pressed
+      buffer[cur_pos] = button_read; // Copy ASCII button press
+      cur_pos = buffer_cnt; // Point at next empty location
+      cursor_blink();  // Clear last cursor and move to next empty space
+      delay();
+    }
+    printf("buffer: %s\nbuffer_cnt: %d\ncur_pos: %d\n",buffer,buffer_cnt,cur_pos);
+    break;
+    
+  case ACCEPT_PLAY:
+  case ENTER_MENU:
+    if(cur_pos != buffer_cnt){  // Ignore key if cursor isn't at the end
+      cur_pos = buffer_cnt;
+    }
+    if(buffer_cnt < 4){
+      display_string_block("  PIN too short.   ");
+    }
+    else{
+      authentication = TRUE;//check_pin(buffer,strlen(buffer));
+      if(authentication == TRUE){
+        display_string_nblock("  Logged In.   ");
+        state = WAITING_LOGGED_IN;
+        cur_blink=FALSE;
+      }
+      else{
+        display_string_nblock("  Invalid PIN.   ");
+        state = WAITING_LOGGED_OUT;        
+      }
+      reset_buffer();
+    }
+    break;
+
+  case CANCEL:
+    reset_buffer();
+    state = WAITING_LOGGED_OUT; // Go back to waiting
+    delay();
+    display_string_nblock("Please Enter PIN.    ");
+    break;
+
+  case FORWARD:  // Move the cursor forward 1 digit
+    if(buffer_cnt){
+      if(++cur_pos>buffer_cnt){ // Scroll as far as 1 digit past last input
+        cur_pos = buffer_cnt;
+      }
+    }
+    cursor_blink(); //Update Cursor Position
+    printf("cursor_position: %d\n",cur_pos);
+    break;
+    
+  case BACK:
+    if(--cur_pos<=0){
+      cur_pos=0;
+    }
+    cursor_blink();
+    printf("cursor_position: %d\n",cur_pos);
+    break;
+    
+  case DELETE:
+    if (cur_pos == 4 || cur_pos == buffer_cnt){
+      buffer[--buffer_cnt] = 0;
+      digits[cur_pos] &= 0x7F;
+      digits[--cur_pos] = 0;
+      cursor_blink();
+    }
+    else{
+      digits[cur_pos] &= 0x7F;
+      for(i=cur_pos;i<4;i++){
+        digits[i] = digits[i+1];
+        buffer[i] = buffer[i+1];
+      }
+      buffer[buffer_cnt--] = 0;
+      digits[3] = 0;
+    }
+    if (!buffer_cnt || cur_pos < 0){
+      cur_pos = 0;
+      buffer_cnt = 0;
+      buffer[buffer_cnt] = 0;
+    }
+  printf("buffer: %s\nbuffer_cnt: %d\ncur_pos: %d\n",buffer,buffer_cnt,cur_pos);
+    break;
+  default:
+    break;
+  }
 }
 
 /*----------------------------------------------------------------
@@ -185,23 +233,24 @@ printf("buffer: %s\nbuffer_cnt: %d\ncur_pos: %d\n",buffer,buffer_cnt,cur_pos);
 void * keypad(){
   int i;
   int col;
-  char str[6];
   int out;
+  char temp;
+  char str[6];
   BYTE keypresses = 0;
 
 
   while(alive){
     for (col=0;col<COLSX;col++){
-      write_to_port(C, 0);     			// LEDS off
+      write_to_port(C, 0);        // LEDS off
       write_to_port(A, (BYTE) (01 << col));     // select column
-      write_to_port(C, digits[col]);		// next LED pattern  
+      write_to_port(C, digits[col]);  // next LED pattern  
 
       write(fd_RS232,"@00P1?\r",7);             // Read the column
       usleep(SLEEP);
       read(fd_RS232,str,6);
 
       out = 0;
-      if(str[4] > 0x40) {	  // Convert output from ASCII to binary
+      if(str[4] > 0x40) {   // Convert output from ASCII to binary
         out |= (0x0F & (str[4]-0x07)); // A-F
       }
       else{
@@ -211,21 +260,23 @@ void * keypad(){
       for(i=0; i<ROWSX; i++){     // Scan the rows for key presses
         if((out >> i) & 0x01){
           keypresses++;
-	  button = ((col+1)+(i*4));// Set the detected button
+          temp = uitab[((col+1)+(i*4))];// Set the detected button
         }
       }
 
-      if(col == COLSX-1){         // After reading all the columns
-        if(keypresses){           // Check how many buttons were pressed
-//      printf("\n %s\n",str);
-          if(keypresses > 1){     // More than one is an error
-            button=ERROR;         // Otherwise button has correct value
-          }
+      if(col == COLSX-1){       // After reading all the columns
+        switch(keypresses){
+          case 0:
+            button=FALSE; // No key press detected
+            break;
+          case 1:
+            button=temp; // Write ASCII value from uitab
+            break;
+          default:
+            button=ERROR;       // Multiple keys pressed
+            break;
         }
-	else{
-	  button=FALSE;           // No key press detected
-	}
-	keypresses=FALSE;         // Ready for the next loop
+        keypresses = 0;
       }
     }
   }
@@ -240,39 +291,76 @@ void delay(){        // Delay between button presses
   for(i=0;i<DELAY;i++);
 }
 
-void scroll_delay(){ // Delay of text moving across the display
+void reset_buffer(void){ // Reset everything
   int i;
-  for(i=0;i<SCROLL_DELAY;i++);
+  for(i=0;i<BUF_SIZE;i++){
+    buffer[i]=0;
+  }
+  buffer_cnt = 0;
+  cur_pos = 0;
+  cur_blink = FALSE; // Turn off the cursor
+  for(i=0;i<4;i++){ // Clear the LEDs
+    digits[i]=0;
+  }
 }
 
 void cursor_blink(){
   static DWORD timer = CUR_TRIGGER;
-  static prev_pos = 0;
+  static BYTE prev_pos = 0;
+
+  if(cur_pos != prev_pos){
+    digits[prev_pos] &= 0x7F;
+    if(cur_pos < 4){
+      digits[cur_pos] ^= 0x80;
+    }
+    prev_pos = cur_pos;
+    timer = CUR_TRIGGER;    
+  }
 
   if(cur_blink){
     timer--;
     if(!timer){
       timer = CUR_TRIGGER;
-      if(cur_pos != prev_pos){
-        digits[prev_pos] &= 0x7F;
-        prev_pos = cur_pos;
+      if(cur_pos < 4){
+        digits[cur_pos] ^= 0x80;
       }
-      digits[cur_pos] ^= 0x80;
     }
+  }
+  else{
+    digits[cur_pos] &= 0x7F;
   }
 }
 
-void shift_digits(){
-  scroll_delay();
-  digits[cur_pos] &= 0x7F;
-  digits[0] = digits[1];
-  digits[1] = digits[2];
-  digits[2] = digits[3];
+void shift_digits_left(){
+  int i;
+  int buf_len;
+  
+  for(i=0;i<SCROLL_DELAY;i++); // Delay of text moving across the display
+  digits[cur_pos] &= 0x7F;  // Clear the cursor
+  buf_len = strlen(buffer);
+  if(buf_len < BUF_SIZE){
+    buffer_pos++;
+    if(buffer_pos == buf_len){
+      buffer_pos--;
+    }
+    if(buffer_pos > 3){
+      for(i=0;i<4;i++){
+        digits[i] = numtab[buffer[buffer_pos-(3-i)]-'0'];
+      }
+    }
+  }
+  cursor_blink();
+}
+
+void shift_digits_right(){
 }
 
 void display_char(char key){
-  shift_digits();
-
+  int i;
+  digits[cur_pos] &= 0x7F;
+  for(i=0;i<3;i++){
+    digits[i] = digits[i+1];
+  }
   switch(key){
     case ' ':
       digits[3] = 0x00;
@@ -328,29 +416,46 @@ void display_char(char key){
 }
 
 void display_string_block(char *in){
+  int i;
+  BYTE temp[4];
+  for(i=0;i<4;i++){
+   temp[i]=digits[i]; // Save current digits
+   digits[i]=0;  // Clear digits before displaying message
+  }
   while(*in!='\0' && alive){
     display_char(*in);
     in++;
+    for(i=0;i<SCROLL_DELAY;i++); // Delay of text moving across the display
   }
+  for(i=0;i<4;i++) digits[i]=temp[i]; // Replace saved digits
 }
-void display_string_nblock(char *in){
+
+char display_string_nblock(char *in){
   int i;
-  while(*in!='\0' && alive && !button){
+  BYTE temp[4];
+    
+  for(i=0;i<4;i++){
+   temp[i]=digits[i]; // Save current digits
+   digits[i]=0;  // Clear digits before displaying message
+  }
+  do{
     display_char(*in);
     in++;
-  }
-  if(button){
-    for(i=0;i<4;i++){
-      digits[i] = 0;
-    }
-  }
+    i = SCROLL_DELAY;
+    while(--i && !button); // Delay of text moving across the display
+  }while(*in!='\0' && alive && !button);
+
+  for(i=0;i<4;i++) digits[i]=temp[i]; // Replace saved digits
+
+  if(button) return TRUE; // Interrupted
+  return FALSE;           // Uninterrupted
 }
 
 /*------------------------------------------------------------
  * console I/O
  *------------------------------------------------------------
  */
-struct termios 	savetty;
+struct termios  savetty;
 
 void term_initio(){
   struct termios tty;
@@ -374,9 +479,9 @@ void term_exitio(){
 
 
 int rs232_open(void){
-  char 		*name;
-  int 		result;  
-  struct termios	tty;
+  char   *name;
+  int   result;  
+  struct termios tty;
   
   fd_RS232 = open(SERIAL_DEVICE, O_RDWR | O_NOCTTY);
   assert(fd_RS232>=0);
@@ -402,7 +507,7 @@ int rs232_open(void){
 }
 
 int rs232_close(void){
-  int 	result;
+  int  result;
   result = close(fd_RS232);
   assert (result==0);
 }
@@ -441,5 +546,5 @@ void write_to_port(int port, BYTE bits){
 void closing_time() {
   alive = FALSE;
   pthread_join(keypad_thread, NULL);
-  write_to_port(C, 0);     	// Last LED off
+  write_to_port(C, 0);      // Last LED off
 }

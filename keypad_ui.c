@@ -62,16 +62,16 @@ int main (void) {
   setup_ports();
   ret = pthread_create( &keypad_thread, NULL, keypad, NULL);
 
-//  display_string_nblock(welcome,PADDED);
+//  display_string(welcome,PADDED,BLOCKING);
 
   while(alive){
     if(state == EMERGENCY){
-        display_string_block(emergency,PADDED);
+        display_string(emergency,PADDED,NOT_BLOCKING);
       continue;
     }
     switch(state){
       case WAITING_LOGGED_OUT:
-        display_string_nblock(enter_pin,PADDED);
+        display_string(enter_pin,PADDED,NOT_BLOCKING);
         digits[0] = 0x80;  // Set cursor position
         
         while(!button && alive && state == WAITING_LOGGED_OUT){ // Just Wait 
@@ -93,7 +93,7 @@ int main (void) {
         break;
         
       case WAITING_LOGGED_IN:
-        display_string_nblock("Enter Track Number.",PADDED);
+        display_string("Enter Track Number.",PADDED,NOT_BLOCKING);
         digits[0] = 0x80;  // Set cursor position
         
         while(!button && alive && state == WAITING_LOGGED_IN){ // Just Wait 
@@ -119,7 +119,7 @@ int main (void) {
         break;
         
       case MENU_SELECT:
-        display_string_nblock("MENU.",PADDED);
+        display_string("MENU.",PADDED,NOT_BLOCKING);
         menu_select();
         break;
         
@@ -180,18 +180,17 @@ void input_pin(char button_read){
       cur_pos = buffer_cnt;
     }
     if(buffer_cnt < 4){
-      display_string_block("PIN too short.",PADDED);
+      display_string("PIN too short.",PADDED,BLOCKING);
     }
     else{
       authentication = TRUE;//check_pin(buffer,strlen(buffer));
       if(authentication == TRUE){
         printf("PIN: %s\n",buffer);
         clear_display();
-        display_string_nblock("Logged In: ",NOT_PADDED);
-        display_string_nblock(buffer,PADDED);
+        display_string("Logged In ",PADDED,NOT_BLOCKING);
       }
       else{
-        display_string_nblock("Invalid PIN.",PADDED);
+        display_string("Invalid PIN.",PADDED,NOT_BLOCKING);
       }
       state = WAITING_LOGGED_IN;
       reset_buffer();
@@ -289,19 +288,19 @@ void input_track_number(char button_read){
       cur_pos = buffer_cnt;
     }
     if(buffer_cnt < 4){
-      display_string_nblock("Invalid.",PADDED);
+      display_string("Invalid.",PADDED,BLOCKING);
     }
     else{
       playing = TRUE;//play_track(buffer,strlen(buffer));
       if(playing == TRUE){
         printf("Track number: %s\n",buffer);
-        clear_display();
-        display_string_nblock("Track Number:",NOT_PADDED);
-        display_string_nblock(buffer,PADDED);
-        display_string_nblock(" Playing",PADDED);
+//        clear_display();
+        display_string("  Track Number:",NOT_PADDED,NOT_BLOCKING);
+        display_string(buffer,NOT_PADDED,NOT_BLOCKING);
+        display_string(" Playing   ",NOT_PADDED,NOT_BLOCKING);
       }
       else{
-        display_string_nblock("Track not found.",PADDED);
+        display_string("Track not found.",PADDED,NOT_BLOCKING);
       }
       state = WAITING_LOGGED_IN;
       reset_buffer();
@@ -432,7 +431,7 @@ void show_choice(int choice){
     "4.Log out."
   };
   
-  display_string_nblock(menu_strings[choice],PADDED);
+  display_string(menu_strings[choice],PADDED,NOT_BLOCKING);
   p = 0;
   for(i=0;i<4;i++){
     if(menu_strings[choice][i+p] == '.'){
@@ -508,12 +507,20 @@ void * keypad(){
  */
 
 void delay(){        // Delay between button presses
-  int i;
-  for(i=0;i<DELAY;i++);
+  int i = DELAY;
+  while(--i && alive)
+    usleep(SLEEP);
 }
-void scroll_delay(){ // Delay of text moving across the display
-  int i;
-    for(i=0;i<SCROLL_DELAY;i++);
+void scroll_delay(BYTE blocking){ // Delay of text moving across the display
+  int i = SCROLL_DELAY;
+  if(blocking){
+    while(--i && alive)
+      usleep(SLEEP);
+  }
+  else{
+    while(--i && alive && !button) // Non-blocking method
+      usleep(SLEEP);
+  }
 }
 /*------------------------------------------------------------------------------
  * Clear the buffer, counter and cursor position on reset
@@ -663,80 +670,71 @@ void display_char(char key){
  * Display String Routines - Blocking and Non-Blocking
  *------------------------------------------------------------------------------
  */
-void display_string_block(char *in, BYTE scrolling){
-  int i;
-  BYTE temp[4];
-  
-  for(i=0;i<4;i++){
-   temp[i]=digits[i]; // Save current digits
-   if(scrolling){
-     digits[i]=0;  // Clear digits before displaying message
-   }
-  }
-  
-  while(*in!='\0' && alive){
-    display_char(*in);
-    in++;
-    scroll_delay(); // Blocking method
-  }
-  
-  
-  if(scrolling){
-    for(i=0;i<4;i++){ // Finish Scrolling the message off
-      shift_digits();
-      scroll_delay();
-    }
-  }
-
-  for(i=0;i<4;i++){
-    digits[i]=temp[i]; // Replace saved digits
-  }
-}
-
-char display_string_nblock(char *in, BYTE scrolling){
+void display_string(char *in, BYTE padded, BYTE blocking){
   int i;
   BYTE temp[4];
 
-  if(button)  // Routine called by a button press?
+  if(button && !blocking){  // Routine called by a button press?
     while(button && alive){  // Wait until not pressed
       usleep(SLEEP);
     }
+  }
         
   for(i=0;i<4;i++){
-   temp[i]=digits[i]; // Save current digits
-   if(scrolling)
-     digits[i]=0;  // Clear digits before displaying message
+    temp[i]=digits[i]; // Save current digits
   }
-    
-  while(*in!='\0' && alive && !button){
-    display_char(*in); // Print chars in the string
-    in++;
-    if(*in == '.'){ // Add a full stop on the right char
-      digits[3] |= 0x80;
-      in++;
-    }
-    i = SCROLL_DELAY; // Non-blocking method
-    while(--i && alive && !button); // Delay of text moving across the display
+
+  if(padded){
+    for(i=0;i<PADDED;i++){
+      shift_digits();
+      scroll_delay(blocking);
+     }
   }
   
-  if(button){
+  if(blocking){
+    while(*in!='\0' && alive){
+      display_char(*in); // Print chars in the string
+      in++;
+      if(*in == '.'){ // Add a full stop on the right char
+        digits[3] |= 0x80;
+        in++;
+      }
+      scroll_delay(blocking);
+    }
+  }
+  else{
+    while(*in!='\0' && alive && !button){
+      display_char(*in); // Print chars in the string
+      in++;
+      if(*in == '.'){ // Add a full stop on the right char
+        digits[3] |= 0x80;
+        in++;
+      }
+      scroll_delay(blocking);
+    }
+  }
+  
+  if(button && !blocking){
     for(i=0;i<4;i++){
       digits[i]=temp[i]; // Replace saved digits
     }
-    return TRUE;  // Interrupted
   }
-  
-  if(scrolling){
-    for(i=0;i<4;i++){ // Finish Scrolling the message off
-      shift_digits();
-      scroll_delay(); // Blocking method, just for the end bit
+  else{   // Uninterrupted
+    if(padded){
+      for(i=0;i<PADDED;i++){ // Finish Scrolling the message off
+        shift_digits();
+        scroll_delay(blocking);
+      }
+    }
+    if(blocking){
+      for(i=0;i<4;i++){
+        shift_digits();
+        digits[3]=temp[i]; // Replace saved digits
+        scroll_delay(blocking);
+      }
     }
   }
-  
-  for(i=0;i<4;i++){
-    digits[i]=temp[i]; // Replace saved digits
-  }
-  return FALSE;   // Uninterrupted
+  return;
 }
 
 /*------------------------------------------------------------------------------

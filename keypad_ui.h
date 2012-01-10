@@ -17,12 +17,14 @@
 #define B 1
 #define C 2
 #define SLEEP 1400		// Lowest value needed between write and read
-#define DELAY 35000000		// Key press delay
-#define SCROLL_DELAY 60000000   // LED scrolling
+#define DELAY 70		// Key press delay
+#define SCROLL_DELAY 100   // LED scrolling
 #define CUR_TRIGGER  4       // Cursor blinking rate
 
-#define PADDED      1
-#define NOT_PADDED  0
+#define PADDED          3
+#define BLOCKING        1
+#define NOT_PADDED      0
+#define NOT_BLOCKING    0
 
 #define ACCEPT_PLAY    'A'
 #define BACK           'B'
@@ -93,7 +95,7 @@ void show_choice(int choice);
 void reset_buffer(void);
 
 void delay();			// Delay between button presses
-void scroll_delay();			// Delay of digits scrolling
+void scroll_delay(BYTE);			// Delay of digits scrolling
 void clear_display();
 void cursor_blink();
 
@@ -103,6 +105,5 @@ void shift_digits_right();
 void shift_digits();
 
 void display_char(char);
-void display_string_block(char *,BYTE);
-char display_string_nblock(char *,BYTE);
+void display_string(char *,BYTE,BYTE);
 

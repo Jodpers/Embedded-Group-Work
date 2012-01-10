@@ -18,8 +18,11 @@
 #define C 2
 #define SLEEP 1400		// Lowest value needed between write and read
 #define DELAY 35000000		// Key press delay
-#define SCROLL_DELAY 58000000   // LED scrolling
+#define SCROLL_DELAY 60000000   // LED scrolling
 #define CUR_TRIGGER  4       // Cursor blinking rate
+
+#define PADDED      1
+#define NOT_PADDED  0
 
 #define ACCEPT_PLAY    'A'
 #define BACK           'B'
@@ -27,6 +30,8 @@
 #define DELETE         'D'
 #define ENTER_MENU     'E'
 #define FORWARD        'F'
+
+#define MENU_STR_NUM  5
 
 /* State Table */
 enum states{
@@ -81,15 +86,23 @@ void closing_time();
 void * keypad();
 
 void input_pin(char);
+void input_track_number(char);
+void menu_select(void);
+void show_choice(int choice);
+
 void reset_buffer(void);
 
 void delay();			// Delay between button presses
 void scroll_delay();			// Delay of digits scrolling
+void clear_display();
 void cursor_blink();
+
 void del_digit();
 void shift_digits_left();
 void shift_digits_right();
 void shift_digits();
+
 void display_char(char);
-void display_string_block(char *);
-char display_string_nblock(char *);
+void display_string_block(char *,BYTE);
+char display_string_nblock(char *,BYTE);
+

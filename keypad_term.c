@@ -1,9 +1,10 @@
 /*****
- terminal code from:  http://www.st.ewi.tudelft.nl/~gemund/Courses/In4073/Resources/myterm.c
- used to send ASCII to USB PIO keypad
-
  Keypad handling routines for Embedded Systems Design coursework
  22/12/2011 - Pete Hemery
+
+ Terminal code from:
+ http://www.st.ewi.tudelft.nl/~gemund/Courses/In4073/Resources/myterm.c
+ used to send ASCII to USB PIO keypad
 *****/
 
 #include <stdio.h>
@@ -42,7 +43,6 @@
 #define FORWARD 'F'
 
 typedef unsigned char BYTE;
-typedef unsigned int DWORD;
 
 /******************
   7-Seg hex map
@@ -52,23 +52,30 @@ typedef unsigned int DWORD;
    10   4
     --8-- 80
 *******************/
-BYTE digits[COLSX] = {0x73,0x79,0x78,0x79};
-const BYTE segtab[] = {0x3F,0x06,0x5B,0x4F,0x71,0x66,0x6D,0x7D,0x79,
+const BYTE segtab[] = {0x00,0x06,0x5B,0x4F,0x71,0x66,0x6D,0x7D,0x79,
 		       0x07,0x7F,0x6F,0x5E,0x77,0x3F,0x7C,0x39};
-const BYTE numtab[] = {0x3F,0x06,0x5B,0x4F,0x66,0x6D,0x7D,0x07,0x7F,0x6F};
-const BYTE uitab[] = {0x00,1, 2, 3, FORWARD, 4, 5, 6, ENTER, 7, 8, 9, MENU, PLAY, 0, BACK, CANCEL};
-/*                        A,   B,   C,   d,   E,   F,   g,   H,   I,   J,   K*/
-const BYTE alphaU[] = {0x77,0x7F,0x39,0x5E,0x79,0x71,0x6F,0x76,0x30,0x1E,0x76,
-/*                        L,   M,   n,   O,   P,   Q,   r,   S,   t,   U,   V,   W,   X,   Y,   Z*/
-		       0x38,0x15,0x54,0x3F,0x73,0x67,0x50,0x6D,0x78,0x3E,0x1C,0x2A,0x76,0x6E,0x5B};
-/*                        A,   b,   c,   d,   E,   F,   g,   h   i,   J,   K*/
-const BYTE alphaL[] = {0x77,0x7C,0x58,0x5E,0x79,0x71,0x6F,0x74,0x04,0x1E,0x76,
-/*                        L,   M,   n,   o,   P,   Q,   r,   S,   t,   U,   V,   W,   X,   Y,   Z*/
-		       0x38,0x15,0x54,0x5C,0x73,0x67,0x50,0x6D,0x78,0x3E,0x1C,0x2A,0x76,0x6E,0x5B};
+const BYTE numtab[] = {0x3F,0x06,0x5B,0x4F,0x66,0x6D,0x7D,0x07,0x7F,0x6F};//0-9
+/*                        A,   B,   C,   d,   E,   F,   g,   H,   I,*/
+const BYTE alphaU[] = {0x77,0x7F,0x39,0x5E,0x79,0x71,0x6F,0x76,0x30,
+/*                        J,   K,   L,   M,   n,   O,   P,   Q,   r,*/
+                        0x1E,0x76,0x38,0x15,0x54,0x3F,0x73,0x67,0x50,
+/*                        S,   t,   U,   V,   W,   X,   Y,   Z*/
+                        0x6D,0x78,0x3E,0x1C,0x2A,0x76,0x6E,0x5B};
+/*                        A,   b,   c,   d,   E,   F,   g,   h   i,*/
+const BYTE alphaL[] = {0x77,0x7C,0x58,0x5E,0x79,0x71,0x6F,0x74,0x04,
+/*                        J,   K,   L,   M,   n,   o,   P,   Q,   r,*/
+                        0x1E,0x76,0x38,0x15,0x54,0x5C,0x73,0x67,0x50,
+/*                        S,   t,   U,   V,   W,   X,   Y,   Z*/
+                        0x6D,0x78,0x3E,0x1C,0x2A,0x76,0x6E,0x5B};
+const BYTE uitab[] = {0x00,'1','2', '3',FORWARD,
+                           '4','5', '6',ENTER,
+                           '7','8', '9',MENU,
+                          PLAY,'0',BACK,CANCEL};
 
+BYTE digits[COLSX] = {0x73,0x79,0x78,0x79};
 pthread_t keypad_thread;
-BYTE alive = TRUE;
-short button = FALSE;
+BYTE alive = TRUE;  // Used to exit while loops when Ctrl+C is caught
+char button = FALSE;
 
 /*------------------------------------------------------------
  * console I/O
@@ -123,12 +130,15 @@ int rs232_open(void){
   tty.c_iflag &= ~(IXON|IXOFF|IXANY);
   result = tcsetattr (fd_RS232, TCSANOW, &tty); /* non-canonical */
   tcflush(fd_RS232, TCIOFLUSH); /* flush I/O buffer */
+
+  return result;
 }
 
 int rs232_close(void){
   int 	result;
   result = close(fd_RS232);
   assert (result==0);
+  return result;
 }
 /*----------------------------------------------------------------
  * USB-PIO specific functions
@@ -175,6 +185,7 @@ void * keypad(){
   int i;
   int col;
   char str[6];
+  char temp;
   int out;
   BYTE keypresses = 0;
 
@@ -191,33 +202,36 @@ void * keypad(){
 
       out = 0;
       if(str[4] > 0x40) {	  // Convert output from ASCII to binary
-        out |= (0x0F & (str[4]-0x07)); // A-F
+        out |= (0x0F & (str[4]-0x07));  // A-F
       }
       else{
-        out |= (0x0F & (str[4]));      // 0-9
+        out |= (0x0F & (str[4]));       // 0-9
       }
 
-      for(i=0; i<ROWSX; i++){     // Scan the rows for key presses
+      for(i=0; i<ROWSX; i++){           // Scan the rows for key presses
         if((out >> i) & 0x01){
           keypresses++;
-	  button = ((col+1)+(i*4));// Set the detected button
+          temp = uitab[((col+1)+(i*4))];// Set the detected button
         }
       }
 
-      if(col == COLSX-1){         // After reading all the columns
-        if(keypresses){           // Check how many buttons were pressed
-//      printf("\n %s\n",str);
-          if(keypresses > 1){     // More than one is an error
-            button=ERROR;         // Otherwise button has correct value
-          }
+      if(col == COLSX-1){ // After reading all the columns
+        switch(keypresses){
+          case 0:
+            button=FALSE; // No key press detected
+            break;
+          case 1:
+            button=temp;  // Write ASCII value from uitab
+            break;
+          default:
+            button=ERROR; // Multiple keys pressed
+            break;
         }
-	else{
-	  button=FALSE;           // No key press detected
-	}
-	keypresses=FALSE;         // Ready for the next loop
+        keypresses = 0;
       }
     }
   }
+  return 0;
 }
 /*----------------------------------------------------------------
  * display routines - printing chars and strings to the LEDs
@@ -281,22 +295,21 @@ void display_char(char key){
       break;
     default:
       if((key >= 0) && (key <= 0x10)){
-       digits[3] = segtab[key];
+        digits[3] = segtab[key];
       }
-      else if((key >= 0x30) && (key < 0x3A)){ // Numbers 1-9
+      else if((key >= '0') && (key <= '9')){ // Numbers
         digits[3] = numtab[key-0x30];
       }
-      else if((key > 0x40) && (key < 0x5B)){ // "Upper case" alphabet
+      else if((key >= 'A') && (key <= 'Z')){ // "Upper case" alphabet
         digits[3] = alphaU[key-0x41];
       }
-      else if((key > 0x60) && (key < 0x7B)){ // "Lower case" alphabet
+      else if((key >= 'a') && (key <= 'z')){
         digits[3] = alphaL[key-0x61];
       }
       else{
         digits[3] = 0x00;
       }
       break;
-    }
   }
 }
 
@@ -314,7 +327,6 @@ void display_string(char *in){
  */
 
 int main () {
-  int i;
   char *welcome="  Hello World..    ";
   int ret;
   BYTE button_read = 0;
@@ -330,53 +342,47 @@ int main () {
   setup_ports();
   ret = pthread_create( &keypad_thread, NULL, keypad, NULL);
 
+//  delay();
 //  display_string(welcome);
 
   while(alive){
     delay();
     button_read = button;
     if(button_read){
-      if(button_read > 0x11){
-	display_char('.');
-//	printf("button = %d\n",button_read);
-      }
-      else{
-	switch(uitab[button_read]){
-          case 0:
-          case 1:
-          case 2:
-          case 3:
-          case 4:
-          case 5:
-          case 6:
-          case 7:
-          case 8:
-          case 9:
-	    display_char(button_read);
-	    break;
-	  case PLAY:
-	    display_string("Play");
-	    break;
-	  case BACK:
-	    display_string("Back");
-	    break;
-	  case CANCEL:
-	    display_string("Canl");
-	    break;
-	  case MENU:
-	    display_string("Menu");
-	    break;
-	  case ENTER:
-	    display_string("Entr");
-	    break;
-	  case FORWARD:
-	    display_string("Ford");
-	    break;
-	  default:
-	    break;
-	}
-//	printf("button_read = %d\n",button_read);
-//	printf("uitab = %d\n",uitab[button_read]);
+      printf("button: %c\n",button_read);
+      switch(button_read){
+        case '0':
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9':
+	        display_char(button_read);
+	        break;
+	      case PLAY:
+	        display_string("Play");
+	        break;
+	      case BACK:
+	        display_string("Back");
+	        break;
+	      case CANCEL:
+	        display_string("Canl");
+	        break;
+	      case MENU:
+	        display_string("Menu");
+	        break;
+	      case ENTER:
+	        display_string("Entr");
+	        break;
+	      case FORWARD:
+	        display_string("Ford");
+	        break;
+	      default:
+	        break;
       }
     }
   }

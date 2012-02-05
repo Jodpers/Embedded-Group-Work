@@ -1,4 +1,4 @@
-/*****
+`/*****
  Keypad handling routines for Embedded Systems Design coursework
  22/12/2011 - Pete Hemery
 
@@ -32,8 +32,8 @@
 #define B 1
 #define C 2
 #define SLEEP 1400		// Lowest value needed between write and read
-#define DELAY 50000000		// Key press delay
-#define SCROLL_DELAY 60000000   // LED scrolling
+#define DELAY 70		// Key press delay
+#define SCROLL_DELAY 100   // LED scrolling
 
 #define PLAY    'A'
 #define BACK    'B'
@@ -239,13 +239,15 @@ void * keypad(){
  */
 
 void delay(){        // Delay between button presses
-  int i;
-  for(i=0;i<DELAY;i++);
+  int i = DELAY;
+  while(--i && alive)
+    usleep(SLEEP);
 }
 
-void scroll_delay(){ // Delay of text moving across the display
-  int i;
-  for(i=0;i<SCROLL_DELAY;i++);
+void delay(){        // Delay between button presses
+  int i = SCROLL_DELAY;
+  while(--i && alive)
+    usleep(SLEEP);
 }
 
 void shift_digits(){

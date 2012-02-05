@@ -42,8 +42,9 @@ enum states{
 	INPUTTING_PIN,
 	WAITING_LOGGED_IN,
 	INPUTTING_TRACK_NUMBER,
-	MENU_SELECT
-};
+	MENU_SELECT,
+	MAX_STATES
+} current_state;
 
 typedef unsigned char BYTE;
 typedef unsigned short WORD;

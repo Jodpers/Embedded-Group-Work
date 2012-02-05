@@ -186,8 +186,7 @@ void input_pin(char button_read){
       authentication = TRUE;//check_pin(buffer,strlen(buffer));
       if(authentication == TRUE){
         printf("PIN: %s\n",buffer);
-        clear_display();
-        display_string("Logged In ",PADDED,NOT_BLOCKING);
+        display_string("Logged In",PADDED,NOT_BLOCKING);
       }
       else{
         display_string("Invalid PIN.",PADDED,NOT_BLOCKING);
@@ -294,8 +293,7 @@ void input_track_number(char button_read){
       playing = TRUE;//play_track(buffer,strlen(buffer));
       if(playing == TRUE){
         printf("Track number: %s\n",buffer);
-//        clear_display();
-        display_string("  Track Number:",NOT_PADDED,NOT_BLOCKING);
+        display_string("  Track Number ",NOT_PADDED,NOT_BLOCKING);
         display_string(buffer,NOT_PADDED,NOT_BLOCKING);
         display_string(" Playing   ",NOT_PADDED,NOT_BLOCKING);
       }
@@ -364,7 +362,7 @@ void menu_select(void){
   int choice = 1;
   char button_read = 0;
 
-  choice = 1;
+  //choice = 1; 
   show_choice(choice);
 
   while(alive && state == MENU_SELECT){
@@ -815,7 +813,7 @@ void setup_ports(){
 }
 
 void write_to_port(int port, BYTE bits){
-  char str[8];
+  char str[10];
 
   snprintf(str,10,"@00P%d%02x\r",port,bits);
   write(fd_RS232,str,8);

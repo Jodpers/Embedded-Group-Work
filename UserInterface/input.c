@@ -7,6 +7,7 @@
 
 #include "top.h"
 #include "states.h"
+#include "threads.h"
 
 BYTE authentication = FALSE;
 
@@ -49,12 +50,23 @@ void input_pin(char button_read){
       if(authentication == TRUE){
     	printf("Authentication Passed\n");
         display_string("Logged In",PADDED,NOT_BLOCKING);
+
+    	pthread_mutex_lock(&state_Mutex);
         state = WAITING_LOGGED_IN;
+    	pthread_mutex_unlock(&state_Mutex);
+    	display_string("Welcome.",PADDED,NOT_BLOCKING);
+    	display_string("Enter Track Number.",PADDED,NOT_BLOCKING);
+    	digits[0] = CURSOR_VAL;
       }
       else{
     	printf("Authentication Failed\n");
         display_string("Invalid PIN.",PADDED,NOT_BLOCKING);
+
+    	pthread_mutex_lock(&state_Mutex);
         state = WAITING_LOGGED_OUT;
+    	pthread_mutex_unlock(&state_Mutex);
+    	display_string("Please Enter VALID PIN!",PADDED,NOT_BLOCKING);
+    	digits[0] = CURSOR_VAL;
       }
       reset_buffer();
     }
@@ -62,7 +74,12 @@ void input_pin(char button_read){
 
   case CANCEL:
     reset_buffer();
+
+	pthread_mutex_lock(&state_Mutex);
     state = WAITING_LOGGED_OUT; // Go back to waiting
+	pthread_mutex_unlock(&state_Mutex);
+	display_string("Enter PIN.",PADDED,NOT_BLOCKING);
+	digits[0] = CURSOR_VAL;
     break;
 
   case FORWARD:  // Move the cursor forward 1 digit
@@ -130,14 +147,24 @@ void input_track_number(char button_read){
       else{
         display_string("Track not found.",PADDED,NOT_BLOCKING);
       }
+
+  	  pthread_mutex_lock(&state_Mutex);
       state = WAITING_LOGGED_IN;
+  	  pthread_mutex_unlock(&state_Mutex);
+  	  display_string("Enter Track Number.",PADDED,NOT_BLOCKING);
+  	  digits[0] = CURSOR_VAL;
+  	  //display timing info
       reset_buffer();
     }
     break;
 
   case CANCEL:
     reset_buffer();
+	pthread_mutex_lock(&state_Mutex);
     state = WAITING_LOGGED_IN; // Go back to waiting
+	pthread_mutex_unlock(&state_Mutex);
+	display_string("Enter Track Number.",PADDED,NOT_BLOCKING);
+	digits[0] = CURSOR_VAL;
     break;
 
   case FORWARD:  // Move the cursor forward 1 digit

@@ -8,19 +8,19 @@
 #ifndef STATES_H_
 #define STATES_H_
 
+#include "top.h"
 #include "display.h"
-
-#define PIN_LEN	4
+#include "threads.h"
 
 /* State Table */
-enum e_states{
+enum ui_states{
+	INIT_STATE,
 	EMERGENCY,
 	WAITING_LOGGED_OUT,
 	INPUTTING_PIN,
 	WAITING_LOGGED_IN,
 	INPUTTING_TRACK_NUMBER,
-	MENU_SELECT,
-	MAX_STATES
+	MENU_SELECT
 } current_state;
 
 extern int state;

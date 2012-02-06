@@ -102,19 +102,3 @@ void write_to_port(int port, BYTE bits){
   usleep(SLEEP);
   read(fd_RS232,str,4);
 }
-
-/*------------------------------------------------------------------------------
- * exit subroutine
- *------------------------------------------------------------------------------
- */
-void closing_time(void){
-  extern pthread_t keypad_thread;
-  extern pthread_t state_machine_thread;
-
-  alive = FALSE;
-  pthread_join(keypad_thread, NULL);
-  pthread_join(state_machine_thread, NULL);
-  write_to_port(C, 0);      /* Last LED off */
-  close_term();
-}
-

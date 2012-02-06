@@ -11,10 +11,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
-#include <sys/types.h>  //threads
-#include <pthread.h>
 
 #include "top.h"
 #include "states.h"
+
+extern void start_threads(void);
+extern void closing_time(void);
+extern void setup_term();
+
+extern char button;
 
 #endif /* MAIN_H_ */

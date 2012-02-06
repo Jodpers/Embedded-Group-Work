@@ -5,7 +5,6 @@
  *      Author: Pete Hemery
  */
 
-#include "pio_term.h"
 #include "keypad.h"
 
 char button = FALSE;  // Button pressed 1-16 or -1 for multiple buttons
@@ -21,7 +20,6 @@ void * keypad(void){
   char temp;
   char str[6];
   BYTE keypresses = 0;
-
 
   while(alive){
     for (col=0;col<COLSX;col++){
@@ -49,17 +47,21 @@ void * keypad(void){
       }
 
       if(col == COLSX-1){       // After reading all the columns
+    	pthread_mutex_lock(&button_Mutex);
         switch(keypresses){
           case 0:
             button=FALSE; // No key press detected
             break;
           case 1:
             button=temp; // Write ASCII value from uitab
+            pthread_cond_signal(&button_Signal);
             break;
           default:
             button=ERROR;       // Multiple keys pressed
             break;
         }
+        pthread_mutex_unlock(&button_Mutex);
+
         keypresses = 0;
       }
     }

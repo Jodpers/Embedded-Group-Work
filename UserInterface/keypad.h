@@ -9,7 +9,9 @@
 #define KEYPAD_H_
 
 #include "top.h"
+#include "pio_term.h"
 #include "display.h"
+#include "threads.h"
 
 void * keypad(void);
 

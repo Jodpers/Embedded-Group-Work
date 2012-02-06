@@ -26,6 +26,8 @@ typedef unsigned int DWORD;
 
 #define SLEEP 1400		/* Lowest value needed between write and read */
 
-extern BYTE alive;  // Exit condition of while loops
+#define PIN_LEN	4
+
+extern BYTE alive;  	/* Exit condition of while loops */
 
 #endif /* TOP_H_ */

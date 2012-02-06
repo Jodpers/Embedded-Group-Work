@@ -37,7 +37,5 @@ void rs232_close(void);
 void setup_ports();
 void write_to_port(int, BYTE);
 
-void closing_time(void);
-
 #endif /* PIO_TERM_H_ */
 

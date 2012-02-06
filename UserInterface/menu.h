@@ -9,10 +9,12 @@
 #define MENU_H_
 
 #include "states.h"
+#include "threads.h"
 
 #define MENU_STR_NUM  5
 
 void menu_select(void);
 void show_choice(int);
+extern void wifi_scan(void);
 
 #endif /* MENU_H_ */

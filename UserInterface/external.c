@@ -18,11 +18,12 @@ BYTE check_pin(char * buffer, int buf_len){
 
 	pthread_mutex_lock(&network_Mutex);
 	strncpy(data,buffer,buf_len);
+	task = PIN;
 	pthread_cond_signal(&network_Signal);
 	pthread_mutex_unlock(&network_Mutex);
 
 	pthread_mutex_lock(&request_Mutex);
-	pthread_cond_wait(&request_Mutex, &request_Signal);
+	pthread_cond_wait(&request_Signal, &request_Mutex);
 	valid = data[0];
 	pthread_mutex_unlock(&request_Mutex);
 

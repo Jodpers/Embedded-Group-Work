@@ -8,6 +8,8 @@
 #ifndef TOP_H_
 #define TOP_H_
 
+#define DEBUG	1
+
 typedef unsigned char BYTE;
 typedef unsigned short WORD;
 typedef unsigned int DWORD;

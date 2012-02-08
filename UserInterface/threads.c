@@ -38,6 +38,29 @@ pthread_cond_t request_Signal;
 
 int button_thread_state;
 
+void setup_threads(void){
+
+	  /* Setup Mutex */
+	  pthread_mutex_init(&button_Mutex, NULL);
+	  pthread_mutex_init(&state_Mutex, NULL);
+	  pthread_mutex_init(&network_Mutex, NULL);
+	  pthread_mutex_init(&request_Mutex, NULL);
+
+	  /* Setup Conditions */
+	  pthread_cond_init(&button_Signal, NULL);
+	  pthread_cond_init(&state_Signal, NULL);
+	  pthread_cond_init(&network_Signal, NULL);
+	  pthread_cond_init(&request_Signal, NULL);
+
+	  /* Setup Threads */
+	  pthread_attr_init(&keypad_Attr);
+	  pthread_attr_init(&state_machine_Attr);
+	  pthread_attr_init(&network_Attr);
+	  pthread_attr_init(&receive_Attr);
+
+	  return;
+}
+
 void start_threads(void){
   extern void * keypad(void);
   extern void * state_machine(void);
@@ -45,24 +68,6 @@ void start_threads(void){
   extern void * receive(void);
 
   int ret;
-
-  /* Setup Mutex */
-  pthread_mutex_init(&button_Mutex, NULL);
-  pthread_mutex_init(&state_Mutex, NULL);
-  pthread_mutex_init(&network_Mutex, NULL);
-  pthread_mutex_init(&request_Mutex, NULL);
-
-  /* Setup Conditions */
-  pthread_cond_init(&button_Signal, NULL);
-  pthread_cond_init(&state_Signal, NULL);
-  pthread_cond_init(&network_Signal, NULL);
-  pthread_cond_init(&request_Signal, NULL);
-
-  /* Setup Threads */
-  pthread_attr_init(&keypad_Attr);
-  pthread_attr_init(&state_machine_Attr);
-  pthread_attr_init(&network_Attr);
-  pthread_attr_init(&receive_Attr);
 
   ret = pthread_create( &keypad_thread, &keypad_Attr, (void *)keypad, NULL); /* TODO: Error Checking */
   ret = pthread_create( &state_machine_thread, &state_machine_Attr, (void *)state_machine, NULL); /* TODO: Error Checking */

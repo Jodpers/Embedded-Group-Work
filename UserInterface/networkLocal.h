@@ -4,14 +4,6 @@
 #define MAXBUF  1024
 #define MAXDATASIZE 1024 /* max number of bytes we can get at once */
 
-/* for parsing and create headers state machine*/
-#define PIN '1'
-#define PLAY '2'
-#define TRACKINFO '3'
-#define EMERGENCY '4'
-#define ACK '5'
-#define NAK '6'
-#define MULTICAST '7'
 
 /* for toplevel state machine */
 #define CREATEHEADERS 1
@@ -22,12 +14,13 @@
 
 /* server info */
 #define PORT "4444"
-#define IP "192.168.12.2"
+#define IP "192.168.1.76"
+
+#define TIMEOUTVALUE 3
 
 void PANIC(char * msg);
 void * receive(void);
-int setup();
 int parsePacket(char * buffer);
-void createHeaders(char opcode);
+void createHeaders(char opcode, char * localData);
 
 #endif /* NETWORKLOCAL_H_ */

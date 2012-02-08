@@ -2,7 +2,7 @@
  * threads.h
  *
  *  Created on: 6 Feb 2012
- *      Author: student
+ *      Author: Pete Hemery
  */
 
 #ifndef THREADS_H_
@@ -28,6 +28,15 @@ extern pthread_cond_t button_Signal;
 /* Thread State */
 extern pthread_mutex_t state_Mutex;
 extern pthread_cond_t state_Signal;
+
+/* Network Request State */
+extern pthread_mutex_t network_Mutex;
+extern pthread_cond_t network_Signal;
+
+/* Request Signals */
+extern pthread_mutex_t request_Mutex;
+extern pthread_cond_t request_Signal;
+
 
 
 void closing_time(void);

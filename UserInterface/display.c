@@ -37,9 +37,6 @@ const BYTE alphaL[] = {0x77,0x7C,0x58,0x5E,0x79,0x71,0x6F,0x74,0x04,
 
 
 BYTE display_flag = 0;
-BYTE blocking = 0;
-int digits_offset = 0;
-
 char display_buffer[BUFFER_SIZE] = {0};
 char cursor_position = 0;
 

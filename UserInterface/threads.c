@@ -58,7 +58,6 @@ void start_threads(void){
  *------------------------------------------------------------------------------
  */
 void closing_time(void){
-  printf("Signaling thread to die...\n");
   pthread_mutex_lock(&state_Mutex);
   button_thread_state = STATE_KILL;
   pthread_cond_signal(&state_Signal);
@@ -84,5 +83,7 @@ void closing_time(void){
   pthread_cond_destroy(&button_Signal);
   pthread_cond_destroy(&state_Signal);
   pthread_cond_destroy(&display_Signal);
+
+  printf("Closing\n");
 }
 

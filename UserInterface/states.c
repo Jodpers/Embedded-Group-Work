@@ -21,7 +21,6 @@ void * state_machine(void){
   pthread_mutex_unlock(&state_Mutex);
 
   while(alive){
-
 	pthread_mutex_lock(&state_Mutex);
 	state_read = state;
 	pthread_mutex_unlock(&state_Mutex);

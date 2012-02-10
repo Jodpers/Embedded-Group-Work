@@ -24,29 +24,26 @@ void * keypad(void){
 
   char buffer[BUFFER_SIZE] = {0};
   int offset;
+  int scroll_timeout = SCROLL_DELAY;
 
-  BYTE buf_len = 0;
-
-
-  extern char cursor_position;
-
+  int buf_len = 0;
 
   while(alive){
     for (col=0;col<COLSX;col++){
-/*      if(!blocked){
+/*
+      if(!blocked){
         pthread_mutex_lock(&display_Mutex);
-        if(display_flag == WRITTEN){
-          strcpy(buffer,display_buffer);
-          blocked = blocking;
-          digits_offset = 0;
-          offset = 0;
-          display_flag = READ;
+        if(display_flag && WRITTEN){
+          buf_len = strcpy(buffer,display_buffer);
+          display_flag &= READ;
         }
         pthread_mutex_unlock(&display_Mutex);
+        scroll_timeout = SCROLL_DELAY;
+        offset = 0;
       }
-
-      out = buffer[col+offset];
 */
+      out = buffer[col+offset];
+
       write_to_port(C, 0);        // LEDS off
       write_to_port(A, (BYTE) (1 << col));     // select column
       write_to_port(C, out);  // next LED pattern
@@ -56,7 +53,7 @@ void * keypad(void){
       read(fd_RS232,str,6);
 
       out = 0;
-      if(str[4] > 0x40) {   // Convert output from ASCII to binary
+      if(str[4] >= 'A') {   // Convert output from ASCII to binary
         out |= (0x0F & (str[4]-0x07)); // A-F
       }
       else{
@@ -87,6 +84,14 @@ void * keypad(void){
         pthread_mutex_unlock(&button_Mutex);
 
         keypresses = 0;
+
+        if (!scroll_timeout){
+          scroll_timeout = SCROLL_DELAY;
+
+        }
+        pthread_mutex_lock(&display_Mutex);
+
+        pthread_mutex_unlock(&display_Mutex);
       }
     }
   }

@@ -44,7 +44,6 @@
 #define ENTER_MENU     'E'
 #define FORWARD        'F'
 
-#define CURSOR_VAL		0x80
 /******************
   7-Seg hex map
     --1--
@@ -53,6 +52,7 @@
    10   4
     --8-- 80
 *******************/
+#define CURSOR_VAL		0x80
 extern const BYTE segtab[];
 extern const BYTE numtab[];
 extern const BYTE uitab[];
@@ -64,19 +64,15 @@ extern char button;
 extern BYTE digits[];
 
 extern char input_buffer[BUFFER_SIZE];
+extern char display_buffer[BUFFER_SIZE];
+extern BYTE display_flag;
+extern char cursor_position;
+
+extern char buffer[BUFFER_SIZE];
 extern char buffer_cnt;
 extern char buffer_pos;
 extern char cur_pos;
 extern BYTE cursor;
-
-extern BYTE display_flag;
-extern BYTE blocking;
-extern int digits_offset;
-
-
-extern int digits_begin;
-extern char cursor_position;
-
 
 
 void delay();			// Delay between button presses

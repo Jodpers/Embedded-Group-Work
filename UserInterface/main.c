@@ -46,6 +46,5 @@ int main (void) {
 	  pthread_mutex_unlock(&state_Mutex);
     }
   }
-  printf("Closing\n");
   return 0;
 }

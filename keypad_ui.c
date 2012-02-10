@@ -816,7 +816,7 @@ void write_to_port(int port, BYTE bits){
   char str[10];
 
   snprintf(str,10,"@00P%d%02x\r",port,bits);
-  write(fd_RS232,str,8);
+  write(fd_RS232,str,10);
   usleep(SLEEP);
   read(fd_RS232,str,4);
 }

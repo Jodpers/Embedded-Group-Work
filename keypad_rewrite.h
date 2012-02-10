@@ -5,25 +5,24 @@
 
 #define TRUE 	  1
 #define FALSE 	0
-#define ERROR 	-1
+#define ERROR 	'x'
 
 #define COLSX 	4
 #define ROWSX 	4
 
-#define BUF_SIZE  10
+#define BUF_SIZE  50
 
 #define SERIAL_DEVICE 	"/dev/ttyACM0"
 #define A 0
 #define B 1
 #define C 2
 #define SLEEP 1400		// Lowest value needed between write and read
-#define DELAY 70		// Key press delay
-#define SCROLL_DELAY 100   // LED scrolling
+#define DELAY 8             // LED scrolling
 #define CUR_TRIGGER  4       // Cursor blinking rate
 
-#define PADDED          3
-#define BLOCKING        1
+#define PADDED          1
 #define NOT_PADDED      0
+#define BLOCKING        1
 #define NOT_BLOCKING    0
 
 #define ACCEPT_PLAY    'A'
@@ -33,7 +32,9 @@
 #define ENTER_MENU     'E'
 #define FORWARD        'F'
 
-#define MENU_STR_NUM  5
+#define CURSOR_VALUE    0x80
+#define NO_CURSOR       0x7F
+
 
 /* State Table */
 enum states{
@@ -45,6 +46,13 @@ enum states{
 	MENU_SELECT,
 	MAX_STATES
 } current_state;
+
+/* Display Flag States */
+enum display_states{
+	WAITING,
+	CHANGED,
+	WRITING
+} display_state;
 
 typedef unsigned char BYTE;
 typedef unsigned short WORD;
@@ -88,23 +96,6 @@ void write_to_port(int, BYTE);
 void closing_time();
 void * keypad();
 
-void input_pin(char);
-void input_track_number(char);
-void menu_select(void);
-void show_choice(int choice);
-
-void reset_buffer(void);
-
-void delay();			// Delay between button presses
-void scroll_delay(BYTE);			// Delay of digits scrolling
-void clear_display();
-void cursor_blink();
-
-void del_digit();
-void shift_digits_left();
-void shift_digits_right();
-void shift_digits();
-
-void display_char(char);
+BYTE display_char(char);
 void display_string(char *,BYTE,BYTE);
 

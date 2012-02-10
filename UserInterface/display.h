@@ -14,19 +14,25 @@
 #include <string.h>
 #include "top.h"
 
+#define READ_MASK		0xF0
+#define WRITE_MASK      0xF1
+#define WRITTEN_MASK    0xF2
+
+#define BLOCKING_MASK   0x1F
+#define NOT_BLOCKING    0x0F
+
+#define BLOCKING        1
+
+#define PADDED          3
+#define NOT_PADDED      0
+
 #define DELAY 			70	// Key press delay
 #define SCROLL_DELAY 	100 // LED scrolling
 #define CUR_TRIGGER  	4	// Cursor blinking rate
-#define BUFFER_SIZE  	10
-#define BUFFER_MAX  	BUF_SIZE - 1
+
 #define PIN_MAX		  	4
 #define TRACK_MAX	  	6
 #define CURSOR_MAX		4
-
-#define PADDED          3
-#define BLOCKING        1
-#define NOT_PADDED      0
-#define NOT_BLOCKING    0
 
 #define PIN				1
 #define TRACK			2
@@ -56,13 +62,21 @@ extern const BYTE alphaL[];
 extern char button;
 
 extern BYTE digits[];
-extern int digits_begin;
 
-extern char buffer[BUFFER_SIZE];
+extern char input_buffer[BUFFER_SIZE];
 extern char buffer_cnt;
 extern char buffer_pos;
 extern char cur_pos;
 extern BYTE cursor;
+
+extern BYTE display_flag;
+extern BYTE blocking;
+extern int digits_offset;
+
+
+extern int digits_begin;
+extern char cursor_position;
+
 
 
 void delay();			// Delay between button presses

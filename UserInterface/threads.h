@@ -29,6 +29,9 @@ extern pthread_cond_t button_Signal;
 extern pthread_mutex_t state_Mutex;
 extern pthread_cond_t state_Signal;
 
+/* Display Buffers */
+extern pthread_mutex_t display_Mutex;
+extern pthread_cond_t display_Signal;
 
 void closing_time(void);
 

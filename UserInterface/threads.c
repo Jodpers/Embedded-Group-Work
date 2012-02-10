@@ -22,6 +22,9 @@ pthread_cond_t button_Signal;
 pthread_mutex_t state_Mutex;
 pthread_cond_t state_Signal;
 
+pthread_mutex_t display_Mutex;
+pthread_cond_t display_Signal;
+
 int button_thread_state;
 
 void start_threads(void){
@@ -33,10 +36,12 @@ void start_threads(void){
   /* Setup Mutex */
   pthread_mutex_init(&button_Mutex, NULL);
   pthread_mutex_init(&state_Mutex, NULL);
+  pthread_mutex_init(&display_Mutex, NULL);
 
   /* Setup Conditions */
   pthread_cond_init(&button_Signal, NULL);
   pthread_cond_init(&state_Signal, NULL);
+  pthread_cond_init(&display_Signal, NULL);
 
   /* Setup Threads */
   pthread_attr_init(&keypad_Attr);
@@ -71,9 +76,13 @@ void closing_time(void){
 
   pthread_attr_destroy(&keypad_Attr);
   pthread_attr_destroy(&state_machine_Attr);
+
   pthread_mutex_destroy(&button_Mutex);
   pthread_mutex_destroy(&state_Mutex);
+  pthread_mutex_destroy(&display_Mutex);
+
   pthread_cond_destroy(&button_Signal);
   pthread_cond_destroy(&state_Signal);
+  pthread_cond_destroy(&display_Signal);
 }
 

@@ -9,23 +9,47 @@
 
 char button = FALSE;  // Button pressed 1-16 or -1 for multiple buttons
 
+BYTE digits[COLSX] = {0x00,0x00,0x00,0x00};
+
 /*------------------------------------------------------------------------------
  * keypad thread - this function continuously outputs to LEDs and reads buttons
  *------------------------------------------------------------------------------
  */
 void * keypad(void){
-  int i;
-  int col;
+  int col, row;
   int out;
   char temp;
   char str[6];
   BYTE keypresses = 0;
 
+  char buffer[BUFFER_SIZE] = {0};
+  int offset;
+
+  BYTE buf_len = 0;
+
+
+  extern char cursor_position;
+
+
   while(alive){
     for (col=0;col<COLSX;col++){
+/*      if(!blocked){
+        pthread_mutex_lock(&display_Mutex);
+        if(display_flag == WRITTEN){
+          strcpy(buffer,display_buffer);
+          blocked = blocking;
+          digits_offset = 0;
+          offset = 0;
+          display_flag = READ;
+        }
+        pthread_mutex_unlock(&display_Mutex);
+      }
+
+      out = buffer[col+offset];
+*/
       write_to_port(C, 0);        // LEDS off
-      write_to_port(A, (BYTE) (01 << col));     // select column
-      write_to_port(C, digits[col]);  // next LED pattern
+      write_to_port(A, (BYTE) (1 << col));     // select column
+      write_to_port(C, out);  // next LED pattern
 
       write(fd_RS232,"@00P1?\r",7);             // Read the column
       usleep(SLEEP);
@@ -39,15 +63,15 @@ void * keypad(void){
         out |= (0x0F & (str[4]));      // 0-9
       }
 
-      for(i=0; i<ROWSX; i++){     // Scan the rows for key presses
-        if((out >> i) & 0x01){
+      for(row=0; row<ROWSX; row++){     // Scan the rows for key presses
+        if((out >> row) & 0x01){
           keypresses++;
-          temp = uitab[((col+1)+(i*4))];// Set the detected button
+          temp = uitab[((col+1)+(row*4))];// Set the detected button
         }
       }
 
       if(col == COLSX-1){       // After reading all the columns
-    	pthread_mutex_lock(&button_Mutex);
+        pthread_mutex_lock(&button_Mutex);
         switch(keypresses){
           case 0:
             button=FALSE; // No key press detected

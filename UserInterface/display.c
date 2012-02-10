@@ -7,6 +7,14 @@
 
 #include "display.h"
 
+/******************
+  7-Seg hex map
+    --1--
+   20   2
+     40
+   10   4
+    --8-- 80
+*******************/
 const BYTE segtab[] = {0x00,0x06,0x5B,0x4F,0x71,0x66,0x6D,0x7D,0x79,
 		       0x07,0x7F,0x6F,0x5E,0x77,0x3F,0x7C,0x39};
 const BYTE numtab[] = {0x3F,0x06,0x5B,0x4F,0x66,0x6D,0x7D,0x07,0x7F,0x6F};//0-9
@@ -27,14 +35,31 @@ const BYTE alphaL[] = {0x77,0x7C,0x58,0x5E,0x79,0x71,0x6F,0x74,0x04,
 /*                        S,   t,   U,   V,   W,   X,   Y,   Z*/
                         0x6D,0x78,0x3E,0x1C,0x2A,0x76,0x6E,0x5B};
 
-BYTE digits[COLSX] = {0x00,0x00,0x00,0x00};
-int digits_begin = 0;
 
-char buffer[BUFFER_SIZE] = {0};
+BYTE display_flag = 0;
+BYTE blocking = 0;
+int digits_offset = 0;
+
+char display_buffer[BUFFER_SIZE] = {0};
+char cursor_position = 0;
+
 char buffer_cnt = 0;
 char buffer_pos = 0;
 char cur_pos = 0;
 BYTE cursor = 0;
+
+/*------------------------------------------------------------------------------
+ *
+ *------------------------------------------------------------------------------
+ */
+
+
+
+
+
+
+
+/*---- Old Functions ---- */
 
 /*------------------------------------------------------------------------------
  * Delay Routines - Used in printing chars and strings to the LEDs
@@ -64,7 +89,7 @@ void scroll_delay(BYTE blocking){ // Delay of text moving across the display
 void reset_buffer(void){ // Reset everything
   int i;
   for(i=0;i<BUFFER_SIZE;i++){
-    buffer[i]=0;
+    input_buffer[i]=0;
   }
   buffer_cnt = 0;
   cur_pos = 0;
@@ -119,7 +144,7 @@ void shift_digits_left(void){
 
   for(i=0;i<SCROLL_DELAY;i++); // Delay of text moving across the display
   digits[(BYTE)cur_pos] &= 0x7F;  // Clear the cursor
-  buf_len = strlen(buffer);
+  buf_len = strlen(input_buffer);
   if(buf_len < BUFFER_SIZE){
     buffer_pos++;
     if(buffer_pos == buf_len){
@@ -127,7 +152,7 @@ void shift_digits_left(void){
     }
     if(buffer_pos > 3){
       for(i=0;i<4;i++){
-        digits[i] = numtab[buffer[buffer_pos-(3-i)]-'0'];
+        digits[i] = numtab[input_buffer[buffer_pos-(3-i)]-'0'];
       }
     }
   }
@@ -278,7 +303,7 @@ void display_time(void){};
 void delete_char(void){
   int i;
   if (cur_pos == CURSOR_MAX || cur_pos == buffer_cnt){
-    buffer[(BYTE)--buffer_cnt] = 0;
+    input_buffer[(BYTE)--buffer_cnt] = 0;
     digits[(BYTE)cur_pos] &= 0x7F;
     digits[(BYTE)--cur_pos] = 0;
     cursor_blink();
@@ -287,15 +312,15 @@ void delete_char(void){
 	digits[(BYTE)cur_pos] &= 0x7F;
 	for(i=cur_pos;i<4;i++){
       digits[i] = digits[i+1];
-	  buffer[i] = buffer[i+1];
+	  input_buffer[i] = input_buffer[i+1];
 	}
-	buffer[(BYTE)buffer_cnt--] = 0;
+	input_buffer[(BYTE)buffer_cnt--] = 0;
 	digits[3] = 0;
 	}
 	if (!buffer_cnt || cur_pos < 0){
 	  cur_pos = 0;
 	  buffer_cnt = 0;
-	  buffer[(BYTE)buffer_cnt] = 0;
+	  input_buffer[(BYTE)buffer_cnt] = 0;
 	}
   return;
 }
@@ -304,39 +329,41 @@ void delete_char(void){
   return;
 }*/
 void insert_char(char button_read, BYTE TrackOrPIN){
-  if(TrackOrPIN == PIN){
-  if(buffer_cnt != cur_pos){  // If cursor isn't at the end
-	  buffer_cnt--;  // Decrement it before next line, lest we wrongly add 1
-	}
-	if(++buffer_cnt > PIN_MAX){ // Button has been pressed, let's up the buffer count
-	  buffer_cnt = PIN_MAX; // Limit PIN to 4 digits
-	  cur_pos = CURSOR_MAX; // Cursor is off the edge of the array and won't blink
-	  buffer[(BYTE)cur_pos] = 0; // Null terminate string containing PIN
-	}
-	else{   // Less than 4 digits already? Well, get it in there!
-	  digits[(BYTE)cur_pos] = numtab[button_read-'0'];// Display the digit pressed
-	  buffer[(BYTE)cur_pos] = button_read; // Copy ASCII button press
-	  cur_pos = buffer_cnt; // Point at next empty location
-	  cursor_blink();  // Clear last cursor and move to next empty space
-	  delay();  // Wait to make sure button has stopped being pressed
-	}
-  }
-  else if(TrackOrPIN == TRACK){
-	  if(buffer_cnt != cur_pos){  // If cursor isn't at the end
-	        buffer_cnt--;  // Decrement it before next line, lest we wrongly add 1
-	      }
-	      if(++buffer_cnt > TRACK_MAX){ // Button has been pressed, let's up the buffer count
-	        buffer_cnt = TRACK_MAX; // Limit number of digits in Track Number
-	        cur_pos = CURSOR_MAX; // Cursor is off the edge of the array and won't blink
-	        buffer[(BYTE)cur_pos] = 0; // Null terminate string containing PIN
-	      }
-	      else{   // Less than 4 digits already? Well, get it in there!
-	        digits[(BYTE)cur_pos] = numtab[button_read-'0'];// Display the digit pressed
-	        buffer[(BYTE)cur_pos] = button_read; // Copy ASCII button press
-	        cur_pos = buffer_cnt; // Point at next empty location
-	        cursor_blink();  // Clear last cursor and move to next empty space
-	        delay();  // Wait to make sure button has stopped being pressed
-	      }
+  switch(TrackOrPIN){
+    case PIN:
+      if(buffer_cnt != cur_pos){  // If cursor isn't at the end
+          buffer_cnt--;  // Decrement it before next line, lest we wrongly add 1
+      }
+      if(++buffer_cnt > PIN_MAX){ // Button has been pressed, let's up the buffer count
+        buffer_cnt = PIN_MAX; // Limit PIN to 4 digits
+        cur_pos = CURSOR_MAX; // Cursor is off the edge of the array and won't blink
+        input_buffer[(BYTE)cur_pos] = 0; // Null terminate string containing PIN
+      }
+      else{   // Less than 4 digits already? Well, get it in there!
+        digits[(BYTE)cur_pos] = numtab[button_read-'0'];// Display the digit pressed
+        input_buffer[(BYTE)cur_pos] = button_read; // Copy ASCII button press
+        cur_pos = buffer_cnt; // Point at next empty location
+        cursor_blink();  // Clear last cursor and move to next empty space
+        delay();  // Wait to make sure button has stopped being pressed
+      }
+      break;
+    case TRACK:
+      if(buffer_cnt != cur_pos){  // If cursor isn't at the end
+        buffer_cnt--;  // Decrement it before next line, lest we wrongly add 1
+      }
+      if(++buffer_cnt > TRACK_MAX){ // Button has been pressed, let's up the buffer count
+        buffer_cnt = TRACK_MAX; // Limit number of digits in Track Number
+        cur_pos = CURSOR_MAX; // Cursor is off the edge of the array and won't blink
+        input_buffer[(BYTE)cur_pos] = 0; // Null terminate string containing PIN
+      }
+      else{   // Less than 4 digits already? Well, get it in there!
+        digits[(BYTE)cur_pos] = numtab[button_read-'0'];// Display the digit pressed
+        input_buffer[(BYTE)cur_pos] = button_read; // Copy ASCII button press
+        cur_pos = buffer_cnt; // Point at next empty location
+        cursor_blink();  // Clear last cursor and move to next empty space
+        delay();  // Wait to make sure button has stopped being pressed
+      }
+      break;
   }
   return;
 }

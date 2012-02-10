@@ -10,6 +10,7 @@
 #include "threads.h"
 
 BYTE authentication = FALSE;
+char input_buffer[BUFFER_SIZE] = {0};
 
 /*------------------------------------------------------------------------------
  * User Interface State Machines
@@ -45,8 +46,8 @@ void input_pin(char button_read){
       display_string("PIN too short.",PADDED,BLOCKING);
     }
     else{
-      authentication = check_pin(buffer,strlen(buffer));
-      printf("PIN: %s\n",buffer);
+      authentication = check_pin(input_buffer,strlen(input_buffer));
+      printf("PIN: %s\n",input_buffer);
       if(authentication == TRUE){
     	printf("Authentication Passed\n");
         display_string("Logged In",PADDED,NOT_BLOCKING);
@@ -139,9 +140,9 @@ void input_track_number(char button_read){
     else{
       playing = TRUE;//play_track(buffer,strlen(buffer));
       if(playing == TRUE){
-        printf("Track number: %s\n",buffer);
+        printf("Track number: %s\n",input_buffer);
         display_string(" Track Number ",NOT_PADDED,NOT_BLOCKING);
-        display_string(buffer,NOT_PADDED,NOT_BLOCKING);
+        display_string(input_buffer,NOT_PADDED,NOT_BLOCKING);
         display_string(" Playing   ",PADDED,NOT_BLOCKING);
       }
       else{

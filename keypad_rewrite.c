@@ -375,6 +375,8 @@ void update_display(void){
         digits[i] = display_char(input_buffer[i+cursor_offset]);
         saved_digits[i] = digits[i];
       }
+      cursor_blink = TRUE;    
+      block = FALSE;
       display_flag = WAITING;
       break;
       

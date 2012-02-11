@@ -68,7 +68,7 @@ void menu_select(void){
 	    break;
 
       case CANCEL:
-        reset_buffer();
+        //reset_buffer();
         pthread_mutex_lock(&state_Mutex);
         state = WAITING_LOGGED_IN; // Go back to waiting
         pthread_mutex_unlock(&state_Mutex);
@@ -105,12 +105,12 @@ void show_choice(int choice){
     "4.Log out."
   };
 
-  reset_buffer();
-  display_string("",NOT_PADDED,NOT_BLOCKING);
-  display_string(menu_strings[choice],PADDED,NOT_BLOCKING);
+  //reset_buffer();
+  display_string("",NOT_BLOCKING);
+  display_string(menu_strings[choice],NOT_BLOCKING);
 
   for(i=0;i<5;i++){
-    display_char(menu_strings[choice][i],NOT_BLOCKING);
+    display_char(menu_strings[choice][i]);
   }
   return;
 }

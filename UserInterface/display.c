@@ -35,332 +35,338 @@ const BYTE alphaL[] = {0x77,0x7C,0x58,0x5E,0x79,0x71,0x6F,0x74,0x04,
 /*                        S,   t,   U,   V,   W,   X,   Y,   Z*/
                         0x6D,0x78,0x3E,0x1C,0x2A,0x76,0x6E,0x5B};
 
-
-BYTE display_flag = 0;
+char input_buffer[BUFFER_SIZE] = {0};
 char display_buffer[BUFFER_SIZE] = {0};
-char cursor_position = 0;
 
-char buffer_cnt = 0;
-char buffer_pos = 0;
-char cur_pos = 0;
-BYTE cursor = 0;
+int display_flag = WAITING;
+int cursor_blink = FALSE;
 
-/*------------------------------------------------------------------------------
- *
- *------------------------------------------------------------------------------
- */
+BYTE blocking = FALSE;
+BYTE padding = TRUE;
 
-
-
-
-
-
-
-/*---- Old Functions ---- */
+int cursor_pos = 0;
+int cursor_offset = 0;
+int input_len = 0;
+int input_ptr = 0;
 
 /*------------------------------------------------------------------------------
- * Delay Routines - Used in printing chars and strings to the LEDs
+ * Display State Machine
  *------------------------------------------------------------------------------
  */
-
-void delay(){        // Delay between button presses
-  int i = DELAY;
-  while(--i && alive)
-    usleep(SLEEP);
-}
-void scroll_delay(BYTE blocking){ // Delay of text moving across the display
-  int i = SCROLL_DELAY;
-  if(blocking){
-    while(--i && alive)
-      usleep(SLEEP);
-  }
-  else{
-    while(--i && alive && !button) // Non-blocking method
-      usleep(SLEEP);
-  }
-}
-/*------------------------------------------------------------------------------
- * Clear the buffer, counter and cursor position on reset
- *------------------------------------------------------------------------------
- */
-void reset_buffer(void){ // Reset everything
+void update_display(void){
   int i;
-  for(i=0;i<BUFFER_SIZE;i++){
-    input_buffer[i]=0;
-  }
-  buffer_cnt = 0;
-  cur_pos = 0;
-
-  for(i=0;i<4;i++){ // Clear the LEDs
-    digits[i]=0;
-  }
+  static int started_waiting = TRUE;
+  static int block = FALSE;
+  static int offset = 0;
+  static int finished = TRUE;
+  static int pad = 0;
+  static BYTE saved_digits[COLSX] = {0x73,0x79,0x78,0x79};
+  static int prev_cursor_pos = 0;
+  
+  switch(display_flag){
+    case CHANGED:
+      cursor_blink = FALSE;
+      switch(finished){
+        case FALSE:
+          switch(block){
+            case TRUE:
+              printf("Blocked\n");
+              break;
+            case FALSE:
+              display_flag = WRITING;
+              for(i=0;i<COLSX;i++){
+                digits[i] = 0;
+              }
+              block = blocking;
+              offset = 0;
+              break;
+            default:
+              break;
+          }
+          break;
+        case TRUE:
+          display_flag = WRITING;
+          finished = FALSE;
+          block = blocking;
+          offset = 0;
+          break;
+        default:
+          break;
+      }
+      break;
+      
+    case WRITING:
+      switch(finished){
+        case FALSE:
+          if(offset == 0){
+            for(i=0;i<COLSX;i++){
+              digits[i] = digits[i+1];
+            }
+            digits[3] = 0;                 // Make space for new string
+          }
+          if(display_buffer[offset] != 0){
+            while(display_buffer[offset] == '.' && display_buffer[offset] != 0){
+              digits[3] |= CURSOR_VALUE;
+              offset++;
+            }
+            for(i=0;i<3;i++){
+              digits[i] = digits[i+1];
+            }
+            digits[3] = display_char(display_buffer[offset]);
+            offset++;
+          }
+          else{
+            finished = TRUE;
+            for(i=0;i<COLSX;i++){
+              digits[i] = digits[i+1];
+            }
+            digits[3] = 0;  // Space between end of string and restored digits
+           
+            if(padding == TRUE){
+              pad = 4;
+            }
+          }
+          break;
+        
+        case TRUE:
+          if(pad){
+            for(i=0;i<COLSX;i++){
+              digits[i] = digits[i+1];
+            }
+            digits[3] = saved_digits[COLSX-pad];
+            pad--;
+          }
+          else{
+            blocking = FALSE;
+            block = blocking;
+            offset = 0;
+            started_waiting = TRUE;
+            display_flag = WAITING;
+          }
+          break;
+        default:
+          break;
+        }
+      break;
+      
+    case INPUTTING:
+      for(i=0;i<COLSX;i++){
+        digits[i] = display_char(input_buffer[i+cursor_offset]);
+        saved_digits[i] = digits[i];
+      }
+      cursor_blink = TRUE;    
+      block = FALSE;
+      display_flag = WAITING;
+      break;
+      
+    case WAITING:
+      if(started_waiting){
+        for(i=0;i<COLSX;i++){
+          saved_digits[i] = digits[i]; // Copy current display
+        }
+        started_waiting = FALSE;
+        cursor_blink = TRUE;
+      }
+      
+      if(cursor_blink == TRUE){
+        if(prev_cursor_pos != cursor_pos){
+            digits[prev_cursor_pos] &= NO_CURSOR;
+            prev_cursor_pos = cursor_pos;
+          }
+          
+        if(cursor_pos < COLSX){
+          digits[cursor_pos] ^= CURSOR_VALUE;
+        }
+      }
+      break;
+    default:
+      break;
+  }  
 }
+
 /*------------------------------------------------------------------------------
- * Clear Display
+ * Char Insert and Delete
  *------------------------------------------------------------------------------
  */
-void clear_display(void){
+void insert_char(char in_char){
+  char temp_buffer[BUFFER_SIZE] = {0};
+  int input_ptr;
+  
+  input_ptr = (cursor_pos + cursor_offset);
+  if(input_ptr == input_len){
+    if(input_len < BUFFER_SIZE){
+      input_len++;
+      input_buffer[input_ptr] = in_char;
+      move_cursor(RIGHT);
+    }
+  }
+  else if(input_ptr < input_len){
+    strncpy(temp_buffer,input_buffer,input_ptr);
+    temp_buffer[input_ptr] = in_char;
+    temp_buffer[input_ptr+1] = 0;
+    strcat(temp_buffer,&input_buffer[input_ptr]);
+    strcpy(input_buffer,temp_buffer);
+    input_len++;
+    if((cursor_pos < COLSX-1) && input_len < COLSX){
+      move_cursor(RIGHT);
+    }
+    else{
+      cursor_offset++;
+    }
+  }
+  display_input_buffer();
+}
+
+void delete_char(void){
   int i;
-  for(i=0;i<4;i++)
-    digits[i] = 0;
-}
+  int input_ptr;
 
-/*------------------------------------------------------------------------------
- * Cursor Blinking Routine - Toggles the dot on the displayed char
- *------------------------------------------------------------------------------
- */
-void cursor_blink(void){
-  static DWORD timer = CUR_TRIGGER;
-  static BYTE prev_pos = 0;
-
-  if(cur_pos != prev_pos){ // Cursor has moved
-    digits[prev_pos] &= (BYTE) 0x7F; // Clear the old cursor
-    if(cur_pos < 4){  // Unless pointing off the edge of the display
-      digits[(BYTE)cur_pos] ^= CURSOR_VAL; // Toggle the cursor
+  if(input_len > 0){  
+    input_ptr = (cursor_pos + cursor_offset);
+    if(input_ptr >= input_len){
+      input_buffer[input_ptr-1] = 0;
+      
     }
-    prev_pos = cur_pos; // Remember where cursor is
-    timer = CUR_TRIGGER;
-  }
-
-  timer--;      // Only toggle every few loops
-  if(!timer){   // Gives the blinking effect
-    timer = CUR_TRIGGER;
-    if(cur_pos < 4){ // Unless pointing off the edge of the display
-      digits[(BYTE)cur_pos] ^= CURSOR_VAL;
+    else{
+      for(i=input_ptr;i<input_len;i++){
+        input_buffer[i] = input_buffer[i+1];
+      }
+      input_buffer[input_len] = 0;
     }
-  }
-}
-
-/*------------------------------------------------------------------------------
- * Display Digit Shifting Routines
- *------------------------------------------------------------------------------
- */
-void shift_digits_left(void){
-  int i;
-  int buf_len;
-
-  for(i=0;i<SCROLL_DELAY;i++); // Delay of text moving across the display
-  digits[(BYTE)cur_pos] &= 0x7F;  // Clear the cursor
-  buf_len = strlen(input_buffer);
-  if(buf_len < BUFFER_SIZE){
-    buffer_pos++;
-    if(buffer_pos == buf_len){
-      buffer_pos--;
+    input_len--;
+    
+    if(cursor_offset){
+      if(--cursor_offset < 0){
+        cursor_offset = 0;
+      }
+      if(cursor_pos < input_len){
+        if(++cursor_pos >= COLSX-1){
+          cursor_pos = COLSX-1;
+        }
+      }
     }
-    if(buffer_pos > 3){
-      for(i=0;i<4;i++){
-        digits[i] = numtab[input_buffer[buffer_pos-(3-i)]-'0'];
+    else{
+      if(cursor_pos){
+        if(--cursor_pos < 0){
+          cursor_pos = 0;
+        }
       }
     }
   }
-  cursor_blink();
+  display_input_buffer();
 }
+/*------------------------------------------------------------------------------
+ * Cursor movement along the display buffer
+ *------------------------------------------------------------------------------
+ */
 
-void shift_digits_right(void){
-}
-
-void shift_digits(){
-  int i;
-  digits[(BYTE)cur_pos] &= 0x7F;
-  for(i=0;i<3;i++){
-    digits[i] = digits[i+1];
+void move_cursor(int direction){
+  switch(direction){
+    case LEFT:
+      if(input_len){ // Only go left if there is somewhere to go
+        if(--cursor_pos < 0){
+          cursor_pos = 0;
+          if(cursor_offset){
+            cursor_offset--;
+          }
+        }
+        else if(cursor_pos < 3 && cursor_offset){
+          cursor_offset--;
+          cursor_pos++;
+        }
+      }
+      break;
+    case RIGHT:
+      if(input_len){ // Only go right if there is somewhere to go
+        if((cursor_pos + cursor_offset) < input_len){
+          if(++cursor_pos >= COLSX){
+            cursor_pos = COLSX-1;
+            cursor_offset++;
+          }
+        }
+      }
+      break;
+    default:
+      break;
   }
-  digits[3] = 0;
+  display_input_buffer();
+  return;
 }
+
+
 /*------------------------------------------------------------------------------
  * Display Char Routine
  *------------------------------------------------------------------------------
  */
-void display_char(char key, BYTE blocking){
-
-  if(key == '.' || key == ':'){// Add a full stop on the right char
-    digits[3] |= CURSOR_VAL;
-    return;
-  }
-
-  shift_digits();
+BYTE display_char(char key){
+  BYTE character = 0;
   switch(key){
     case ' ':
-      digits[3] = 0x00;
-      break;
-    case '_':
-      digits[3] = 0x08;
+      character = 0x00;
       break;
     case '-':
-      digits[3] = 0x40;
+      character = 0x40;
       break;
     case '=':
-      digits[3] = 0x48;
+      character = 0x48;
       break;
-    /*case '.':
-      digits[3] = CURSOR_VAL;
-      break;*/
-    case '!':
-      digits[3] = 0x82;
+    case '.':
+      character = 0x80;
       break;
     case '?':
-      digits[3] = 0x83;
+      character = 0x83;
+      break;
+    case '!':
+      character = 0x82;
+      break;
+    case '_':
+      character = 0x08;
       break;
     case '(':
     case '<':
     case '[':
     case '{':
-      digits[3] = 0x39;
+      character = 0x39;
       break;
     case ')':
     case '>':
     case ']':
     case '}':
-      digits[3] = 0x0F;
+      character = 0x0F;
       break;
     default:
       if((key >= '0') && (key <= '9')){      // Numbers
-        digits[3] = numtab[key-'0'];
+        character = numtab[key-'0'];
       }
       else if((key >= 'A') && (key <= 'Z')){ // "Upper case" alphabet
-        digits[3] = alphaU[key-'A'];
+        character = alphaU[key-'A'];
       }
       else if((key >= 'a') && (key <= 'z')){ // "Lower case" alphabet
-        digits[3] = alphaL[key-'a'];
+        character = alphaL[key-'a'];
       }
       else{
-        digits[3] = 0x00;
+        character = 0;
       }
       break;
   }
-  scroll_delay(blocking);
+  return character;
 }
 /*------------------------------------------------------------------------------
  * Display String Routines - Blocking and Non-Blocking
  *------------------------------------------------------------------------------
  */
+void display_string(char * in, BYTE blocked){
+  strcpy(display_buffer,in);
+  blocking = blocked;
+  display_flag = CHANGED;
+}
 
-void display_string(char *in, BYTE padded, BYTE blocking){
-  int i;
-  BYTE temp[4];
-  static BYTE prev_padded = TRUE;
-
-  if(button && !blocking){  // Routine called by a button press?
-    while(button && alive){  // Wait until not pressed
-      usleep(SLEEP);
-    }
-  }
-
-  for(i=0;i<4;i++){
-    temp[i]=digits[i]; // Save current digits
-  }
-
-  if(padded && prev_padded){
-    for(i=0;i<PADDED;i++){
-      shift_digits();
-      scroll_delay(blocking);
-    }
-  }
-
-  if(blocking){
-    while(*in!='\0' && alive){
-      display_char(*in,blocking); // Print chars in the string
-      in++;
-    }
-  }
-  else{
-    while(*in!='\0' && alive && !button){
-      display_char(*in,blocking); // Print chars in the string
-      in++;
-    }
-  }
-
-  if(button && !blocking){
-    for(i=0;i<4;i++){
-      digits[i]=temp[i]; // Replace saved digits
-    }
-  }
-  else{   // Uninterrupted
-    if(padded){
-      for(i=0;i<PADDED;i++){ // Finish Scrolling the message off
-        shift_digits();
-        scroll_delay(blocking);
-      }
-    }
-    if(blocking){
-      for(i=0;i<4;i++){
-        shift_digits();
-        digits[3]=temp[i]; // Replace saved digits
-        scroll_delay(blocking);
-      }
-    }
-  }
-  prev_padded = padded;
-  return;
+void display_input_buffer(void){
+  strcpy(display_buffer,&input_buffer[cursor_offset]);
+  printf("input_buffer: %s\n",input_buffer);
+  display_flag = INPUTTING;
 }
 
 void display_time(void){};
 
 
-void delete_char(void){
-  int i;
-  if (cur_pos == CURSOR_MAX || cur_pos == buffer_cnt){
-    input_buffer[(BYTE)--buffer_cnt] = 0;
-    digits[(BYTE)cur_pos] &= 0x7F;
-    digits[(BYTE)--cur_pos] = 0;
-    cursor_blink();
-  }
-  else{
-	digits[(BYTE)cur_pos] &= 0x7F;
-	for(i=cur_pos;i<4;i++){
-      digits[i] = digits[i+1];
-	  input_buffer[i] = input_buffer[i+1];
-	}
-	input_buffer[(BYTE)buffer_cnt--] = 0;
-	digits[3] = 0;
-	}
-	if (!buffer_cnt || cur_pos < 0){
-	  cur_pos = 0;
-	  buffer_cnt = 0;
-	  input_buffer[(BYTE)buffer_cnt] = 0;
-	}
-  return;
-}
-/*void insert_char(char button_read, BYTE TrackOrPIN){
-
-  return;
-}*/
-void insert_char(char button_read, BYTE TrackOrPIN){
-  switch(TrackOrPIN){
-    case PIN:
-      if(buffer_cnt != cur_pos){  // If cursor isn't at the end
-          buffer_cnt--;  // Decrement it before next line, lest we wrongly add 1
-      }
-      if(++buffer_cnt > PIN_MAX){ // Button has been pressed, let's up the buffer count
-        buffer_cnt = PIN_MAX; // Limit PIN to 4 digits
-        cur_pos = CURSOR_MAX; // Cursor is off the edge of the array and won't blink
-        input_buffer[(BYTE)cur_pos] = 0; // Null terminate string containing PIN
-      }
-      else{   // Less than 4 digits already? Well, get it in there!
-        digits[(BYTE)cur_pos] = numtab[button_read-'0'];// Display the digit pressed
-        input_buffer[(BYTE)cur_pos] = button_read; // Copy ASCII button press
-        cur_pos = buffer_cnt; // Point at next empty location
-        cursor_blink();  // Clear last cursor and move to next empty space
-        delay();  // Wait to make sure button has stopped being pressed
-      }
-      break;
-    case TRACK:
-      if(buffer_cnt != cur_pos){  // If cursor isn't at the end
-        buffer_cnt--;  // Decrement it before next line, lest we wrongly add 1
-      }
-      if(++buffer_cnt > TRACK_MAX){ // Button has been pressed, let's up the buffer count
-        buffer_cnt = TRACK_MAX; // Limit number of digits in Track Number
-        cur_pos = CURSOR_MAX; // Cursor is off the edge of the array and won't blink
-        input_buffer[(BYTE)cur_pos] = 0; // Null terminate string containing PIN
-      }
-      else{   // Less than 4 digits already? Well, get it in there!
-        digits[(BYTE)cur_pos] = numtab[button_read-'0'];// Display the digit pressed
-        input_buffer[(BYTE)cur_pos] = button_read; // Copy ASCII button press
-        cur_pos = buffer_cnt; // Point at next empty location
-        cursor_blink();  // Clear last cursor and move to next empty space
-        delay();  // Wait to make sure button has stopped being pressed
-      }
-      break;
-  }
-  return;
-}

@@ -27,7 +27,7 @@ typedef unsigned int DWORD;
 #define SLEEP 1400		/* Lowest value needed between write and read */
 
 #define PIN_LEN	4
-#define BUFFER_SIZE     10
+#define BUFFER_SIZE     20
 #define BUFFER_MAX      BUF_SIZE - 1
 
 extern BYTE alive;  	/* Exit condition of while loops */

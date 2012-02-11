@@ -14,28 +14,32 @@
 #include <string.h>
 #include "top.h"
 
-#define READ_MASK		0xF0
-#define WRITE_MASK      0xF1
-#define WRITTEN_MASK    0xF2
 
-#define BLOCKING_MASK   0x1F
-#define NOT_BLOCKING    0x0F
+/* Display Flag States */
+enum display_states{
+	WAITING,
+	CHANGED,
+	INPUTTING,
+	WRITING
+} display_state;
+
+#define CURSOR_VALUE    0x80
+#define NO_CURSOR       0x7F
+
+#define LEFT            0
+#define RIGHT           1
+
+#define DELAY           8   // 7 Seg display refresh timeout
 
 #define BLOCKING        1
+#define NOT_BLOCKING    0
 
-#define PADDED          3
-#define NOT_PADDED      0
-
-#define DELAY 			70	// Key press delay
-#define SCROLL_DELAY 	100 // LED scrolling
-#define CUR_TRIGGER  	4	// Cursor blinking rate
+#define PIN 1
+#define TRACK 2
 
 #define PIN_MAX		  	4
 #define TRACK_MAX	  	6
 #define CURSOR_MAX		4
-
-#define PIN				1
-#define TRACK			2
 
 #define ACCEPT_PLAY    'A'
 #define BACK           'B'
@@ -65,28 +69,27 @@ extern BYTE digits[];
 
 extern char input_buffer[BUFFER_SIZE];
 extern char display_buffer[BUFFER_SIZE];
-extern BYTE display_flag;
-extern char cursor_position;
 
-extern char buffer[BUFFER_SIZE];
-extern char buffer_cnt;
-extern char buffer_pos;
-extern char cur_pos;
-extern BYTE cursor;
+extern int display_flag;
+extern int cursor_blink;
 
+extern BYTE blocking;
+extern BYTE padding;
 
-void delay();			// Delay between button presses
-void scroll_delay(BYTE);			// Delay of digits scrolling
-void reset_buffer(void);
-void clear_display();
-void cursor_blink();
-void move_cursor(BYTE);
+extern int cursor_pos;
+extern int cursor_offset;
+extern int input_len;
+extern int input_ptr;
 
-void shift_digits();
+void update_display(void);
 
-void display_char(char,BYTE);
-void display_string(char *,BYTE,BYTE);
+void insert_char(char);
 void delete_char(void);
-void insert_char(char,BYTE);
+void move_cursor(int);
+
+BYTE display_char(char);
+void display_string(char *,BYTE);
+void display_input_buffer(void);
+void display_time(void);
 
 #endif /* DISPLAY_H_ */

@@ -79,7 +79,7 @@ int main (void) {
           }
         }
         else{
-          printf("button: %c\n",button_read);        
+          printf("button: %c\n",button_read);
           switch(button_read){
             case 'A':
               display_string("Hello. =)",BLOCKING);
@@ -209,13 +209,11 @@ void move_cursor(int direction){
           cursor_pos = 0;
           if(cursor_offset){
             cursor_offset--;
-            display_input_buffer();
           }
         }
         else if(cursor_pos < 3 && cursor_offset){
           cursor_offset--;
           cursor_pos++;
-          display_input_buffer();
         }
       }
       break;
@@ -225,7 +223,6 @@ void move_cursor(int direction){
           if(++cursor_pos >= COLSX){
             cursor_pos = COLSX-1;
             cursor_offset++;
-            display_input_buffer();
           }
         }
       }
@@ -233,6 +230,7 @@ void move_cursor(int direction){
     default:
       break;
   }
+  display_input_buffer();
   printf("cur pos: %d, cur_offset: %d, in_len %d\n",cursor_pos,cursor_offset,input_len);  
   return;
 }
@@ -402,8 +400,7 @@ void update_display(void){
       break;
     default:
       break;
-  }
-  
+  }  
 }
 
 /*------------------------------------------------------------------------------

@@ -30,7 +30,7 @@ void * state_machine(void){
     	//pthread_cond_wait(&state_Signal, &state_Mutex);
     	state_read = state;
         pthread_mutex_unlock(&state_Mutex);*/
-        display_string(emergency,PADDED,NOT_BLOCKING);
+        display_string(emergency,NOT_BLOCKING);
       continue;
     }
 
@@ -47,7 +47,7 @@ void * state_machine(void){
 
 	switch(state_read){
       case EMERGENCY:	// Emergency since we've been waiting
-    	display_string(emergency,PADDED,NOT_BLOCKING);
+    	display_string(emergency,NOT_BLOCKING);
 //    	continue;
     	break;
 
@@ -65,7 +65,7 @@ void * state_machine(void){
       	  pthread_mutex_unlock(&state_Mutex);
         }
         else{
-          display_string("Please Enter PIN.",PADDED,NOT_BLOCKING);
+          display_string("Please Enter PIN.",NOT_BLOCKING);
           digits[0] = CURSOR_VAL;
           break;
         }
@@ -74,7 +74,6 @@ void * state_machine(void){
         if(button_read){
           input_pin(button_read);  // Sends a snapshot of button pressed
         }
-        cursor_blink();//TODO move to somewhere not blocked?
         break;
 
       case WAITING_LOGGED_IN:
@@ -91,7 +90,7 @@ void * state_machine(void){
           break; // Go Round Again         T_T
         }
         else{
-          display_string("Enter Track Number.",PADDED,NOT_BLOCKING);
+          display_string("Enter Track Number.",NOT_BLOCKING);
           digits[0] = CURSOR_VAL;
           break;
         }
@@ -100,18 +99,16 @@ void * state_machine(void){
         if(button_read){
           input_track_number(button_read);  // Sends a snapshot of button
         }
-        cursor_blink();
         break;
 
       case MENU_SELECT:
-        display_string("MENU.",PADDED,NOT_BLOCKING);
+        display_string("MENU.",NOT_BLOCKING);
         menu_select();
         break;
 
       default:
         break;
     }
-    delay();
   }
   return 0;
 }

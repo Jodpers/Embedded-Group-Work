@@ -10,7 +10,6 @@
 #include "threads.h"
 
 BYTE authentication = FALSE;
-char input_buffer[BUFFER_SIZE] = {0};
 
 /*------------------------------------------------------------------------------
  * User Interface State Machines
@@ -33,77 +32,67 @@ void input_pin(char button_read){
   case '7':
   case '8':
   case '9':
-    insert_char(button_read,PIN);
-//  printf("buffer: %s\nbuffer_cnt: %d\ncur_pos: %d\n",buffer,buffer_cnt,cur_pos);
+    insert_char(button_read);
+//  printf("buffer: %s\ninput_len: %d\ncursor_pos: %d\n",buffer,input_len,cursor_pos);
     break;
 
   case ACCEPT_PLAY:
   case ENTER_MENU:
-    if(cur_pos != buffer_cnt){  // Send cursor to the end
-      cur_pos = buffer_cnt;
+    if(cursor_pos != input_len){  // Send cursor to the end
+      cursor_pos = input_len;
     }
-    if(buffer_cnt < PIN_MAX){
-      display_string("PIN too short.",PADDED,BLOCKING);
+    if(input_len < PIN_MAX){
+      display_string("PIN too short.",BLOCKING);
     }
     else{
       authentication = check_pin(input_buffer,strlen(input_buffer));
       printf("PIN: %s\n",input_buffer);
       if(authentication == TRUE){
     	printf("Authentication Passed\n");
-        display_string("Logged In",PADDED,NOT_BLOCKING);
+        display_string("Logged In",NOT_BLOCKING);
 
     	pthread_mutex_lock(&state_Mutex);
         state = WAITING_LOGGED_IN;
     	pthread_mutex_unlock(&state_Mutex);
-    	display_string("Welcome.",PADDED,NOT_BLOCKING);
-    	display_string("Enter Track Number.",PADDED,NOT_BLOCKING);
+    	display_string("Welcome.",NOT_BLOCKING);
+    	display_string("Enter Track Number.",NOT_BLOCKING);
     	digits[0] = CURSOR_VAL;
       }
       else{
     	printf("Authentication Failed\n");
-        display_string("Invalid PIN.",PADDED,NOT_BLOCKING);
+        display_string("Invalid PIN.",NOT_BLOCKING);
 
     	pthread_mutex_lock(&state_Mutex);
         state = WAITING_LOGGED_OUT;
     	pthread_mutex_unlock(&state_Mutex);
-    	display_string("Please Enter VALID PIN!",PADDED,NOT_BLOCKING);
+    	display_string("Please Enter VALID PIN!",NOT_BLOCKING);
     	digits[0] = CURSOR_VAL;
       }
-      reset_buffer();
+      //reset_buffer();
     }
     break;
 
   case CANCEL:
-    reset_buffer();
+    //reset_buffer();
 
 	pthread_mutex_lock(&state_Mutex);
     state = WAITING_LOGGED_OUT; // Go back to waiting
 	pthread_mutex_unlock(&state_Mutex);
-	display_string("Enter PIN.",PADDED,NOT_BLOCKING);
+	display_string("Enter PIN.",NOT_BLOCKING);
 	digits[0] = CURSOR_VAL;
     break;
 
-  case FORWARD:  // Move the cursor forward 1 digit
-    if(buffer_cnt){
-      if(++cur_pos>buffer_cnt){ // Scroll as far as 1 digit past last input
-        cur_pos = buffer_cnt;
-      }
-    }
-    cursor_blink(); // Update Cursor Position
-//    printf("cursor_position: %d\n",cur_pos);
+  case FORWARD:
+    move_cursor(RIGHT);
     break;
 
   case BACK:
-    if(--cur_pos<=0){
-      cur_pos=0;
-    }
-    cursor_blink();
-//    printf("cursor_position: %d\n",cur_pos);
+    move_cursor(LEFT);
     break;
 
   case DELETE:
     delete_char();
-//  printf("buffer: %s\nbuffer_cnt: %d\ncur_pos: %d\n",buffer,buffer_cnt,cur_pos);
+//  printf("buffer: %s\ninput_len: %d\ncursor_pos: %d\n",buffer,input_len,cursor_pos);
     break;
   default:
     break;
@@ -124,71 +113,61 @@ void input_track_number(char button_read){
   case '7':
   case '8':
   case '9':
-    insert_char(button_read,TRACK);
-//  printf("buffer: %s\nbuffer_cnt: %d\ncur_pos: %d\n",buffer,buffer_cnt,cur_pos);
+    insert_char(button_read);
+//  printf("buffer: %s\ninput_len: %d\ncursor_pos: %d\n",buffer,input_len,cursor_pos);
     break;
 
   case ACCEPT_PLAY:
   case ENTER_MENU:
-    if(cur_pos != buffer_cnt){  // Send cursor to the end
-      cur_pos = buffer_cnt;
+    if(cursor_pos != input_len){  // Send cursor to the end
+      cursor_pos = input_len;
     }
 
-    if(buffer_cnt < 4){
-      display_string("Invalid.",PADDED,BLOCKING);
+    if(input_len < 4){
+      display_string("Invalid.",BLOCKING);
     }
     else{
       playing = TRUE;//play_track(buffer,strlen(buffer));
       if(playing == TRUE){
         printf("Track number: %s\n",input_buffer);
-        display_string(" Track Number ",NOT_PADDED,NOT_BLOCKING);
-        display_string(input_buffer,NOT_PADDED,NOT_BLOCKING);
-        display_string(" Playing   ",PADDED,NOT_BLOCKING);
+        display_string(" Track Number ",NOT_BLOCKING);
+        display_string(input_buffer,NOT_BLOCKING);
+        display_string(" Playing   ",NOT_BLOCKING);
       }
       else{
-        display_string("Track not found.",PADDED,NOT_BLOCKING);
+        display_string("Track not found.",NOT_BLOCKING);
       }
 
   	  pthread_mutex_lock(&state_Mutex);
       state = WAITING_LOGGED_IN;
   	  pthread_mutex_unlock(&state_Mutex);
-  	  display_string("Enter Track Number.",PADDED,NOT_BLOCKING);
+  	  display_string("Enter Track Number.",NOT_BLOCKING);
   	  digits[0] = CURSOR_VAL;
   	  //display timing info
-      reset_buffer();
+      //reset_buffer();
     }
     break;
 
   case CANCEL:
-    reset_buffer();
+    //reset_buffer();
 	pthread_mutex_lock(&state_Mutex);
     state = WAITING_LOGGED_IN; // Go back to waiting
 	pthread_mutex_unlock(&state_Mutex);
-	display_string("Enter Track Number.",PADDED,NOT_BLOCKING);
+	display_string("Enter Track Number.",NOT_BLOCKING);
 	digits[0] = CURSOR_VAL;
     break;
 
   case FORWARD:  // Move the cursor forward 1 digit
-    if(buffer_cnt){
-      if(++cur_pos>buffer_cnt){ // Scroll as far as 1 digit past last input
-        cur_pos = buffer_cnt;
-      }
-    }
-    cursor_blink(); // Update Cursor Position
-//    printf("cursor_position: %d\n",cur_pos);
+    move_cursor(RIGHT);
     break;
 
   case BACK:
-    if(--cur_pos<=0){
-      cur_pos=0;
-    }
-    cursor_blink();
-//    printf("cursor_position: %d\n",cur_pos);
+    move_cursor(LEFT);
     break;
 
   case DELETE:
     delete_char();
-//  printf("buffer: %s\nbuffer_cnt: %d\ncur_pos: %d\n",buffer,buffer_cnt,cur_pos);
+//  printf("buffer: %s\ninput_len: %d\ncursor_pos: %d\n",buffer,input_len,cursor_pos);
     break;
   default:
     break;

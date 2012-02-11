@@ -20,8 +20,6 @@
 #define DELAY 8             // LED scrolling
 #define CUR_TRIGGER  4       // Cursor blinking rate
 
-#define PADDED          1
-#define NOT_PADDED      0
 #define BLOCKING        1
 #define NOT_BLOCKING    0
 
@@ -101,7 +99,6 @@ void * keypad();
 
 BYTE display_char(char);
 void display_string(char *,BYTE);
-
 void display_input_buffer(void);
 void move_cursor(int direction);
 void insert_char(char);

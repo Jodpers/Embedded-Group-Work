@@ -15,5 +15,6 @@
 #include "threads.h"
 
 void * keypad(void);
+void read_button(int, char);
 
 #endif /* KEYPAD_H_ */

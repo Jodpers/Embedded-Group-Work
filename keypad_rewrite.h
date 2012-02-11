@@ -35,6 +35,8 @@
 #define CURSOR_VALUE    0x80
 #define NO_CURSOR       0x7F
 
+#define LEFT            0
+#define RIGHT           1
 
 /* State Table */
 enum states{
@@ -51,6 +53,7 @@ enum states{
 enum display_states{
 	WAITING,
 	CHANGED,
+	INPUTTING,
 	WRITING
 } display_state;
 
@@ -97,5 +100,9 @@ void closing_time();
 void * keypad();
 
 BYTE display_char(char);
-void display_string(char *,BYTE,BYTE);
+void display_string(char *,BYTE);
 
+void display_input_buffer(void);
+void move_cursor(int direction);
+void insert_char(char);
+void delete_char(void);

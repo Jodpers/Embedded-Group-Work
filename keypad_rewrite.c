@@ -29,7 +29,7 @@ int state = WAITING_LOGGED_OUT;  // State machine variable
 //int state = MENU_SELECT;
 int logged_in = FALSE;  // Client connected to server
 
-BYTE blocking = TRUE;
+BYTE blocking = FALSE;
 BYTE padding = TRUE;
 
 char authentication = FALSE;
@@ -41,7 +41,11 @@ char display_buffer[BUF_SIZE] = {0};
 
 int display_flag = WAITING;
 int cursor_blink = FALSE;
-int cur_pos = 0;
+
+int cursor_pos = 0;
+int cursor_offset = 0;
+int input_len = 0;
+int input_ptr = 0;
 
 /*------------------------------------------------------------------------------
  * main -- Open terminal and launch keypad thread.
@@ -52,8 +56,6 @@ int main (void) {
 //  int i;
   int ret;
   char *emergency="! EMERGENCY !";
-  char *welcome="Welcome.";
-  char *enter_pin="Please Enter PIN.";
   char button_read = FALSE;  // Local snapshot of Global 'Button'
   char prev_button = 0;
 
@@ -66,33 +68,42 @@ int main (void) {
   
   setup_ports();
   ret = pthread_create( &keypad_thread, NULL, keypad, NULL);
-  
-  strcpy(display_buffer,"1.Volume");
-  blocking = TRUE;
-  display_flag = CHANGED;
-  
+    
   while(alive){
-//    display_string(welcome,PADDED,NOT_BLOCKING);
-    if(button_read = button){
+    button_read = button;
+    if(button_read){
       if(prev_button != button_read){
         if(blocking){
-          while(blocking == TRUE && alive);
+          while(blocking == TRUE && alive){
+            usleep(SLEEP);
+          }
         }
         else{
-          if(button_read == 'F'){
-            if(++cur_pos > COLSX){
-              cur_pos = COLSX;
-            }
-          }
-          else if(button_read == 'B'){
-            if(--cur_pos < 0){
-              cur_pos = 0;
-            }
-          }
-          else{
-            printf("button: %c\n",button_read);
-            sprintf(display_buffer,"Button %c",button_read);        
-            display_flag = CHANGED;
+          printf("button: %c\n",button_read);        
+          switch(button_read){
+            case 'A':
+              display_string("Hello. =)",BLOCKING);
+              break;
+            case 'B':
+              move_cursor(LEFT);
+              break;
+            case 'C':
+              display_string("Cancel =(",NOT_BLOCKING);
+              break;
+            case 'D':
+              delete_char();
+              break;
+            case 'E':
+              display_string(emergency,BLOCKING);
+              break;
+            case 'F':
+              move_cursor(RIGHT);
+              break;
+            case ERROR:
+              break;
+            default:
+              insert_char(button_read);
+              break;
           }
         }
       }
@@ -107,11 +118,125 @@ int main (void) {
   return 0;
 }
 
+void display_string(char * in, BYTE blocked){
+  strcpy(display_buffer,in);
+  blocking = blocked;
+  display_flag = CHANGED;
+}
 
-/*------------------------------------------------------------------------------
- * keypad thread - this function continiously outputs to LEDs and reads buttons
- *------------------------------------------------------------------------------
- */
+void display_input_buffer(void){
+  strcpy(display_buffer,&input_buffer[cursor_offset]);
+  display_flag = INPUTTING;
+}
+
+void insert_char(char in_char){
+  char temp_buffer[BUF_SIZE] = {0};
+  int input_ptr;
+  
+  input_ptr = (cursor_pos + cursor_offset);
+  if(input_ptr == input_len){
+    if(input_len < BUF_SIZE){
+      input_len++;
+      input_buffer[input_ptr] = in_char;
+      move_cursor(RIGHT);
+    }
+  }
+  else if(input_ptr < input_len){
+    strncpy(temp_buffer,input_buffer,input_ptr);
+    temp_buffer[input_ptr] = in_char;
+    temp_buffer[input_ptr+1] = 0;
+    strcat(temp_buffer,&input_buffer[input_ptr]);
+    strcpy(input_buffer,temp_buffer);
+    input_len++;
+    if((cursor_pos < COLSX-1) && input_len < COLSX){
+      move_cursor(RIGHT);
+    }
+    else{
+      cursor_offset++;
+    }
+  }
+  printf("cur pos: %d, cur_offset: %d, in_len %d\n",cursor_pos,cursor_offset,input_len);  
+  printf("input_buffer: %s\n",input_buffer);
+  display_input_buffer();
+}
+
+void delete_char(void){
+  int i;
+  int input_ptr;
+
+  if(input_len > 0){  
+    input_ptr = (cursor_pos + cursor_offset);
+    if(input_ptr >= input_len){
+      input_buffer[input_ptr-1] = 0;
+      
+    }
+    else{
+      for(i=input_ptr;i<input_len;i++){
+        input_buffer[i] = input_buffer[i+1];
+      }
+      input_buffer[input_len] = 0;
+    }
+    input_len--;
+    
+    if(cursor_offset){
+      if(--cursor_offset < 0){
+        cursor_offset = 0;
+      }
+      if(cursor_pos < input_len){
+        if(++cursor_pos >= COLSX-1){
+          cursor_pos = COLSX-1;
+        }
+      }
+    }
+    else{
+      if(cursor_pos){
+        if(--cursor_pos < 0){
+          cursor_pos = 0;
+        }
+      }
+    }
+  }
+  printf("cur pos: %d, cur_offset: %d, in_len %d\n",cursor_pos,cursor_offset,input_len);  
+  printf("input_buffer: %s\n",input_buffer);
+  display_input_buffer();
+}
+
+void move_cursor(int direction){
+  switch(direction){
+    case LEFT:
+      if(input_len){ // Only go left if there is somewhere to go
+        if(--cursor_pos < 0){
+          cursor_pos = 0;
+          if(cursor_offset){
+            cursor_offset--;
+            display_input_buffer();
+          }
+        }
+        else if(cursor_pos < 3 && cursor_offset){
+          cursor_offset--;
+          cursor_pos++;
+          display_input_buffer();
+        }
+      }
+      break;
+    case RIGHT:
+      if(input_len){ // Only go right if there is somewhere to go
+        if((cursor_pos + cursor_offset) < input_len){
+          if(++cursor_pos >= COLSX){
+            cursor_pos = COLSX-1;
+            cursor_offset++;
+            display_input_buffer();
+          }
+        }
+      }
+      break;
+    default:
+      break;
+  }
+  printf("cur pos: %d, cur_offset: %d, in_len %d\n",cursor_pos,cursor_offset,input_len);  
+  return;
+}
+
 void read_button(int col, char in){
   int row;
   int out = 0;
@@ -157,9 +282,8 @@ void update_display(void){
   static int finished = TRUE;
   static int pad = 0;
   static BYTE saved_digits[COLSX] = {0x73,0x79,0x78,0x79};
-  static int prev_cur_pos = 0;
-  int cur_read = 0;
-
+  static int prev_cursor_pos = 0;
+  
   switch(display_flag){
     case CHANGED:
       cursor_blink = FALSE;
@@ -214,7 +338,7 @@ void update_display(void){
           }
           else{
             finished = TRUE;
-            for(i=0;i<3;i++){
+            for(i=0;i<COLSX;i++){
               digits[i] = digits[i+1];
             }
             digits[3] = 0;  // Space between end of string and restored digits
@@ -227,7 +351,7 @@ void update_display(void){
         
         case TRUE:
           if(pad){
-            for(i=0;i<3;i++){
+            for(i=0;i<COLSX;i++){
               digits[i] = digits[i+1];
             }
             digits[3] = saved_digits[COLSX-pad];
@@ -246,6 +370,14 @@ void update_display(void){
         }
       break;
       
+    case INPUTTING:
+      for(i=0;i<COLSX;i++){
+        digits[i] = display_char(input_buffer[i+cursor_offset]);
+        saved_digits[i] = digits[i];
+      }
+      display_flag = WAITING;
+      break;
+      
     case WAITING:
       if(started_waiting){
         for(i=0;i<COLSX;i++){
@@ -254,15 +386,16 @@ void update_display(void){
         started_waiting = FALSE;
         cursor_blink = TRUE;
       }
+      
       if(cursor_blink == TRUE){
-        cur_read = cur_pos;      
-        if(prev_cur_pos != cur_read){
-          digits[prev_cur_pos] &= NO_CURSOR;
+        if(prev_cursor_pos != cursor_pos){
+            digits[prev_cursor_pos] &= NO_CURSOR;
+            prev_cursor_pos = cursor_pos;
+          }
+          
+        if(cursor_pos < COLSX){
+          digits[cursor_pos] ^= CURSOR_VALUE;
         }
-        if(cur_read < COLSX){
-          digits[cur_read] ^= CURSOR_VALUE;
-        }
-        prev_cur_pos = cur_read;        
       }
       break;
     default:
@@ -271,6 +404,10 @@ void update_display(void){
   
 }
 
+/*------------------------------------------------------------------------------
+ * keypad thread - this function continiously outputs to LEDs and reads buttons
+ *------------------------------------------------------------------------------
+ */
 void * keypad(){
   int col;
   int timeout = DELAY;

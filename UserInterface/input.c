@@ -56,8 +56,8 @@ void input_pin(char button_read){
     	pthread_mutex_lock(&state_Mutex);
         state = WAITING_LOGGED_IN;
     	pthread_mutex_unlock(&state_Mutex);
-    	display_string("Welcome.",NOT_BLOCKING);
-
+    	display_string("Welcome.",BLOCKING);
+    	display_string("Enter Track Number.",NOT_BLOCKING);
       }
       else{
     	printf("Authentication Failed\n");
@@ -137,8 +137,6 @@ void input_track_number(char button_read){
   	  pthread_mutex_unlock(&state_Mutex);
 
       reset_buffers();
-
-  	  display_string("Enter Track Number.",NOT_BLOCKING);
   	  //display timing info
     }
     break;

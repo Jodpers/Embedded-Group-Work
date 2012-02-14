@@ -31,7 +31,6 @@ void menu_select(void){
 	state_read = state;
 	pthread_mutex_unlock(&state_Mutex);
     if(state_read == EMERGENCY || alive == FALSE){
-      reset_buffers();
       set_menu(FALSE);
       break; // Get out if there's an emergency
     }

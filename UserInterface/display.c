@@ -98,7 +98,7 @@ void update_display(void){
             digits[3] = display_char(display_buffer[offset]);
             offset++;  // Display the relevant Hex value from the string
 
-            if(menu_set == TRUE && offset == 5){    // Copy first chars of menu option
+            if(menu_set == TRUE && offset == 5){
               for(i=0;i<4;i++){
                 saved_digits[i] = digits[i];
               }
@@ -123,7 +123,7 @@ void update_display(void){
               digits[i] = digits[i+1];
             }
 
-            if(reset_flag == FALSE){
+            if(reset_flag == FALSE || menu_set == TRUE){
               digits[3] = saved_digits[COLSX-pad]; // Copy saved display
             }
             else{
@@ -165,7 +165,6 @@ void update_display(void){
         }
         reset_flag = FALSE;
         started_waiting = FALSE;
-
         cursor_blink = TRUE;
       }
       
@@ -454,13 +453,8 @@ void reset_buffers(void){ // Reset everything
 void set_menu(BYTE in){
   pthread_mutex_lock(&display_Mutex);
   menu_set = in;
-  if(in){
-    cursor_blink = FALSE;
-  }
-  else{
-    cursor_blink = TRUE;
-  }
   pthread_mutex_unlock(&display_Mutex);
+
   if(!in){
     reset_buffers();
   }

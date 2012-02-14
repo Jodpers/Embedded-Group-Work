@@ -26,6 +26,7 @@ enum ui_states{
 extern int state;
 extern BYTE playing;
 
+
 void * state_machine(void);
 extern void input_pin(char);
 extern void input_track_number(char);

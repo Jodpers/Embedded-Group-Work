@@ -13,6 +13,7 @@
 #include <unistd.h>
 #include <string.h>
 #include "top.h"
+#include "threads.h"
 
 
 /* Display Flag States */
@@ -29,7 +30,7 @@ enum display_states{
 #define LEFT            0
 #define RIGHT           1
 
-#define DELAY           8   // 7 Seg display refresh timeout
+#define DELAY           6   // 7 Seg display refresh timeout
 
 #define BLOCKING        1
 #define NOT_BLOCKING    0
@@ -38,8 +39,9 @@ enum display_states{
 #define TRACK 2
 
 #define PIN_MAX		  	4
-#define TRACK_MAX	  	6
-#define CURSOR_MAX		4
+#define TRACK_MIN       4
+#define TRACK_MAX	  	8
+#define DIGITS_MAX		3
 
 #define ACCEPT_PLAY    'A'
 #define BACK           'B'
@@ -57,7 +59,7 @@ enum display_states{
     --8-- 80
 *******************/
 #define CURSOR_VAL		0x80
-extern const BYTE segtab[];
+
 extern const BYTE numtab[];
 extern const BYTE uitab[];
 extern const BYTE alphaU[];
@@ -81,6 +83,10 @@ extern int cursor_offset;
 extern int input_len;
 extern int input_ptr;
 
+extern BYTE reset_flag;
+
+extern int logged_in; // (states.c)
+
 void update_display(void);
 
 void insert_char(char);
@@ -91,5 +97,7 @@ BYTE display_char(char);
 void display_string(char *,BYTE);
 void display_input_buffer(void);
 void display_time(void);
+
+extern void reset_buffers(void);
 
 #endif /* DISPLAY_H_ */

@@ -29,7 +29,7 @@ void menu_select(void){
 	pthread_mutex_lock(&state_Mutex);
 	state_read = state;
 	pthread_mutex_unlock(&state_Mutex);
-    if(state_read == EMERGENCY) break; // Get out if there's an emergency
+    if(state_read == EMERGENCY || alive == FALSE) break; // Get out if there's an emergency
 
 
     switch(button_read){

@@ -15,22 +15,14 @@ void * state_machine(void){
   char button_read = FALSE;  // Local snapshot of Global 'Button'
   int state_read;
 
-  pthread_mutex_lock(&state_Mutex);
-  //pthread_cond_wait(&state_Signal, &state_Mutex);
-  state_read = state;
-  pthread_mutex_unlock(&state_Mutex);
-
   while(alive){
 	pthread_mutex_lock(&state_Mutex);
 	state_read = state;
 	pthread_mutex_unlock(&state_Mutex);
 
-    if(state_read == EMERGENCY){ // Continue within the switch may not work
-    	/*pthread_mutex_lock(&state_Mutex);
-    	//pthread_cond_wait(&state_Signal, &state_Mutex);
-    	state_read = state;
-        pthread_mutex_unlock(&state_Mutex);*/
-        display_string(emergency,NOT_BLOCKING);
+    if(state_read == EMERGENCY){ // Display Blocking Message
+      reset_buffers();
+      display_string(emergency,BLOCKING);
       continue;
     }
 
@@ -39,17 +31,21 @@ void * state_machine(void){
       pthread_cond_wait(&button_Signal, &button_Mutex);
       button_read = button;
       pthread_mutex_unlock(&button_Mutex);
+      if(!alive) continue;                     // Check for kill signal
 
       pthread_mutex_lock(&state_Mutex); 	// Check for Emergency since we've been waiting
       state_read = state;
       pthread_mutex_unlock(&state_Mutex);
+
+      if(state_read == EMERGENCY){ // Display Blocking Message
+        reset_buffers();
+        continue;
+      }
     }
 
 	switch(state_read){
-      case EMERGENCY:	// Emergency since we've been waiting
-    	display_string(emergency,NOT_BLOCKING);
-//    	continue;
-    	break;
+      case EMERGENCY:  // Emergency since we've been waiting
+    	break;         // Drop out and catch it next round
 
       case INIT_STATE:
    	    pthread_mutex_lock(&state_Mutex);
@@ -91,7 +87,6 @@ void * state_machine(void){
         }
         else{
           display_string("Enter Track Number.",NOT_BLOCKING);
-          digits[0] = CURSOR_VAL;
           break;
         }
 

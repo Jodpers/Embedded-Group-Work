@@ -38,7 +38,8 @@ int main (void) {
         prev_state = state;
         state = EMERGENCY;
       }
-      pthread_mutex_lock(&button_Mutex);	// Unlock state machine
+
+      pthread_mutex_lock(&button_Mutex);  // Unlock state machine
       pthread_cond_signal(&button_Signal);
       pthread_mutex_unlock(&button_Mutex);
 

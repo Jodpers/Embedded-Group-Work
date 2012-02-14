@@ -58,6 +58,8 @@ void start_threads(void){
  *------------------------------------------------------------------------------
  */
 void closing_time(void){
+  alive = FALSE;
+
   pthread_mutex_lock(&state_Mutex);
   button_thread_state = STATE_KILL;
   pthread_cond_signal(&state_Signal);
@@ -67,9 +69,10 @@ void closing_time(void){
   pthread_cond_signal(&button_Signal);
   pthread_mutex_unlock(&button_Mutex);
 
-  alive = FALSE;
   pthread_join(keypad_thread, NULL);
   pthread_join(state_machine_thread, NULL);
+  printf("Signalled threads to close\n");
+
   write_to_port(C, 0);      /* Last LED off */
   close_term();
 

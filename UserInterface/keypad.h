@@ -14,6 +14,8 @@
 #include "display.h"
 #include "threads.h"
 
+#define BUTTON_DELAY  4
+
 void * keypad(void);
 void read_button(int, char);
 

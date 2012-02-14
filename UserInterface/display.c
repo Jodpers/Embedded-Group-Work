@@ -15,13 +15,11 @@
    10   4
     --8-- 80
 *******************/
-const BYTE segtab[] = {0x00,0x06,0x5B,0x4F,0x71,0x66,0x6D,0x7D,0x79,
-		       0x07,0x7F,0x6F,0x5E,0x77,0x3F,0x7C,0x39};
 const BYTE numtab[] = {0x3F,0x06,0x5B,0x4F,0x66,0x6D,0x7D,0x07,0x7F,0x6F};//0-9
-const BYTE uitab[] = {0x00,'1','2', '3',FORWARD,
-                           '4','5', '6',ENTER_MENU,
-                           '7','8', '9',DELETE,
-                   ACCEPT_PLAY,'0',BACK,CANCEL};
+const BYTE uitab[] = {0x00,'1', '2', '3', FORWARD,      // Keypad button assignment
+                           '4', '5', '6', ENTER_MENU,
+                           '7', '8', '9', DELETE,
+                   ACCEPT_PLAY, '0',BACK, CANCEL};
 /*                        A,   B,   C,   d,   E,   F,   g,   H,   I,*/
 const BYTE alphaU[] = {0x77,0x7F,0x39,0x5E,0x79,0x71,0x6F,0x76,0x30,
 /*                        J,   K,   L,   M,   n,   O,   P,   Q,   r,*/
@@ -49,6 +47,7 @@ int cursor_offset = 0;
 int input_len = 0;
 int input_ptr = 0;
 
+BYTE reset_flag = FALSE;
 /*------------------------------------------------------------------------------
  * Display State Machine
  *------------------------------------------------------------------------------
@@ -60,60 +59,43 @@ void update_display(void){
   static int offset = 0;
   static int finished = TRUE;
   static int pad = 0;
-  static BYTE saved_digits[COLSX] = {0x73,0x79,0x78,0x79};
+  static BYTE saved_digits[COLSX] = {0};//{0x73,0x79,0x78,0x79};
   static int prev_cursor_pos = 0;
-  
+
   switch(display_flag){
     case CHANGED:
-      cursor_blink = FALSE;
-      switch(finished){
-        case FALSE:
-          switch(block){
-            case TRUE:
-              printf("Blocked\n");
-              break;
-            case FALSE:
-              display_flag = WRITING;
-              for(i=0;i<COLSX;i++){
-                digits[i] = 0;
-              }
-              block = blocking;
-              offset = 0;
-              break;
-            default:
-              break;
-          }
-          break;
-        case TRUE:
-          display_flag = WRITING;
-          finished = FALSE;
-          block = blocking;
-          offset = 0;
-          break;
-        default:
-          break;
+      if(finished == FALSE){ // If not finished showing last string
+        for(i=0;i<COLSX;i++){ // clear current digits
+          digits[i] = 0;
+        }
       }
-      break;
+      cursor_blink = FALSE;
+      finished = FALSE;
+
+      block = blocking; // Make local copy of global
+      offset = 0;
+      display_flag = WRITING;
       
     case WRITING:
       switch(finished){
         case FALSE:
           if(offset == 0){
-            for(i=0;i<COLSX;i++){
+            for(i=0;i<COLSX;i++){       // Shift old chars by 1
               digits[i] = digits[i+1];
             }
             digits[3] = 0;                 // Make space for new string
           }
+
           if(display_buffer[offset] != 0){
-            while(display_buffer[offset] == '.' && display_buffer[offset] != 0){
-              digits[3] |= CURSOR_VALUE;
-              offset++;
+            while(display_buffer[offset] == '.' && display_buffer[offset] != 0 && alive){
+              digits[3] |= CURSOR_VALUE; // Only display single '.' on relevant digit
+              offset++;                  // even if there are many in the string
             }
-            for(i=0;i<3;i++){
+            for(i=0;i<3;i++){           // Scroll everything left
               digits[i] = digits[i+1];
             }
             digits[3] = display_char(display_buffer[offset]);
-            offset++;
+            offset++;  // Display the relevant Hex value from the string
           }
           else{
             finished = TRUE;
@@ -133,10 +115,18 @@ void update_display(void){
             for(i=0;i<COLSX;i++){
               digits[i] = digits[i+1];
             }
-            digits[3] = saved_digits[COLSX-pad];
+
+            if(reset_flag == FALSE){
+              digits[3] = saved_digits[COLSX-pad]; // Copy saved display
+            }
+            else{
+              digits[3] = 0; // If its been reset then restore
+            }
+            //digits[3] = saved_digits[COLSX-pad];
             pad--;
           }
           else{
+            pthread_cond_signal(&display_Signal);
             blocking = FALSE;
             block = blocking;
             offset = 0;
@@ -152,29 +142,32 @@ void update_display(void){
     case INPUTTING:
       for(i=0;i<COLSX;i++){
         digits[i] = display_char(input_buffer[i+cursor_offset]);
-        saved_digits[i] = digits[i];
       }
-      cursor_blink = TRUE;    
-      block = FALSE;
+      started_waiting = TRUE;
       display_flag = WAITING;
-      break;
       
     case WAITING:
       if(started_waiting){
         for(i=0;i<COLSX;i++){
-          saved_digits[i] = digits[i]; // Copy current display
+          if(reset_flag == FALSE){
+            saved_digits[i] = digits[i]; // Copy current display
+          }
+          else{
+            saved_digits[i] = 0; // If its been reset then prevent restore
+          }
         }
+        reset_flag = FALSE;
         started_waiting = FALSE;
         cursor_blink = TRUE;
       }
       
       if(cursor_blink == TRUE){
-        if(prev_cursor_pos != cursor_pos){
-            digits[prev_cursor_pos] &= NO_CURSOR;
-            prev_cursor_pos = cursor_pos;
+        if(prev_cursor_pos != cursor_pos){ // If the cursor position has changed
+            digits[prev_cursor_pos] &= NO_CURSOR; // Mask out the old cursor
+            prev_cursor_pos = cursor_pos;   // Update the currently held value
           }
           
-        if(cursor_pos < COLSX){
+        if(cursor_pos <= DIGITS_MAX){ // only display the cursor on digits 0-3
           digits[cursor_pos] ^= CURSOR_VALUE;
         }
       }
@@ -185,7 +178,7 @@ void update_display(void){
 }
 
 /*------------------------------------------------------------------------------
- * Char Insert and Delete
+ * Insert character into the buffer and move the cursor
  *------------------------------------------------------------------------------
  */
 void insert_char(char in_char){
@@ -194,64 +187,94 @@ void insert_char(char in_char){
   
   input_ptr = (cursor_pos + cursor_offset);
   if(input_ptr == input_len){
-    if(input_len < BUFFER_SIZE){
-      input_len++;
-      input_buffer[input_ptr] = in_char;
-      move_cursor(RIGHT);
+    switch(logged_in){
+      case FALSE: // Inputting PIN Number
+        if(input_len < PIN_MAX){
+          input_len++;
+          input_buffer[input_ptr] = in_char;
+          move_cursor(RIGHT);
+        }
+        break;
+
+      case TRUE: // Inputting Track Number
+        if(input_len < TRACK_MAX){
+          input_len++;
+          input_buffer[input_ptr] = in_char;
+          move_cursor(RIGHT);
+        }
+        break;
+      default:
+        break;
     }
   }
-  else if(input_ptr < input_len){
-    strncpy(temp_buffer,input_buffer,input_ptr);
-    temp_buffer[input_ptr] = in_char;
-    temp_buffer[input_ptr+1] = 0;
-    strcat(temp_buffer,&input_buffer[input_ptr]);
-    strcpy(input_buffer,temp_buffer);
-    input_len++;
-    if((cursor_pos < COLSX-1) && input_len < COLSX){
-      move_cursor(RIGHT);
-    }
-    else{
-      cursor_offset++;
+  else if(input_ptr < input_len){ // Cursor isn't at the end of the line
+    switch(logged_in){
+    case FALSE:
+      if(input_len < PIN_MAX){
+        strncpy(temp_buffer,input_buffer,input_ptr);
+        temp_buffer[input_ptr] = in_char;
+        temp_buffer[input_ptr+1] = 0;
+        strcat(temp_buffer,&input_buffer[input_ptr]);
+        strcpy(input_buffer,temp_buffer);
+        input_len++;
+        move_cursor(RIGHT);
+      }
+      break;
+    case TRUE: // Inputting Track Number
+      if(input_len < TRACK_MAX){
+        strncpy(temp_buffer,input_buffer,input_ptr);
+        temp_buffer[input_ptr] = in_char;
+        temp_buffer[input_ptr+1] = 0;
+        strcat(temp_buffer,&input_buffer[input_ptr]);
+        strcpy(input_buffer,temp_buffer);
+        input_len++;
+        if((cursor_pos < DIGITS_MAX) && input_len < TRACK_MAX){
+          move_cursor(RIGHT);
+        }
+        else{
+          if(cursor_pos < TRACK_MAX-1){
+            cursor_offset++;
+          }
+        }
+      }
+      break;
+    default:
+      break;
     }
   }
   display_input_buffer();
 }
-
+/*------------------------------------------------------------------------------
+ * Delete Character from the buffer and move the cursor
+ *------------------------------------------------------------------------------
+ */
 void delete_char(void){
   int i;
   int input_ptr;
 
-  if(input_len > 0){  
+  if(input_len){ // Only delete if there is something already
     input_ptr = (cursor_pos + cursor_offset);
-    if(input_ptr >= input_len){
-      input_buffer[input_ptr-1] = 0;
-      
-    }
-    else{
-      for(i=input_ptr;i<input_len;i++){
+    if(input_ptr < input_len){  // Only if the cursor isn't at the end
+      for(i=input_ptr;i<input_len;i++){ // Shift items in the buffer
         input_buffer[i] = input_buffer[i+1];
       }
-      input_buffer[input_len] = 0;
+
     }
-    input_len--;
-    
-    if(cursor_offset){
-      if(--cursor_offset < 0){
-        cursor_offset = 0;
-      }
-      if(cursor_pos < input_len){
-        if(++cursor_pos >= COLSX-1){
-          cursor_pos = COLSX-1;
+    input_buffer[--input_len] = 0; // NULL terminate string
+
+    if(input_len < input_ptr){  // Deleting before the end string
+      if(--cursor_pos < 0){
+        cursor_pos = 0;
+        if(cursor_offset){
+          cursor_offset--;
         }
       }
-    }
-    else{
-      if(cursor_pos){
-        if(--cursor_pos < 0){
-          cursor_pos = 0;
-        }
+      else if(input_len >= DIGITS_MAX && cursor_offset){
+        cursor_offset--;
+        cursor_pos++;
       }
     }
+    printf("cursor_offset: %d\n cursor_pos: %d\n input_len: %d\n",cursor_offset,cursor_pos,input_len);
   }
   display_input_buffer();
 }
@@ -270,7 +293,7 @@ void move_cursor(int direction){
             cursor_offset--;
           }
         }
-        else if(cursor_pos < 3 && cursor_offset){
+        else if(input_len >= DIGITS_MAX && cursor_offset){
           cursor_offset--;
           cursor_pos++;
         }
@@ -279,9 +302,13 @@ void move_cursor(int direction){
     case RIGHT:
       if(input_len){ // Only go right if there is somewhere to go
         if((cursor_pos + cursor_offset) < input_len){
-          if(++cursor_pos >= COLSX){
-            cursor_pos = COLSX-1;
-            cursor_offset++;
+          if(++cursor_pos > DIGITS_MAX){
+            cursor_pos = DIGITS_MAX;
+            if(logged_in == TRUE){ // Inputting Track Number
+              if((cursor_pos + cursor_offset) < TRACK_MAX-1){ // limit digits displayed
+                cursor_offset++;
+              }
+            }
           }
         }
       }
@@ -356,17 +383,60 @@ BYTE display_char(char key){
  *------------------------------------------------------------------------------
  */
 void display_string(char * in, BYTE blocked){
+  int i;
+  pthread_mutex_lock(&display_Mutex);
+  memset(display_buffer,0,BUFFER_SIZE);
   strcpy(display_buffer,in);
   blocking = blocked;
   display_flag = CHANGED;
+  if(blocking == TRUE){
+    pthread_cond_wait(&display_Signal,&display_Mutex);
+  }
+  else{
+    for(i=0;i<=DIGITS_MAX;i++){ // Clear the LEDs
+      digits[i]=0;
+    }
+  }
+  pthread_mutex_unlock(&display_Mutex);
 }
 
 void display_input_buffer(void){
+  pthread_mutex_lock(&display_Mutex);
   strcpy(display_buffer,&input_buffer[cursor_offset]);
   printf("input_buffer: %s\n",input_buffer);
   display_flag = INPUTTING;
+  pthread_mutex_unlock(&display_Mutex);
 }
 
 void display_time(void){};
 
 
+/*------------------------------------------------------------------------------
+ * Clear the buffer, counter and cursor position on reset
+ *------------------------------------------------------------------------------
+ */
+void reset_buffers(void){ // Reset everything
+  int i;
+
+  pthread_mutex_lock(&display_Mutex);
+
+  memset(input_buffer,0,BUFFER_SIZE);
+  memset(display_buffer,0,BUFFER_SIZE);
+  /*
+  for(i=0;i<BUFFER_SIZE;i++){
+    input_buffer[i]=0;
+    display_buffer[i]=0;
+  }
+   */
+
+  input_len = 0;
+  input_ptr = 0;
+  cursor_pos = 0;
+  cursor_offset = 0;
+
+  for(i=0;i<4;i++){ // Clear the LEDs
+    digits[i]=0;
+  }
+  reset_flag = TRUE;
+  pthread_mutex_unlock(&display_Mutex);
+}

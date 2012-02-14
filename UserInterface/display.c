@@ -48,6 +48,7 @@ int input_len = 0;
 int input_ptr = 0;
 
 BYTE reset_flag = FALSE;
+BYTE menu_set = FALSE;
 /*------------------------------------------------------------------------------
  * Display State Machine
  *------------------------------------------------------------------------------
@@ -96,6 +97,12 @@ void update_display(void){
             }
             digits[3] = display_char(display_buffer[offset]);
             offset++;  // Display the relevant Hex value from the string
+
+            if(menu_set == TRUE && offset == 5){    // Copy first chars of menu option
+              for(i=0;i<4;i++){
+                saved_digits[i] = digits[i];
+              }
+            }
           }
           else{
             finished = TRUE;
@@ -103,7 +110,7 @@ void update_display(void){
               digits[i] = digits[i+1];
             }
             digits[3] = 0;  // Space between end of string and restored digits
-           
+
             if(padding == TRUE){
               pad = 4;
             }
@@ -158,6 +165,7 @@ void update_display(void){
         }
         reset_flag = FALSE;
         started_waiting = FALSE;
+
         cursor_blink = TRUE;
       }
       
@@ -385,7 +393,7 @@ BYTE display_char(char key){
 void display_string(char * in, BYTE blocked){
   int i;
   pthread_mutex_lock(&display_Mutex);
-  memset(display_buffer,0,BUFFER_SIZE);
+  bzero(display_buffer,BUFFER_SIZE);
   strcpy(display_buffer,in);
   blocking = blocked;
   display_flag = CHANGED;
@@ -420,15 +428,14 @@ void reset_buffers(void){ // Reset everything
 
   pthread_mutex_lock(&display_Mutex);
 
-  memset(input_buffer,0,BUFFER_SIZE);
-  memset(display_buffer,0,BUFFER_SIZE);
+  bzero(input_buffer,BUFFER_SIZE);
+  bzero(display_buffer,BUFFER_SIZE);
   /*
   for(i=0;i<BUFFER_SIZE;i++){
-    input_buffer[i]=0;
-    display_buffer[i]=0;
+    input_buffer[i]='\0';
+    display_buffer[i]='\0';
   }
    */
-
   input_len = 0;
   input_ptr = 0;
   cursor_pos = 0;
@@ -439,4 +446,22 @@ void reset_buffers(void){ // Reset everything
   }
   reset_flag = TRUE;
   pthread_mutex_unlock(&display_Mutex);
+}
+/*------------------------------------------------------------------------------
+ * Set the menu flag
+ *------------------------------------------------------------------------------
+ */
+void set_menu(BYTE in){
+  pthread_mutex_lock(&display_Mutex);
+  menu_set = in;
+  if(in){
+    cursor_blink = FALSE;
+  }
+  else{
+    cursor_blink = TRUE;
+  }
+  pthread_mutex_unlock(&display_Mutex);
+  if(!in){
+    reset_buffers();
+  }
 }

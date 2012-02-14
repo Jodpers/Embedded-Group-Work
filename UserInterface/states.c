@@ -26,7 +26,7 @@ void * state_machine(void){
       continue;
     }
 
-    if(state_read != INIT_STATE){
+    if(state_read != INIT_STATE && state_read != MENU_SELECT){
       pthread_mutex_lock(&button_Mutex);	// Wait for a button press
       pthread_cond_wait(&button_Signal, &button_Mutex);
       button_read = button;
@@ -53,8 +53,6 @@ void * state_machine(void){
     	pthread_mutex_unlock(&state_Mutex);
 
       case WAITING_LOGGED_OUT:
-        digits[0] = CURSOR_VAL;  // Set cursor position
-
         if(button_read >= '0' && button_read <= '9'){
           pthread_mutex_lock(&state_Mutex);
           state = INPUTTING_PIN; // Fall through to next state
@@ -62,7 +60,6 @@ void * state_machine(void){
         }
         else{
           display_string("Please Enter PIN.",NOT_BLOCKING);
-          digits[0] = CURSOR_VAL;
           break;
         }
 
@@ -73,7 +70,6 @@ void * state_machine(void){
         break;
 
       case WAITING_LOGGED_IN:
-        digits[0] = CURSOR_VAL;  // Set cursor position
         if(button_read >= '0' && button_read <= '9'){
           pthread_mutex_lock(&state_Mutex);
           state = INPUTTING_TRACK_NUMBER; // Fall through to next state
@@ -83,7 +79,7 @@ void * state_machine(void){
           pthread_mutex_lock(&state_Mutex);
           state = MENU_SELECT; // Don't know how to jump 2 states below
       	  pthread_mutex_unlock(&state_Mutex);
-          break; // Go Round Again         T_T
+          break; // So Round We Go Again         T_T
         }
         else{
           display_string("Enter Track Number.",NOT_BLOCKING);
@@ -97,7 +93,7 @@ void * state_machine(void){
         break;
 
       case MENU_SELECT:
-        display_string("MENU.",NOT_BLOCKING);
+        display_string("MENU.",BLOCKING);
         menu_select();
         break;
 

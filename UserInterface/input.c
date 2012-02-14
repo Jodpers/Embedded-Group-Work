@@ -56,14 +56,12 @@ void input_pin(char button_read){
     	pthread_mutex_lock(&state_Mutex);
         state = WAITING_LOGGED_IN;
     	pthread_mutex_unlock(&state_Mutex);
-
     	display_string("Welcome.",NOT_BLOCKING);
 
       }
       else{
     	printf("Authentication Failed\n");
     	logged_in = FALSE;
-    	display_string("Invalid PIN.",NOT_BLOCKING);
     	display_string("Please Enter VALID PIN!",NOT_BLOCKING);
 
 

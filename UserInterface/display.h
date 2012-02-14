@@ -30,8 +30,6 @@ enum display_states{
 #define LEFT            0
 #define RIGHT           1
 
-#define DELAY           6   // 7 Seg display refresh timeout
-
 #define BLOCKING        1
 #define NOT_BLOCKING    0
 
@@ -99,5 +97,5 @@ void display_input_buffer(void);
 void display_time(void);
 
 extern void reset_buffers(void);
-
+extern void set_menu(BYTE);
 #endif /* DISPLAY_H_ */

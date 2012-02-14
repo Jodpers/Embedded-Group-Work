@@ -13,6 +13,7 @@ void menu_select(void){
   char button_read = 0;
   int state_read;
 
+  set_menu(TRUE);
   show_choice(choice);
 
   pthread_mutex_lock(&state_Mutex);
@@ -29,7 +30,11 @@ void menu_select(void){
 	pthread_mutex_lock(&state_Mutex);
 	state_read = state;
 	pthread_mutex_unlock(&state_Mutex);
-    if(state_read == EMERGENCY || alive == FALSE) break; // Get out if there's an emergency
+    if(state_read == EMERGENCY || alive == FALSE){
+      reset_buffers();
+      set_menu(FALSE);
+      break; // Get out if there's an emergency
+    }
 
 
     switch(button_read){
@@ -68,10 +73,11 @@ void menu_select(void){
 	    break;
 
       case CANCEL:
-        //reset_buffer();
         pthread_mutex_lock(&state_Mutex);
         state = WAITING_LOGGED_IN; // Go back to waiting
+        state_read = state;
         pthread_mutex_unlock(&state_Mutex);
+        set_menu(FALSE);
         break;
 
       case FORWARD:
@@ -96,7 +102,6 @@ void menu_select(void){
 }
 
 void show_choice(int choice){
-  int i;
   char *menu_strings[MENU_STR_NUM] = {
     "",
     "1.Volume.",
@@ -105,12 +110,7 @@ void show_choice(int choice){
     "4.Log out."
   };
 
-  //reset_buffer();
-  display_string("",NOT_BLOCKING);
   display_string(menu_strings[choice],NOT_BLOCKING);
 
-  for(i=0;i<5;i++){
-    display_char(menu_strings[choice][i]);
-  }
   return;
 }

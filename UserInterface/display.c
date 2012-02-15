@@ -129,7 +129,7 @@ void update_display(void){
             else{
               digits[3] = 0; // If its been reset then restore
             }
-            //digits[3] = saved_digits[COLSX-pad];
+
             pad--;
           }
           else{
@@ -281,7 +281,7 @@ void delete_char(void){
         cursor_pos++;
       }
     }
-    printf("cursor_offset: %d\n cursor_pos: %d\n input_len: %d\n",cursor_offset,cursor_pos,input_len);
+    //printf("cursor_offset: %d\n cursor_pos: %d\n input_len: %d\n",cursor_offset,cursor_pos,input_len);
   }
   display_input_buffer();
 }
@@ -410,7 +410,7 @@ void display_string(char * in, BYTE blocked){
 void display_input_buffer(void){
   pthread_mutex_lock(&display_Mutex);
   strcpy(display_buffer,&input_buffer[cursor_offset]);
-  printf("input_buffer: %s\n",input_buffer);
+  //printf("input_buffer: %s\n",input_buffer);
   display_flag = INPUTTING;
   pthread_mutex_unlock(&display_Mutex);
 }

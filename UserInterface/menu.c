@@ -13,34 +13,34 @@ void menu_select(void){
   char button_read = 0;
   int state_read;
 
-  set_menu(TRUE);
+  set_menu(TRUE); // in display.c
   show_choice(choice);
 
   pthread_mutex_lock(&state_Mutex);
-  state_read = state;
+  state_read = state; // Initialise the copy of the current state.
   pthread_mutex_unlock(&state_Mutex);
 
   while(alive && state_read == MENU_SELECT){
 
     pthread_mutex_lock(&button_Mutex);
-    pthread_cond_wait(&button_Signal, &button_Mutex);
-    button_read = button;
+    pthread_cond_wait(&button_Signal, &button_Mutex); // Wait for press
+    button_read = button;               // Read the button pressed
     pthread_mutex_unlock(&button_Mutex);
 
 	pthread_mutex_lock(&state_Mutex);
 	state_read = state;
 	pthread_mutex_unlock(&state_Mutex);
     if(state_read == EMERGENCY || alive == FALSE){
-      set_menu(FALSE);
+      set_menu(FALSE); // in display.c
       break; // Get out if there's an emergency
     }
 
-
+/* Button has been pressed. Now what? */
     switch(button_read){
-      case '1':
-      case '2':
-      case '3':
-      case '4':
+      case '1': // Volume
+      case '2': // Location
+      case '3': // Settings
+      case '4': // Log Out
         choice = button_read - '0';
         show_choice(choice);
         break;
@@ -68,8 +68,13 @@ void menu_select(void){
           default:
 	        break;
 	    }
-	    printf("Choice: %d\n",choice);
-	    break;
+	    pthread_mutex_lock(&state_Mutex);
+        state = SUBMENU_SELECT; // Go back to waiting
+        state_read = state;
+        pthread_mutex_unlock(&state_Mutex);
+
+        printf("Choice: %d\n",choice);
+        break;
 
       case CANCEL:
         pthread_mutex_lock(&state_Mutex);

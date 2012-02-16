@@ -20,7 +20,8 @@ enum ui_states{
 	INPUTTING_PIN,
 	WAITING_LOGGED_IN,
 	INPUTTING_TRACK_NUMBER,
-	MENU_SELECT
+	MENU_SELECT,
+	SUBMENU_SELECT
 } current_state;
 
 extern int state;

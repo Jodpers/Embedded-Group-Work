@@ -98,6 +98,9 @@ void update_display(void){
             digits[3] = display_char(display_buffer[offset]);
             offset++;  // Display the relevant Hex value from the string
 
+            /* If we're in the menu state then copy the currently digits
+             * so they can displayed after the string has finished scrolling
+             */
             if(menu_set == TRUE && offset == 5){
               for(i=0;i<4;i++){
                 saved_digits[i] = digits[i];
@@ -447,7 +450,11 @@ void reset_buffers(void){ // Reset everything
   pthread_mutex_unlock(&display_Mutex);
 }
 /*------------------------------------------------------------------------------
- * Set the menu flag
+ * Set the menu flag TRUE or FALSE from menu.c
+ *
+ * Flag used in the WRITING state of display to copy the first 4 chars
+ * to display after the selected choice string has finished scrolling.
+ * e.g. "1.Vol"
  *------------------------------------------------------------------------------
  */
 void set_menu(BYTE in){

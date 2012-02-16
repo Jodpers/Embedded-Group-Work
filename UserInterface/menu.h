@@ -16,5 +16,6 @@
 void menu_select(void);
 void show_choice(int);
 extern void wifi_scan(void);
+extern void volume(void);
 
 #endif /* MENU_H_ */

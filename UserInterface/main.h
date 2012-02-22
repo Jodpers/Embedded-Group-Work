@@ -8,13 +8,11 @@
 #ifndef MAIN_H_
 #define MAIN_H_
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <signal.h>
-
 #include "top.h"
 #include "states.h"
+#include "threads.h"
 #include "network.h"
+#include <signal.h>
 
 extern void start_threads(void);
 extern void closing_time(void);

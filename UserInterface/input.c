@@ -12,6 +12,8 @@
 BYTE authentication = FALSE;
 char temp_string[BUFFER_SIZE] = {0};
 
+BYTE playing = FALSE;
+
 /*------------------------------------------------------------------------------
  * User Interface State Machines
  *------------------------------------------------------------------------------

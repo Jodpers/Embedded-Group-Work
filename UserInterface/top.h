@@ -13,11 +13,9 @@
 
 #define DEBUG	1
 
-
 typedef unsigned char BYTE;
 typedef unsigned short WORD;
 typedef unsigned int DWORD;
-
 
 #define COLS 	4
 #define ROWS 	4

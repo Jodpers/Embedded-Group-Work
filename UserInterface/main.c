@@ -1,16 +1,16 @@
 /*
  * main.c
  *
- *  Created on: 5 Feb 2012
- *      Author: Pete Hemery
+ *  created on: 5 feb 2012
+ *      author: pete hemery
  */
 
 #include "main.h"
 
-BYTE alive = TRUE;  // Exit condition of while loops
+BYTE alive = TRUE;  // exit condition of while loops
 
 /*------------------------------------------------------------------------------
- * Main
+ * main
  *------------------------------------------------------------------------------
  */
 int main (void) {
@@ -18,17 +18,14 @@ int main (void) {
   int prev_state = state;
 //  sighandler_t
 
-  /* error handling - reset LEDs */
+  /* error handling - reset leds */
   atexit(closing_time);
   signal(SIGINT, (void *)closing_time);
 
-  printf("Press 'e' and 'Enter' to toggle Emergency state\n");
-  printf("Press 'x' and 'Enter' to exit\n");
+  printf("press 'e' and 'enter' to toggle emergency state\n");
+  printf("press 'x' and 'enter' to exit\n");
 
   setup_term();
-  setup_threads();
-  networkSetup();
-  printf("here\n");
   start_threads();
 
   while((ret = getchar()) != 'x' && alive){
@@ -45,17 +42,13 @@ int main (void) {
         state = EMERGENCY;
       }
 
-      pthread_mutex_lock(&button_Mutex);  // Unlock state machine
+      pthread_mutex_lock(&button_Mutex);  // unlock state machine
       pthread_cond_signal(&button_Signal);
       pthread_mutex_unlock(&button_Mutex);
 
 	  pthread_cond_signal(&state_Signal);
 	  pthread_mutex_unlock(&state_Mutex);
     }
-	else
-	{
-
-	}
   }
   return 0;
 }

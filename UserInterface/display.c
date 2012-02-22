@@ -6,38 +6,16 @@
  */
 
 #include "display.h"
-
-/******************
-  7-Seg hex map
-    --1--
-   20   2
-     40
-   10   4
-    --8-- 80
-*******************/
-const BYTE numtab[] = {0x3F,0x06,0x5B,0x4F,0x66,0x6D,0x7D,0x07,0x7F,0x6F};//0-9
-const BYTE uitab[] = {0x00,'1', '2', '3', FORWARD,      // Keypad button assignment
-                           '4', '5', '6', ENTER_MENU,
-                           '7', '8', '9', DELETE,
-                   ACCEPT_PLAY, '0',BACK, CANCEL};
-/*                        A,   B,   C,   d,   E,   F,   g,   H,   I,*/
-const BYTE alphaU[] = {0x77,0x7F,0x39,0x5E,0x79,0x71,0x6F,0x76,0x30,
-/*                        J,   K,   L,   M,   n,   O,   P,   Q,   r,*/
-                        0x1E,0x76,0x38,0x15,0x54,0x3F,0x73,0x67,0x50,
-/*                        S,   t,   U,   V,   W,   X,   Y,   Z*/
-                        0x6D,0x78,0x3E,0x1C,0x2A,0x76,0x6E,0x5B};
-/*                        A,   b,   c,   d,   E,   F,   g,   h   i,*/
-const BYTE alphaL[] = {0x77,0x7C,0x58,0x5E,0x79,0x71,0x6F,0x74,0x04,
-/*                        J,   K,   L,   M,   n,   o,   P,   Q,   r,*/
-                        0x1E,0x76,0x38,0x15,0x54,0x5C,0x73,0x67,0x50,
-/*                        S,   t,   U,   V,   W,   X,   Y,   Z*/
-                        0x6D,0x78,0x3E,0x1C,0x2A,0x76,0x6E,0x5B};
+#include "displayConstants.h"
 
 char input_buffer[BUFFER_SIZE] = {0};
 char display_buffer[BUFFER_SIZE] = {0};
 
-int display_flag = WAITING;
-int cursor_blink = FALSE;
+BYTE display_flag = WAITING;
+BYTE cursor_blink = FALSE;
+
+BYTE reset_flag = FALSE;
+BYTE menu_set = FALSE;
 
 BYTE blocking = FALSE;
 BYTE padding = TRUE;
@@ -47,8 +25,6 @@ int cursor_offset = 0;
 int input_len = 0;
 int input_ptr = 0;
 
-BYTE reset_flag = FALSE;
-BYTE menu_set = FALSE;
 /*------------------------------------------------------------------------------
  * Display State Machine
  *------------------------------------------------------------------------------
@@ -219,37 +195,37 @@ void insert_char(char in_char){
   }
   else if(input_ptr < input_len){ // Cursor isn't at the end of the line
     switch(logged_in){
-    case FALSE:
-      if(input_len < PIN_MAX){
-        strncpy(temp_buffer,input_buffer,input_ptr);
-        temp_buffer[input_ptr] = in_char;
-        temp_buffer[input_ptr+1] = 0;
-        strcat(temp_buffer,&input_buffer[input_ptr]);
-        strcpy(input_buffer,temp_buffer);
-        input_len++;
-        move_cursor(RIGHT);
-      }
-      break;
-    case TRUE: // Inputting Track Number
-      if(input_len < TRACK_MAX){
-        strncpy(temp_buffer,input_buffer,input_ptr);
-        temp_buffer[input_ptr] = in_char;
-        temp_buffer[input_ptr+1] = 0;
-        strcat(temp_buffer,&input_buffer[input_ptr]);
-        strcpy(input_buffer,temp_buffer);
-        input_len++;
-        if((cursor_pos < DIGITS_MAX) && input_len < TRACK_MAX){
+      case FALSE:
+        if(input_len < PIN_MAX){
+          bzero(temp_buffer,BUFFER_SIZE); // Fill buffer with NULL '\0'
+          strncpy(temp_buffer,input_buffer,input_ptr);
+          temp_buffer[input_ptr] = in_char;
+          strcat(temp_buffer,&input_buffer[input_ptr]);
+          strcpy(input_buffer,temp_buffer);
+          input_len++;
           move_cursor(RIGHT);
         }
-        else{
-          if(cursor_pos < TRACK_MAX-1){
-            cursor_offset++;
+        break;
+      case TRUE: // Inputting Track Number
+        if(input_len < TRACK_MAX){
+          bzero(temp_buffer,BUFFER_SIZE); // Fill buffer with NULL '\0'
+          strncpy(temp_buffer,input_buffer,input_ptr);
+          temp_buffer[input_ptr] = in_char;
+          strcat(temp_buffer,&input_buffer[input_ptr]);
+          strcpy(input_buffer,temp_buffer);
+          input_len++;
+          if((cursor_pos < DIGITS_MAX) && input_len < TRACK_MAX){
+            move_cursor(RIGHT);
+          }
+          else{
+            if(cursor_pos < TRACK_MAX-1){
+              cursor_offset++;
+            }
           }
         }
-      }
-      break;
-    default:
-      break;
+        break;
+      default:
+        break;
     }
   }
   display_input_buffer();
@@ -420,6 +396,16 @@ void display_input_buffer(void){
 
 void display_time(void){};
 
+void display_volume(long vol){
+  pthread_mutex_lock(&display_Mutex);
+  bzero(input_buffer,BUFFER_SIZE);
+  sprintf(input_buffer,"%02lu",vol);
+  printf("input_buffer: %s\n",input_buffer);
+  display_flag = INPUTTING;
+  cursor_pos = 2;
+  reset_flag = TRUE;
+  pthread_mutex_unlock(&display_Mutex);
+};
 
 /*------------------------------------------------------------------------------
  * Clear the buffer, counter and cursor position on reset
@@ -462,7 +448,7 @@ void set_menu(BYTE in){
   menu_set = in;
   pthread_mutex_unlock(&display_Mutex);
 
-  if(!in){
+  if(in == FALSE){
     reset_buffers();
   }
 }

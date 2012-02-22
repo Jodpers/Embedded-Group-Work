@@ -20,7 +20,7 @@ void menu_select(void){
   state_read = state; // Initialise the copy of the current state.
   pthread_mutex_unlock(&state_Mutex);
 
-  while(alive && state_read == MENU_SELECT){
+  while(alive && (state_read == MENU_SELECT)){
 
     pthread_mutex_lock(&button_Mutex);
     pthread_cond_wait(&button_Signal, &button_Mutex); // Wait for press
@@ -52,28 +52,39 @@ void menu_select(void){
       case '0':
         break;
       case ACCEPT_PLAY:
-        break;
+        //break;
 
       case ENTER_MENU:
   	    switch(choice){
-		  case '1':
+		  case 1:
+		    pthread_mutex_lock(&state_Mutex);
+            state = SUBMENU_SELECT;
+            state_read = state;
+            pthread_mutex_unlock(&state_Mutex);
+            printf("Volume Selected\n");
+            volume();
+            show_choice(choice); // After return, display correct choice again
 		    break;
-		  case '2':
+		  case 2:
 	        //wifi_scan();
 		    break;
-		  case '3':
+		  case 3:
 		    break;
-		  case '4':
+		  case 4:
+            set_menu(FALSE);
+            reset_buffers();
+		    display_string(" Goodbye ",BLOCKING);
+		    pthread_mutex_lock(&state_Mutex);
+	        logged_in = FALSE;
+            state = INIT_STATE;
+            state_read = state;
+            pthread_mutex_unlock(&state_Mutex);
+            printf("Logging Out\n");
 		    break;
           default:
 	        break;
 	    }
-	    pthread_mutex_lock(&state_Mutex);
-        state = SUBMENU_SELECT; // Go back to waiting
-        state_read = state;
-        pthread_mutex_unlock(&state_Mutex);
-
-        printf("Choice: %d\n",choice);
+	    printf("Choice: %d\n",choice);
         break;
 
       case CANCEL:

@@ -48,6 +48,7 @@ void * state_machine(void){
     	break;         // Drop out and catch it next round
 
       case INIT_STATE:
+        reset_buffers();
    	    pthread_mutex_lock(&state_Mutex);
     	state = WAITING_LOGGED_OUT;
     	pthread_mutex_unlock(&state_Mutex);
@@ -59,6 +60,9 @@ void * state_machine(void){
       	  pthread_mutex_unlock(&state_Mutex);
         }
         else{
+          if(button_read == 'C' && input_len == 0){
+            alive = FALSE; // NEEDS WORK
+          }
           display_string("Please Enter PIN.",NOT_BLOCKING);
           break;
         }
@@ -96,6 +100,8 @@ void * state_machine(void){
         display_string("MENU.",BLOCKING);
         menu_select();
         break;
+
+      case SUBMENU_SELECT:
 
       default:
         break;

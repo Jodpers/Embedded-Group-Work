@@ -26,6 +26,9 @@ int main (void) {
   printf("Press 'x' and 'Enter' to exit\n");
 
   setup_term();
+  setup_threads();
+  networkSetup();
+  printf("here\n");
   start_threads();
 
   while((ret = getchar()) != 'x'){
@@ -46,6 +49,10 @@ int main (void) {
 	  pthread_cond_signal(&state_Signal);
 	  pthread_mutex_unlock(&state_Mutex);
     }
+	else
+	{
+
+	}
   }
   return 0;
 }

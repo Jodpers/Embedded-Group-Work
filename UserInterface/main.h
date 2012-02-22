@@ -14,6 +14,7 @@
 
 #include "top.h"
 #include "states.h"
+#include "network.h"
 
 extern void start_threads(void);
 extern void closing_time(void);

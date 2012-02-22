@@ -14,15 +14,21 @@
 
 /* State Table */
 enum ui_states{
-	INIT_STATE,
-	EMERGENCY,
-	WAITING_LOGGED_OUT,
-	INPUTTING_PIN,
-	WAITING_LOGGED_IN,
-	INPUTTING_TRACK_NUMBER,
-	MENU_SELECT,
-	SUBMENU_SELECT
+    INIT_STATE,
+    EMERGENCY,
+    WAITING_LOGGED_OUT,
+    INPUTTING_PIN,
+    WAITING_LOGGED_IN,
+    INPUTTING_TRACK_NUMBER,
+    MENU_SELECT,
+    SUBMENU_SELECT
 } current_state;
+
+enum gst_states{
+    STOPPED,
+    PLAYING,
+    PAUSED
+} gstreamer_state;
 
 extern int state;
 extern BYTE playing;

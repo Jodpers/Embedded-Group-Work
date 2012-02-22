@@ -70,8 +70,10 @@ extern BYTE digits[];
 extern char input_buffer[BUFFER_SIZE];
 extern char display_buffer[BUFFER_SIZE];
 
-extern int display_flag;
-extern int cursor_blink;
+extern BYTE display_flag;
+extern BYTE cursor_blink;
+
+extern BYTE reset_flag;
 
 extern BYTE blocking;
 extern BYTE padding;
@@ -81,9 +83,9 @@ extern int cursor_offset;
 extern int input_len;
 extern int input_ptr;
 
-extern BYTE reset_flag;
-
 extern int logged_in; // (states.c)
+
+extern int gst_state;
 
 void update_display(void);
 
@@ -95,6 +97,7 @@ BYTE display_char(char);
 void display_string(char *,BYTE);
 void display_input_buffer(void);
 void display_time(void);
+void display_volume(long);
 
 extern void reset_buffers(void);
 extern void set_menu(BYTE);

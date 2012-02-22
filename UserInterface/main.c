@@ -31,11 +31,14 @@ int main (void) {
   printf("here\n");
   start_threads();
 
-  while((ret = getchar()) != 'x'){
+  while((ret = getchar()) != 'x' && alive){
 	if (ret == 'e'){
 	  pthread_mutex_lock(&state_Mutex);
 	  if (state == EMERGENCY){
         state = prev_state;
+        if(state == SUBMENU_SELECT){
+          state = MENU_SELECT;
+        }
       }
       else {
         prev_state = state;

@@ -50,18 +50,20 @@ void input_pin(char button_read){
 
       if(authentication == TRUE){
     	printf("Authentication Passed\n");
-    	logged_in = TRUE;
-    	display_string("Logged In",NOT_BLOCKING);
 
     	pthread_mutex_lock(&state_Mutex);
+    	logged_in = TRUE;
         state = WAITING_LOGGED_IN;
     	pthread_mutex_unlock(&state_Mutex);
+
     	display_string("Welcome.",BLOCKING);
     	display_string("Enter Track Number.",NOT_BLOCKING);
       }
       else{
     	printf("Authentication Failed\n");
+        pthread_mutex_lock(&state_Mutex);
     	logged_in = FALSE;
+        pthread_mutex_unlock(&state_Mutex);
     	display_string("Please Enter VALID PIN!",NOT_BLOCKING);
 
 

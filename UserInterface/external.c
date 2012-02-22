@@ -10,8 +10,6 @@
 #include "threads.h"
 #include "network.h"
 
-BYTE playing = FALSE;
-
 BYTE check_pin(char * buffer, int buf_len){
 
 	BYTE valid = FALSE;

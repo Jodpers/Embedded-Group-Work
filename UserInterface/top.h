@@ -8,13 +8,16 @@
 #ifndef TOP_H_
 #define TOP_H_
 
+#include <stdio.h>
+#include <stdlib.h>
+
 typedef unsigned char BYTE;
 typedef unsigned short WORD;
 typedef unsigned int DWORD;
 
 
-#define COLSX 	4
-#define ROWSX 	4
+#define COLS 	4
+#define ROWS 	4
 
 #define TRUE	1
 #define FALSE 	0

@@ -85,6 +85,8 @@ extern int input_ptr;
 
 extern int logged_in; // (states.c)
 
+extern int gst_state;
+
 void update_display(void);
 
 void insert_char(char);

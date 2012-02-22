@@ -6,8 +6,6 @@
  */
 #include "top.h"
 
-BYTE playing = FALSE;
-
 BYTE check_pin(char * buffer, int buf_len){
   if (buf_len == 4){
     printf("win\n");

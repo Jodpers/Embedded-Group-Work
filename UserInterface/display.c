@@ -8,9 +8,11 @@
 #include "display.h"
 #include "displayConstants.h"
 
+/* Display Buffers */
 char input_buffer[BUFFER_SIZE] = {0};
 char display_buffer[BUFFER_SIZE] = {0};
 
+/* Flags */
 BYTE display_flag = WAITING;
 BYTE cursor_blink = FALSE;
 
@@ -20,8 +22,11 @@ BYTE menu_set = FALSE;
 BYTE blocking = FALSE;
 BYTE padding = TRUE;
 
+/* Cursor Variables */
 int cursor_pos = 0;
 int cursor_offset = 0;
+
+/* Input Buffer Variables */
 int input_len = 0;
 int input_ptr = 0;
 
@@ -36,13 +41,13 @@ void update_display(void){
   static int offset = 0;
   static int finished = TRUE;
   static int pad = 0;
-  static BYTE saved_digits[COLSX] = {0};//{0x73,0x79,0x78,0x79};
+  static BYTE saved_digits[COLS] = {0};
   static int prev_cursor_pos = 0;
 
   switch(display_flag){
     case CHANGED:
       if(finished == FALSE){ // If not finished showing last string
-        for(i=0;i<COLSX;i++){ // clear current digits
+        for(i=0;i<COLS;i++){ // clear current digits
           digits[i] = 0;
         }
       }
@@ -57,7 +62,7 @@ void update_display(void){
       switch(finished){
         case FALSE:
           if(offset == 0){
-            for(i=0;i<COLSX;i++){       // Shift old chars by 1
+            for(i=0;i<COLS;i++){       // Shift old chars by 1
               digits[i] = digits[i+1];
             }
             digits[3] = 0;                 // Make space for new string
@@ -85,7 +90,7 @@ void update_display(void){
           }
           else{
             finished = TRUE;
-            for(i=0;i<COLSX;i++){
+            for(i=0;i<COLS;i++){
               digits[i] = digits[i+1];
             }
             digits[3] = 0;  // Space between end of string and restored digits
@@ -98,12 +103,12 @@ void update_display(void){
         
         case TRUE:
           if(pad){
-            for(i=0;i<COLSX;i++){
+            for(i=0;i<COLS;i++){
               digits[i] = digits[i+1];
             }
 
             if(reset_flag == FALSE || menu_set == TRUE){
-              digits[3] = saved_digits[COLSX-pad]; // Copy saved display
+              digits[3] = saved_digits[COLS-pad]; // Copy saved display
             }
             else{
               digits[3] = 0; // If its been reset then restore
@@ -126,7 +131,7 @@ void update_display(void){
       break;
       
     case INPUTTING:
-      for(i=0;i<COLSX;i++){
+      for(i=0;i<COLS;i++){
         digits[i] = display_char(input_buffer[i+cursor_offset]);
       }
       started_waiting = TRUE;
@@ -134,7 +139,7 @@ void update_display(void){
       
     case WAITING:
       if(started_waiting){
-        for(i=0;i<COLSX;i++){
+        for(i=0;i<COLS;i++){
           if(reset_flag == FALSE){
             saved_digits[i] = digits[i]; // Copy current display
           }

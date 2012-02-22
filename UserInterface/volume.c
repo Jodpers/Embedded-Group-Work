@@ -5,8 +5,6 @@
  *      Author: Pete Hemery
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <alsa/asoundlib.h>
 #include <alsa/mixer.h>
 #include "menu.h"

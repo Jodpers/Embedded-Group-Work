@@ -9,7 +9,7 @@
 
 char button = FALSE;  // Button pressed 1-16 or -1 for multiple buttons
 
-BYTE digits[COLSX] = {0x00,0x00,0x00,0x00};
+BYTE digits[COLS] = {0x00,0x00,0x00,0x00};
 
 /*------------------------------------------------------------------------------
  * keypad thread - Continuously outputs to 7 Segment display and reads buttons
@@ -32,7 +32,7 @@ void * keypad(void){
     }
     pthread_mutex_unlock(&display_Mutex);
 
-    for(col=0;col<COLSX;col++){
+    for(col=0;col<COLS;col++){
       write_to_port(C, 0);                  // LEDS off
       write_to_port(A, (BYTE) (01 << col)); // select column
       write_to_port(C, digits[col]);        // next LED pattern
@@ -72,14 +72,14 @@ void read_button(int col, char in){
     out |= (0x0F & (in));      // 0-9
   }
 
-  for(row=0; row<ROWSX; row++){     // Scan the rows for key presses
+  for(row=0; row<ROWS; row++){     // Scan the rows for key presses
     if((out >> row) & 0x01){
       keypresses++;     // Keep track of how many times keys have been pressed
       temp = uitab[((col+1)+(row*4))]; // Set the detected button (in display.c)
     }
   }
 
-  if(col == COLSX-1){       // After reading all the columns
+  if(col == COLS-1){       // After reading all the columns
     switch(keypresses){
       case 0:
         button=FALSE; // No key press detected

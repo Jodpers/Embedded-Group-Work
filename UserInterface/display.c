@@ -6,32 +6,7 @@
  */
 
 #include "display.h"
-
-/******************
-  7-Seg hex map
-    --1--
-   20   2
-     40
-   10   4
-    --8-- 80
-*******************/
-const BYTE numtab[] = {0x3F,0x06,0x5B,0x4F,0x66,0x6D,0x7D,0x07,0x7F,0x6F};//0-9
-const BYTE uitab[] = {0x00,'1', '2', '3', FORWARD,      // Keypad button assignment
-                           '4', '5', '6', ENTER_MENU,
-                           '7', '8', '9', DELETE,
-                   ACCEPT_PLAY, '0',BACK, CANCEL};
-/*                        A,   B,   C,   d,   E,   F,   g,   H,   I,*/
-const BYTE alphaU[] = {0x77,0x7F,0x39,0x5E,0x79,0x71,0x6F,0x76,0x30,
-/*                        J,   K,   L,   M,   n,   O,   P,   Q,   r,*/
-                        0x1E,0x76,0x38,0x15,0x54,0x3F,0x73,0x67,0x50,
-/*                        S,   t,   U,   V,   W,   X,   Y,   Z*/
-                        0x6D,0x78,0x3E,0x1C,0x2A,0x76,0x6E,0x5B};
-/*                        A,   b,   c,   d,   E,   F,   g,   h   i,*/
-const BYTE alphaL[] = {0x77,0x7C,0x58,0x5E,0x79,0x71,0x6F,0x74,0x04,
-/*                        J,   K,   L,   M,   n,   o,   P,   Q,   r,*/
-                        0x1E,0x76,0x38,0x15,0x54,0x5C,0x73,0x67,0x50,
-/*                        S,   t,   U,   V,   W,   X,   Y,   Z*/
-                        0x6D,0x78,0x3E,0x1C,0x2A,0x76,0x6E,0x5B};
+#include "displayConstants.h"
 
 char input_buffer[BUFFER_SIZE] = {0};
 char display_buffer[BUFFER_SIZE] = {0};
@@ -430,14 +405,9 @@ void reset_buffers(void){ // Reset everything
 
   pthread_mutex_lock(&display_Mutex);
 
-  bzero(input_buffer,BUFFER_SIZE);
+  bzero(input_buffer,BUFFER_SIZE); /* same as memset(name,\0,size); */
   bzero(display_buffer,BUFFER_SIZE);
-  /*
-  for(i=0;i<BUFFER_SIZE;i++){
-    input_buffer[i]='\0';
-    display_buffer[i]='\0';
-  }
-   */
+
   input_len = 0;
   input_ptr = 0;
   cursor_pos = 0;
@@ -452,7 +422,7 @@ void reset_buffers(void){ // Reset everything
 /*------------------------------------------------------------------------------
  * Set the menu flag TRUE or FALSE from menu.c
  *
- * Flag used in the WRITING state of display to copy the first 4 chars
+ * Menu Flag used in the WRITING state to copy the first 4 chars
  * to display after the selected choice string has finished scrolling.
  * e.g. "1.Vol"
  *------------------------------------------------------------------------------

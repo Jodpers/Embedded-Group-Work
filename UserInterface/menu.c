@@ -1,0 +1,131 @@
+/*
+ * menu.c
+ *
+ *  Created on: 5 Feb 2012
+ *      Author: Pete Hemery
+ */
+
+#include "menu.h"
+
+/*  MENU SELECTION */
+void menu_select(void){
+  int choice = 1;
+  char button_read = 0;
+  int state_read;
+
+  set_menu(TRUE); // in display.c
+  show_choice(choice);
+
+  pthread_mutex_lock(&state_Mutex);
+  state_read = state; // Initialise the copy of the current state.
+  pthread_mutex_unlock(&state_Mutex);
+
+  while(alive && (state_read == MENU_SELECT)){
+
+    pthread_mutex_lock(&button_Mutex);
+    pthread_cond_wait(&button_Signal, &button_Mutex); // Wait for press
+    button_read = button;               // Read the button pressed
+    pthread_mutex_unlock(&button_Mutex);
+
+	pthread_mutex_lock(&state_Mutex);
+	state_read = state;
+	pthread_mutex_unlock(&state_Mutex);
+    if(state_read == EMERGENCY || alive == FALSE){
+      set_menu(FALSE); // in display.c
+      break; // Get out if there's an emergency
+    }
+
+/* Button has been pressed. Now what? */
+    switch(button_read){
+      case '1': // Volume
+      case '2': // Location
+      case '3': // Settings
+      case '4': // Log Out
+        choice = button_read - '0';
+        show_choice(choice);
+        break;
+      case '5':
+      case '6':
+      case '7':
+      case '8':
+      case '9':
+      case '0':
+        break;
+      case ACCEPT_PLAY:
+        //break;
+
+      case ENTER_MENU:
+  	    switch(choice){
+		  case 1:
+		    pthread_mutex_lock(&state_Mutex);
+            state = SUBMENU_SELECT;
+            state_read = state;
+            pthread_mutex_unlock(&state_Mutex);
+            printf("Volume Selected\n");
+            volume();
+            show_choice(choice); // After return, display correct choice again
+		    break;
+		  case 2:
+	        //wifi_scan();
+		    break;
+		  case 3:
+		    break;
+		  case 4:
+            set_menu(FALSE);
+            reset_buffers();
+		    display_string(" Goodbye ",BLOCKING);
+		    pthread_mutex_lock(&state_Mutex);
+	        logged_in = FALSE;
+            state = INIT_STATE;
+            state_read = state;
+            pthread_mutex_unlock(&state_Mutex);
+            printf("Logging Out\n");
+		    break;
+          default:
+	        break;
+	    }
+	    printf("Choice: %d\n",choice);
+        break;
+
+      case CANCEL:
+        pthread_mutex_lock(&state_Mutex);
+        state = WAITING_LOGGED_IN; // Go back to waiting
+        state_read = state;
+        pthread_mutex_unlock(&state_Mutex);
+        set_menu(FALSE);
+        break;
+
+      case FORWARD:
+        if(++choice == MENU_STR_NUM){
+          choice = 1;
+        }
+        show_choice(choice);
+        break;
+
+      case BACK:
+        if(--choice == 0){
+          choice = MENU_STR_NUM - 1;
+        }
+        show_choice(choice);
+        break;
+
+      case DELETE:
+      default:
+        break;
+    }
+  }
+}
+
+void show_choice(int choice){
+  char *menu_strings[MENU_STR_NUM] = {
+    "",
+    "1.Volume.",
+    "2.Location.",
+    "3.Settings.",
+    "4.Log out."
+  };
+
+  display_string(menu_strings[choice],NOT_BLOCKING);
+
+  return;
+}

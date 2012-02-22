@@ -102,9 +102,10 @@ int main () {
   struct tms *tim;
   BYTE key;
   DWORD then;
+  int i;
 
   inithw();
-  while (1) {
+  for(i = 0; i < 1000; i++) {
 	key = colscan();
 	if (key <16) {
 		digits[0]= keytab[key];
@@ -118,8 +119,8 @@ int main () {
 		digits[3]= 0;
 	}
 //	printf("  key = %x \n",key );
-	then = (DWORD)times(&tim)+1000000;
-	 while (then > (DWORD)times(&tim)) { };
+//	then = (DWORD)times(&tim)+1000000;
+//	 while (then > (DWORD)times(&tim)) { };
   }
   ad_close(pio);
     return 0;

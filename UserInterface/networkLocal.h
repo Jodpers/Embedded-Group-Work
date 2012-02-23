@@ -14,13 +14,13 @@
 
 /* server info */
 #define PORT "4444"
-#define IP "192.168.1.76"
+#define IP "127.0.0.1"
 
 #define TIMEOUTVALUE 3
 
 void PANIC(char * msg);
 void * receive(void);
-int parsePacket(char * buffer);
+int parsePacket(char * opcode, char * buffer);
 void createHeaders(char opcode, char * localData);
 
 #endif /* NETWORKLOCAL_H_ */

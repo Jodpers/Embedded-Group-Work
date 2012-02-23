@@ -10,4 +10,5 @@ BYTE gstream_state = STOPPED;
 
 void * gst_control(void){
 
+  return;
 }

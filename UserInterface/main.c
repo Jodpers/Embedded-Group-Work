@@ -26,6 +26,10 @@ int main (void) {
   printf("press 'x' and 'enter' to exit\n");
 
   setup_term();
+  if(networkSetup() != 0){
+    printf("Network Fail\n");
+    return 1;
+  }
   start_threads();
 
   while((ret = getchar()) != 'x' && alive){

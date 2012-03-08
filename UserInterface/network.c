@@ -22,6 +22,8 @@
 #include <sys/types.h>
 #include <arpa/inet.h>
 
+#include <netinet/tcp.h>
+
 #include "top.h"
 #include "network.h"
 #include "networkLocal.h"
@@ -57,12 +59,13 @@ void * networkingFSM(void)
   char state = WAITING;
   char localData[PACKETLEN] = {0};
   char localRecPacket[MAXDATASIZE]  = {0};
-
+  int len = 0;
   while (alive)
 	{      
 	  switch (state)
 	    {
 	    case WAITING:
+
 	    	pthread_mutex_lock(&network_Mutex);
 	    	pthread_cond_wait(&network_Signal, &network_Mutex);
 	    	opcode = task;
@@ -86,7 +89,11 @@ void * networkingFSM(void)
 	      state = SEND;
 	      break;
 	    case SEND:
-	      send(sockfd, packet, (MAXDATASIZE-1), 0);
+	      printf("packet at sending time: %s\n", packet);
+	      len = strlen(packet);
+		printf("len: %d\n", len);
+	      send(sockfd, packet, len+1, 0);
+	    	      printf("sent\n");
 	      state = WAITING;
 	      break;
 	    case PARSEPACKET:
@@ -143,14 +150,17 @@ int networkSetup()
       return 1;
     }
 
+ 
   /* loop through all the results and connect to the first we can */
-  for(p = servinfo; p != NULL; p = p->ai_next) {
+  for(p = servinfo; p != NULL; p = p->ai_next) 
+    {
     if ((sockfd = socket(p->ai_family, p->ai_socktype,
                          p->ai_protocol)) == -1) {
       perror("client: socket");
       continue;
     }
-
+   
+  
     if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
       close(sockfd);
       perror("client: connect");
@@ -160,9 +170,11 @@ int networkSetup()
   }
   if (p == NULL) 
     {
-      fprintf(stderr, "client: failed to connect\n");
+      //  fprintf(stderr, "client: failed to connect\n");
       return 2;
     }
+  
+ 
   return 0;
 }
 
@@ -181,7 +193,8 @@ void * receive(void)
 	if ((numbytes = recv(sockfd, buffer, MAXDATASIZE-1, 0)) == -1)
 	{
 	  perror("recv");
-	  exit(1);
+	  alive = FALSE;
+	  break;
 	}
 
 	printd("Packet received: %s\n", buffer);
@@ -318,12 +331,12 @@ void createHeaders(char opcode, char * localData)
 {
 
   char track[TRACKLEN];
-  
+  bzero(packet, PACKETLEN);
    switch (opcode)
         {
         case PIN:
 
-          sprintf(packet, "%c%s/0", opcode, localData); // pinpacket
+          sprintf(packet, "%c%s\n", opcode, localData); // pinpacket
           break;
         case PLAY:
         case TRACKINFO:

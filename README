@@ -1,1 +1,2 @@
-testing edits
+If the Make file returns linking errors originating from volume.c, then it is likely the issue is to install the libasound2-dev libary.
+

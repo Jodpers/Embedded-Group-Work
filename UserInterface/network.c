@@ -340,11 +340,11 @@ void createHeaders(char opcode, char * localData)
           break;
         case PLAY:
         case TRACKINFO:
-         sprintf(packet, "%c%s", opcode, track); // request packet, used for play and track info
+         sprintf(packet, "%c%s\n", opcode, track); // request packet, used for play and track info
           break;
         case ACK:
         case NAK:
-          sprintf(packet, "%c", opcode);
+          sprintf(packet, "%c\n", opcode);
           break;
         default:
 

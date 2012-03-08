@@ -26,6 +26,7 @@
 #include "network.h"
 #include "networkLocal.h"
 #include "threads.h"
+#include "debug.h"
 
 
 char task;
@@ -79,9 +80,9 @@ void * networkingFSM(void)
 
 	    case CREATEHEADERS:
 	      createHeaders(opcode,localData);
-#ifdef DEBUG
-	      printf("Packet to send:%s", packet);
-#endif
+
+	      printd("Packet to send:%s", packet);
+
 	      state = SEND;
 	      break;
 	    case SEND:
@@ -92,9 +93,9 @@ void * networkingFSM(void)
 	      state = parsePacket(localRecPacket);
 	      break;
 	    default:
-#ifdef DEBUG
-	    	printf("Unknown state\n");
-#endif
+
+	    	printd("Unknown state\n");
+
 	      state = WAITING;
 	      break;
 	    }
@@ -182,9 +183,9 @@ void * receive(void)
 	  perror("recv");
 	  exit(1);
 	}
-#ifdef DEBUG
-	printf("Packet received: %s\n", buffer);
-#endif
+
+	printd("Packet received: %s\n", buffer);
+
 	buffer[numbytes] = '\0';
 
 	pthread_mutex_lock(&network_Mutex);
@@ -208,7 +209,7 @@ void * receive(void)
  ****************************************************************************************/
 int parsePacket(char * buffer)
 {
-  char opcode;
+ 
   static int timeout = TIMEOUTVALUE;
   int state = 1;
   char loggedIn;
@@ -227,16 +228,16 @@ int parsePacket(char * buffer)
           if (buffer[1] == 1)
             {
               loggedIn = '1';
-#ifdef DEBUG
-              printf("PIN Authenticated");
-#endif
+
+              printd("PIN Authenticated");
+
             }
           else
             {
               loggedIn = '0';
-#ifdef DEBUG
-              printf("PIN Authenticated failed");
-#endif
+
+              printd("PIN Authenticated failed");
+
             }
             pthread_mutex_lock(&request_Mutex);
 			data[0] = loggedIn;
@@ -247,16 +248,16 @@ int parsePacket(char * buffer)
 	  opcode = ACK;
 	  break;
         case TRACKINFO:
-#ifdef DEBUG
-          printf("%s", buffer);
-#endif
+
+          printd("%s", buffer);
+
 	  state = CREATEHEADERS;
 	  opcode = ACK;
           break;
         case EMERGENCY:
-#ifdef DEBUG
-          printf("Emergency, stop, leave the building!\n\n");
-#endif
+
+          printd("Emergency, stop, leave the building!\n\n");
+
 	  emergency = 1;
       pthread_mutex_lock(&state_Mutex);
 		data[0] = emergency;
@@ -266,15 +267,15 @@ int parsePacket(char * buffer)
 	  opcode = ACK;
           break;
         case ACK: /* Do nothing */
-#ifdef DEBUG
-          printf("%s", buffer);
-#endif
+
+          printd("%s", buffer);
+
           state = WAITING;
           break;
         case NAK: /* Resends last packet */
-#ifdef DEBUG
-          printf("%s", buffer);
-#endif
+
+          printd("%s", buffer);
+
 	  if (timeout-- > 0)
 	    {
 	      state = SEND;
@@ -286,16 +287,16 @@ int parsePacket(char * buffer)
 	    }
 	  break;
         case MULTICAST: /* Passes port and IP to gstreamer */
-#ifdef DEBUG
-          printf("%s", buffer);
-#endif
+
+          printd("%s", buffer);
+
 	  state = CREATEHEADERS;
 	  opcode = ACK;
           break;
 	default:
-#ifdef DEBUG
-          printf("Unknown packet:%s", buffer);
-#endif
+
+          printd("Unknown packet:%s", buffer);
+
 	  state = CREATEHEADERS;
 	  opcode = NAK;
           break;
@@ -333,9 +334,9 @@ void createHeaders(char opcode, char * localData)
           sprintf(packet, "%c", opcode);
           break;
         default:
-#ifdef DEBUG
-	  printf("tried to create unknown packet\n");
-#endif
+
+	  printd("tried to create unknown packet\n");
+
           break;
         }
 }

@@ -28,44 +28,58 @@ pthread_attr_t receiver_Attr;
 pthread_mutex_t timer_Mutex;
 pthread_cond_t timer_Signal;
 
+int msg = 0;
 void * timer(void){
-	time_t start_time, current_time, five_second_flag, ping;
+	time_t start_time, current_time;
+	time_t gst_ping, wifi_ping;
 
-	start_time = clock() / (CLOCKS_PER_SEC);
+	int gst_time = 100;
+	int wifi_time = 1000;
+
 	current_time = clock() / (CLOCKS_PER_SEC/1000);
-	five_second_flag = current_time - start_time;
+	start_time = current_time;
 
-
-	printf ("start: %ld\n current: %ld\n five_sec:%ld \n ", start_time, current_time, five_second_flag);
-
-	ping = current_time - five_second_flag;
+	gst_ping = current_time + gst_time;
+	wifi_ping = current_time + wifi_time;
 
 	while (1)
 	{
 	  usleep(100000);
 
 	  current_time = clock() / (CLOCKS_PER_SEC/1000);
-	  ping = current_time - five_second_flag;
+	  printf("current_time: %d\n",current_time);
 
-	  if(ping >= 500)
-	  {
-			printf ("%ld \n ", five_second_flag);
-			pthread_mutex_lock(&timer_Mutex);
-			pthread_cond_signal(&timer_Signal); // Signal UI to wake
+    if (current_time >= gst_ping){
+      pthread_mutex_lock(&timer_Mutex);
+      msg = 1;
+			pthread_cond_signal(&timer_Signal); 
 			pthread_mutex_unlock(&timer_Mutex);
-			start_time = clock() / (CLOCKS_PER_SEC);
-			five_second_flag = current_time - start_time;
+    	gst_ping = current_time + gst_time;
+  	  printf("gst_ping: %d\n",gst_ping);
+    }
+
+	  if(current_time >= wifi_ping)
+	  {
+			/*printf ("%ld \n ", five_second_flag);*/
+			pthread_mutex_lock(&timer_Mutex);
+      msg = 2;
+			pthread_cond_signal(&timer_Signal); 
+			pthread_mutex_unlock(&timer_Mutex);
+			wifi_ping = current_time + wifi_time;
+  	  printf("\twifi_ping: %d\n",wifi_ping);
 	  }
 	}
 	return 0;
 }
 
 void * receiver(void){
+int local_msg = 0;
 	while(1){
-		pthread_mutex_lock(&timer_Mutex); // Wait for a button press
+		pthread_mutex_lock(&timer_Mutex); 
 		pthread_cond_wait(&timer_Signal, &timer_Mutex);
-		printf("Receiver Awake!\n");
+    local_msg = msg;
 		pthread_mutex_unlock(&timer_Mutex);
+		printf("%d Receiver Awake!\n", local_msg);
 	}
 	return 0;
 }

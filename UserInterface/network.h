@@ -15,6 +15,9 @@
 #define NAK '6'
 #define MULTICAST '7'
 
+#define PASS '1'
+#define FAIL '0'
+
 extern char task;
 extern char data[];
 

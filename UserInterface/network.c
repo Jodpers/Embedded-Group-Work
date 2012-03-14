@@ -46,6 +46,8 @@ char packet[PACKETLEN] = {0};
 
 char opcode;
 
+int sentt = 0;
+
 /*****************************************************************************************
  * Name:                                                                                 *
  * Description:                                                                          *
@@ -73,7 +75,15 @@ void * networkingFSM(void)
 	    	pthread_mutex_unlock(&network_Mutex);
 	    	if (opcode == RECEIVE)
 			{
+			  printf("sentt:%d\n", sentt);
+			  if (sentt == 0)
+			    {
+			      /* Do nothing receiving packet with out sending*/
+			    }
+			  else
+			    {
 		      state = PARSEPACKET;
+			    }
 	    	  break;
 			}
 			pthread_mutex_lock(&request_Mutex);
@@ -89,11 +99,15 @@ void * networkingFSM(void)
 	      state = SEND;
 	      break;
 	    case SEND:
-	      printf("packet at sending time: %s\n", packet);
+
+	      printf("packet at sending time:%s\n", packet);
 	      len = strlen(packet);
 		printf("len: %d\n", len);
-	      send(sockfd, packet, len+1, 0);
-	    	      printf("sent\n");
+		if (len > 0)
+		  {
+		    send(sockfd, packet, len+1, 0);
+		    printf("sent\n");
+		  }
 	      state = WAITING;
 	      break;
 	    case PARSEPACKET:
@@ -203,6 +217,7 @@ void * receive(void)
 
 	pthread_mutex_lock(&network_Mutex);
 	strncpy(receivedPacket, buffer, numbytes);
+	task = RECEIVE;
 	pthread_cond_signal(&network_Signal);
 	pthread_mutex_unlock(&network_Mutex);
   }
@@ -231,39 +246,54 @@ int parsePacket(char * buffer)
   char * port;
   char * ip;
 
+  printf("buffer:%s\n",buffer);
+
   /*Checks that buffer isn't empty*/
   if(strlen(buffer))
     {
       switch (buffer[0])
         {
         case PIN:
+	  printd("buffer[1]:%c\n",buffer[1]);
 
-          if (buffer[1] == 1)
+          if (buffer[1] == PASS)
             {
-              loggedIn = '1';
+              loggedIn = PASS;
 
-              printd("PIN Authenticated");
+              printd("PIN Authenticated\n");
 
             }
           else
             {
-              loggedIn = '0';
+              loggedIn = FAIL;
 
-              printd("PIN Authenticated failed");
+              printd("PIN failed\n");
 
             }
             pthread_mutex_lock(&request_Mutex);
-			data[0] = loggedIn;
+	    data[0] = loggedIn;
             pthread_cond_signal(&request_Signal);
             pthread_mutex_unlock(&request_Mutex);
 
 	  state = CREATEHEADERS;
 	  opcode = ACK;
 	  break;
+	case PLAY:
+	  if (buffer[1] == FAIL)
+	    {
+	      state = CREATEHEADERS; 
+	      opcode = ACK;
+	      
+	      pthread_mutex_lock(&request_Mutex);
+	      data[0] = FAIL;
+	      pthread_cond_signal(&request_Signal);
+	      pthread_mutex_unlock(&request_Mutex);
+	    }
+	  break;
         case TRACKINFO:
 
           printd("%s", buffer);
-
+	  
 	  state = CREATEHEADERS;
 	  opcode = ACK;
           break;
@@ -332,6 +362,8 @@ void createHeaders(char opcode, char * localData)
 
   char track[TRACKLEN];
   bzero(packet, PACKETLEN);
+
+  sentt= 1;
    switch (opcode)
         {
         case PIN:
@@ -340,7 +372,7 @@ void createHeaders(char opcode, char * localData)
           break;
         case PLAY:
         case TRACKINFO:
-         sprintf(packet, "%c%s\n", opcode, track); // request packet, used for play and track info
+         sprintf(packet, "%c%s\n", opcode, localData); // request packet, used for play and track info
           break;
         case ACK:
         case NAK:

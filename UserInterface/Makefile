@@ -1,4 +1,4 @@
-OBJS = display.o external.o gst.o input.o keypad.o menu.o network.o pio_term.o states.o threads.o volume.o wifi_scan.o
+OBJS = display.o external.o gst.o input.o keypad.o menu.o network.o pio_term.o volume.o states.o threads.o wifi_scan.o
 MOBJS = main.o
 CC = gcc
 LFLAGS = -Wall -g -pthread -lasound

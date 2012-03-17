@@ -14,8 +14,10 @@
 
 /* server info */
 #define PORT "4444"
-#define IP "127.0.0.1"
+//#define IP "164.11.222.103"
+#define IP "164.11.222.88"
 
+//#define IP "localhost"
 #define TIMEOUTVALUE 3
 
 void PANIC(char * msg);

@@ -12,6 +12,8 @@
 #include "states.h"
 #include "threads.h"
 #include "network.h"
+#include "debug.h"
+
 #include <signal.h>
 
 extern void start_threads(void);

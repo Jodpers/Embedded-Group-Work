@@ -62,7 +62,7 @@ void menu_select(void){
             state_read = state;
             pthread_mutex_unlock(&state_Mutex);
             printf("Volume Selected\n");
-            volume();
+	           volume(); 
             show_choice(choice); // After return, display correct choice again
 		    break;
 		  case 2:

@@ -1,0 +1,14 @@
+OBJS = display.o external.o gst.o input.o keypad.o menu.o network.o pio_term.o volume.o states.o threads.o wifi_scan.o
+MOBJS = main.o
+CC = gcc
+LFLAGS = -Wall -g -pthread -lasound
+EXE = client
+
+all : $(OBJS) $(MOBJS)	
+	$(CC) -o $(EXE) $(MOBJS) $(OBJS) $(LFLAGS)
+
+clean:
+	rm *.o
+
+.c.o:
+	$(CC) $(LFLAGS) -c $<

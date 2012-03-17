@@ -18,41 +18,50 @@ int main (void) {
   int prev_state = state;
 //  sighandler_t
 
-  /* error handling - reset leds */
-  atexit(closing_time);
-  signal(SIGINT, (void *)closing_time);
 
   printf("press 'e' and 'enter' to toggle emergency state\n");
   printf("press 'x' and 'enter' to exit\n");
 
-  setup_term();
+  ret = networkSetup();
+  if (ret != 0 )
+    {
+      printd("Socket failed to init, error no: %d\n", ret); 
+    }
+  else
+    {
+      /* error handling - reset leds */
+      atexit(closing_time);
+      signal(SIGINT, (void *)closing_time);
+      
+      setup_term();
   if(networkSetup() != 0){
     printf("Network Fail\n");
     return 1;
   }
-  start_threads();
-
-  while((ret = getchar()) != 'x' && alive){
+      start_threads();
+      
+      while((ret = getchar()) != 'x' && alive){
 	if (ret == 'e'){
 	  pthread_mutex_lock(&state_Mutex);
 	  if (state == EMERGENCY){
-        state = prev_state;
-        if(state == SUBMENU_SELECT){
-          state = MENU_SELECT;
-        }
-      }
-      else {
-        prev_state = state;
-        state = EMERGENCY;
-      }
+	    state = prev_state;
+	    if(state == SUBMENU_SELECT){
+	      state = MENU_SELECT;
+	    }
+	  }
+	  else {
+	    prev_state = state;
+	    state = EMERGENCY;
+	  }
 
-      pthread_mutex_lock(&button_Mutex);  // unlock state machine
-      pthread_cond_signal(&button_Signal);
-      pthread_mutex_unlock(&button_Mutex);
-
+	  pthread_mutex_lock(&button_Mutex);  // unlock state machine
+	  pthread_cond_signal(&button_Signal);
+	  pthread_mutex_unlock(&button_Mutex);
+	  
 	  pthread_cond_signal(&state_Signal);
 	  pthread_mutex_unlock(&state_Mutex);
+	}
+      }
     }
-  }
   return 0;
 }

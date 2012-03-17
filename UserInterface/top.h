@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define DEBUG	1
+//#define DEBUG	1
 
 typedef unsigned char BYTE;
 typedef unsigned short WORD;
@@ -20,8 +20,8 @@ typedef unsigned int DWORD;
 #define COLS 	4
 #define ROWS 	4
 
-#define TRUE	1
-#define FALSE 	0
+#define TRUE	'1'
+#define FALSE 	'0'
 #define ERROR 	-1
 
 #define A 0

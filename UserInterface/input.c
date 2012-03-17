@@ -125,7 +125,10 @@ void input_track_number(char button_read){
       display_string("Invalid.",NOT_BLOCKING);
     }
     else{
-      playing = TRUE;//play_track(buffer,strlen(buffer));
+      // playing = TRUE;//play_track(buffer,strlen(buffer));
+      printf("input buffer to play track: %s\n", input_buffer);
+      playing = play_track(input_buffer,strlen(input_buffer));
+      printf("playing:%c\n", playing);
       if(playing == TRUE){
         printf("Track number: %s\n",input_buffer);
         sprintf(temp_string,"Track Number %s Playing",input_buffer);

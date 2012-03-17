@@ -22,7 +22,7 @@
 
 void PANIC(char * msg);
 void * receive(void);
-int parsePacket(char * opcode, char * buffer);
+int parsePacket(char * buffer);
 void createHeaders(char opcode, char * localData);
 
 #endif /* NETWORKLOCAL_H_ */

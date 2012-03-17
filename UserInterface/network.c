@@ -44,7 +44,6 @@ char s[INET6_ADDRSTRLEN];
 char receivedPacket[MAXDATASIZE] = {0};
 char packet[PACKETLEN] = {0};
 
-
 char opcode;
 
 int sentt = 0;
@@ -69,11 +68,13 @@ void * networkingFSM(void)
 	    {
 	    case WAITING:
 
-          pthread_mutex_lock(&network_Mutex);
-          pthread_cond_wait(&network_Signal, &network_Mutex);
-
-          if (task == RECEIVE)
-          {
+	    	pthread_mutex_lock(&network_Mutex);
+	    	pthread_cond_wait(&network_Signal, &network_Mutex);
+	    	opcode = task;
+	    	strncpy(localRecPacket, receivedPacket, PACKETLEN);
+	    	pthread_mutex_unlock(&network_Mutex);
+	    	if (opcode == RECEIVE)
+			{
 			  printf("sentt:%d\n", sentt);
 			  if (sentt == 0)
 			    {
@@ -81,7 +82,7 @@ void * networkingFSM(void)
 			    }
 			  else
 			    {
-            state = PARSEPACKET;
+		      state = PARSEPACKET;
 			    }
 	    	  break;
 			}
@@ -110,9 +111,7 @@ void * networkingFSM(void)
 	      state = WAITING;
 	      break;
 	    case PARSEPACKET:
-	      printf("b4pp op: %c\n",opcode);
-	      state = parsePacket(&opcode,localRecPacket);
-	      printf("afterpp op: %c\n",opcode);
+	      state = parsePacket(localRecPacket);
 	      break;
 	    default:
 
@@ -205,11 +204,7 @@ void * receive(void)
 {
   while(alive){
 	char buffer[MAXDATASIZE];
-
-	bzero(buffer,MAXDATASIZE);
-
-	numbytes = recv(sockfd, buffer, MAXDATASIZE-1, 0);
-	if (numbytes == -1)
+	if ((numbytes = recv(sockfd, buffer, MAXDATASIZE-1, 0)) == -1)
 	{
 	  perror("recv");
 	  alive = FALSE;
@@ -218,11 +213,6 @@ void * receive(void)
 
 	printd("Packet received: %s\n", buffer);
 
-	  break;
-	}
-
-
-	printf("numbytes %d\n",numbytes);
 	buffer[numbytes] = '\0';
 
 	pthread_mutex_lock(&network_Mutex);
@@ -245,16 +235,16 @@ void * receive(void)
  * Outputs: Globals:                                                                     *
  *           Return:                                                                     *
  ****************************************************************************************/
-int parsePacket(char * opcode, char * buffer)
+int parsePacket(char * buffer)
 {
  
   static int timeout = TIMEOUTVALUE;
   int state = 1;
   char loggedIn;
   char emergency = '0';
-  //static char lastPacket[PACKETLEN];
-  //char * port;
-  //char * ip;
+
+  char * port;
+  char * ip;
 
   printf("buffer:%s\n",buffer);
 
@@ -280,14 +270,14 @@ int parsePacket(char * opcode, char * buffer)
               printd("PIN failed\n");
 
             }
-          pthread_mutex_lock(&request_Mutex);
+            pthread_mutex_lock(&request_Mutex);
 	    data[0] = loggedIn;
-          pthread_cond_signal(&request_Signal);
-          pthread_mutex_unlock(&request_Mutex);
+            pthread_cond_signal(&request_Signal);
+            pthread_mutex_unlock(&request_Mutex);
 
-          state = CREATEHEADERS;
-          *opcode = ACK;
-          break;
+	  state = CREATEHEADERS;
+	  opcode = ACK;
+	  break;
 	case PLAY:
 	  if (buffer[1] == FAIL)
 	    {
@@ -304,20 +294,20 @@ int parsePacket(char * opcode, char * buffer)
 
           printd("%s", buffer);
 	  
-          state = CREATEHEADERS;
-          *opcode = ACK;
+	  state = CREATEHEADERS;
+	  opcode = ACK;
           break;
         case EMERGENCY:
 
           printd("Emergency, stop, leave the building!\n\n");
 
-          emergency = 1;
-          pthread_mutex_lock(&state_Mutex);
-          data[0] = emergency;
-          pthread_cond_signal(&state_Signal);
-          pthread_mutex_unlock(&state_Mutex);
-          state = CREATEHEADERS;
-          *opcode = ACK;
+	  emergency = 1;
+      pthread_mutex_lock(&state_Mutex);
+		data[0] = emergency;
+      pthread_cond_signal(&state_Signal);
+      pthread_mutex_unlock(&state_Mutex);
+	  state = CREATEHEADERS;
+	  opcode = ACK;
           break;
         case ACK: /* Do nothing */
 
@@ -329,34 +319,33 @@ int parsePacket(char * opcode, char * buffer)
 
           printd("%s", buffer);
 
-          if (timeout-- > 0)
-            {
-              state = SEND;
-            }
-          else
-            {
-              timeout = TIMEOUTVALUE;
-              state = WAITING;
-            }
-          break;
+	  if (timeout-- > 0)
+	    {
+	      state = SEND;
+	    }
+	  else
+	    {
+		  timeout = TIMEOUTVALUE;
+	      state = WAITING;
+	    }
+	  break;
         case MULTICAST: /* Passes port and IP to gstreamer */
 
           printd("%s", buffer);
 
-          state = CREATEHEADERS;
-          *opcode = ACK;
+	  state = CREATEHEADERS;
+	  opcode = ACK;
           break;
-        default:
+	default:
 
           printd("Unknown packet:%s", buffer);
 
-          state = CREATEHEADERS;
-          *opcode = NAK;
+	  state = CREATEHEADERS;
+	  opcode = NAK;
           break;
         }
-   //   strcpy(lastPacket, buffer);
+      
     }
-  printf(" pp opcode: %c\n",*opcode);
   return state;
 }
 
@@ -396,3 +385,4 @@ void createHeaders(char opcode, char * localData)
           break;
         }
 }
+

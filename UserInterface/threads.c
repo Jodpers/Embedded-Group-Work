@@ -5,8 +5,14 @@
  *      Author: Pete Hemery
  */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>  //threads
+#include <pthread.h>
 
-#include "main.h"
+#include "top.h"
+#include "pio_term.h"
+#include "threads.h"
 
 /* Thread Names */
 pthread_t keypad_thread;

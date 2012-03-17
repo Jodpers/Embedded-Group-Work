@@ -21,6 +21,8 @@
 #include <limits.h>
 #include <sys/types.h>
 #include <arpa/inet.h>
+#include <sys/types.h>  //threads
+#include <pthread.h>
 
 #include <netinet/tcp.h>
 
@@ -75,7 +77,7 @@ void * networkingFSM(void)
 	    	pthread_mutex_unlock(&network_Mutex);
 	    	if (opcode == RECEIVE)
 			{
-			  printf("sentt:%d\n", sentt);
+			  printd("sent:%d\n", sentt);
 			  if (sentt == 0)
 			    {
 			      /* Do nothing receiving packet with out sending*/
@@ -100,13 +102,13 @@ void * networkingFSM(void)
 	      break;
 	    case SEND:
 
-	      printf("packet at sending time:%s\n", packet);
+	      printd("packet at sending time:%s\n", packet);
 	      len = strlen(packet);
-		printf("len: %d\n", len);
+	      printd("len: %d\n", len);
 		if (len > 0)
 		  {
 		    send(sockfd, packet, len+1, 0);
-		    printf("sent\n");
+		    printd("sent\n");
 		  }
 	      state = WAITING;
 	      break;
@@ -156,14 +158,13 @@ int networkSetup()
 
   memset(&hints, 0, sizeof (struct addrinfo));
   hints.ai_family = AF_UNSPEC;
- hints.ai_socktype = SOCK_STREAM;
+  hints.ai_socktype = SOCK_STREAM;
 
   if ((rv = getaddrinfo(IP, PORT, &hints, &servinfo)) != 0) 
     {
       fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
       return 1;
     }
-
  
   /* loop through all the results and connect to the first we can */
   for(p = servinfo; p != NULL; p = p->ai_next) 
@@ -173,8 +174,7 @@ int networkSetup()
       perror("client: socket");
       continue;
     }
-   
-  
+
     if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
       close(sockfd);
       perror("client: connect");
@@ -242,11 +242,11 @@ int parsePacket(char * buffer)
   int state = 1;
   char loggedIn;
   char emergency = '0';
-
+/* TODO
   char * port;
   char * ip;
-
-  printf("buffer:%s\n",buffer);
+*/
+  printd("buffer:%s\n",buffer);
 
   /*Checks that buffer isn't empty*/
   if(strlen(buffer))
@@ -360,7 +360,7 @@ int parsePacket(char * buffer)
 void createHeaders(char opcode, char * localData)
 {
 
-  char track[TRACKLEN];
+  //char track[TRACKLEN];  Needed?
   bzero(packet, PACKETLEN);
 
   sentt= 1;

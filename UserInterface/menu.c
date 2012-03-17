@@ -4,10 +4,22 @@
  *  Created on: 5 Feb 2012
  *      Author: Pete Hemery
  */
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>  //threads
+#include <pthread.h>
 
+#include "top.h"
 #include "menu.h"
+#include "states.h"
+#include "threads.h"
+#include "display.h"
+#include "debug.h"
 
-/*  MENU SELECTION */
+/**
+ *  MENU SELECTION
+ @brief description test
+ */
 void menu_select(void){
   int choice = 1;
   char button_read = 0;
@@ -61,7 +73,7 @@ void menu_select(void){
             state = SUBMENU_SELECT;
             state_read = state;
             pthread_mutex_unlock(&state_Mutex);
-            printf("Volume Selected\n");
+            printd("Volume Selected\n");
 	           volume(); 
             show_choice(choice); // After return, display correct choice again
 		    break;
@@ -79,12 +91,12 @@ void menu_select(void){
             state = INIT_STATE;
             state_read = state;
             pthread_mutex_unlock(&state_Mutex);
-            printf("Logging Out\n");
+            printd("Logging Out\n");
 		    break;
           default:
 	        break;
 	    }
-	    printf("Choice: %d\n",choice);
+	    printd("Choice: %d\n",choice);
         break;
 
       case CANCEL:
@@ -116,6 +128,17 @@ void menu_select(void){
   }
 }
 
+/*****************************************************************************************
+ * Name: show_choice.
+ * Description:
+ * @brief Displays the selected choice from the menu on the 7-Segment LED Display.
+ *        Takes the choice from the parameter,
+ *        sends the relevant string to the display_string routine.
+ * Inputs: Parameters: (int choice)
+ *            Globals:
+ * Outputs: Globals:
+ *           Return:
+ ****************************************************************************************/
 void show_choice(int choice){
   char *menu_strings[MENU_STR_NUM] = {
     "",
@@ -125,7 +148,9 @@ void show_choice(int choice){
     "4.Log out."
   };
 
-  display_string(menu_strings[choice],NOT_BLOCKING);
+  if (choice > 0 && choice < MENU_STR_NUM){
+    display_string(menu_strings[choice],NOT_BLOCKING);
+  }
 
   return;
 }

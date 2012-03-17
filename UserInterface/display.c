@@ -5,8 +5,18 @@
  *      Author: Pete Hemery
  */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/types.h>  //threads
+#include <pthread.h>
+
+#include "top.h"
+#include "threads.h"
 #include "display.h"
 #include "displayConstants.h"
+#include "debug.h"
 
 /* Display Buffers */
 char input_buffer[BUFFER_SIZE] = {0};
@@ -265,7 +275,7 @@ void delete_char(void){
         cursor_pos++;
       }
     }
-    //printf("cursor_offset: %d\n cursor_pos: %d\n input_len: %d\n",cursor_offset,cursor_pos,input_len);
+    printd("cursor_offset: %d\n cursor_pos: %d\n input_len: %d\n",cursor_offset,cursor_pos,input_len);
   }
   display_input_buffer();
 }
@@ -392,7 +402,7 @@ void display_string(char * in, BYTE blocked){
 void display_input_buffer(void){
   pthread_mutex_lock(&display_Mutex);
   strcpy(display_buffer,&input_buffer[cursor_offset]);
-  //printf("input_buffer: %s\n",input_buffer);
+  printd("input_buffer: %s\n",input_buffer);
   display_flag = INPUTTING;
   pthread_mutex_unlock(&display_Mutex);
 }
@@ -403,7 +413,7 @@ void display_volume(long vol){
   pthread_mutex_lock(&display_Mutex);
   bzero(input_buffer,BUFFER_SIZE);
   sprintf(input_buffer,"%02lu",vol);
-  printf("input_buffer: %s\n",input_buffer);
+  printd("input_buffer: %s\n",input_buffer);
   display_flag = INPUTTING;
   cursor_pos = 2;
   reset_flag = TRUE;

@@ -5,9 +5,19 @@
  *      Author: Pete Hemery
  */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>  //threads
+#include <pthread.h>
 #include <alsa/asoundlib.h>
 #include <alsa/mixer.h>
+
+#include "top.h"
+#include "threads.h"
 #include "menu.h"
+#include "states.h"
+#include "display.h"
+#include "debug.h"
 
 void SetAlsaVolume(long volume)
 {
@@ -51,9 +61,9 @@ void get_volume(long *ptr){
   snd_mixer_elem_t* elem = snd_mixer_find_selem(handle, sid);
 
   snd_mixer_selem_get_playback_volume_range(elem, &min, &max);
-//  printf("Volume range <%lu,%lu>\n", min, max);
+  printd("Volume range <%lu,%lu>\n", min, max);
   snd_mixer_selem_get_playback_volume(elem,0,ptr);
-//  printf("volume val = %lu\n",*ptr);
+  printd("volume val = %lu\n",*ptr);
   *ptr /= (max / 100);
   snd_mixer_close(handle);
 }
@@ -129,21 +139,21 @@ void volume(void){
       case 'B': // Down
         if(--output >= 0){
           SetAlsaVolume(output);
-          printf("output: %lu\n",output);
+          printd("output: %lu\n",output);
         }
         else{
           output = 0;
-          printf("output: MIN\n");
+          printd("output: MIN\n");
         }
         break;
       case 'F': // Up
         if(++output < 100){
           SetAlsaVolume(output);
-          printf("output: %lu\n",output);
+          printd("output: %lu\n",output);
         }
         else{
           output = 99;
-          printf("output: MAX\n");
+          printd("output: MAX\n");
         }
         break;
       case 'A':

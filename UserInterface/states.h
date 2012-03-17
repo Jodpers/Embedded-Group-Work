@@ -8,9 +8,6 @@
 #ifndef STATES_H_
 #define STATES_H_
 
-#include "top.h"
-#include "display.h"
-#include "threads.h"
 
 /* State Table */
 enum ui_states{

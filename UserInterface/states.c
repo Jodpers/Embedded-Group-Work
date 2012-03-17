@@ -5,6 +5,14 @@
  *      Author: Pete Hemery
  */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>  //threads
+#include <pthread.h>
+
+#include "top.h"
+#include "display.h"
+#include "threads.h"
 #include "states.h"
 
 int state = INIT_STATE;	// State machine variable

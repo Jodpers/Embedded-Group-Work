@@ -8,11 +8,6 @@
 #ifndef THREADS_H_
 #define THREADS_H_
 
-#include <sys/types.h>  //threads
-#include <pthread.h>
-
-#include "pio_term.h"
-
 enum thread_states{
 	STATE_RUNNING,
 	STATE_PAUSED,

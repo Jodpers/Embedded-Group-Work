@@ -5,11 +5,21 @@
  *      Author: Pete Hemery
  */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>  //threads
+#include <pthread.h>
+
+#include "top.h"
 #include "keypad.h"
+#include "pio_term.h"
+#include "display.h"
+#include "threads.h"
 
 char button = FALSE;  // Button pressed 1-16 or -1 for multiple buttons
 
-BYTE digits[COLS] = {0x00,0x00,0x00,0x00};
+BYTE digits[COLS] = {0};
 
 /*------------------------------------------------------------------------------
  * keypad thread - Continuously outputs to 7 Segment display and reads buttons

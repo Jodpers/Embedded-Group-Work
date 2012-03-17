@@ -5,14 +5,24 @@
  *      Author: Pete Hemery
  */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>  //threads
+#include <pthread.h>
+
 #include "top.h"
 #include "states.h"
 #include "threads.h"
+#include "display.h"
+#include "debug.h"
 
 BYTE authentication = FALSE;
 char temp_string[BUFFER_SIZE] = {0};
 
 BYTE playing = FALSE;
+
+BYTE play_track(char * buffer,int buf_len);
 
 /*------------------------------------------------------------------------------
  * User Interface State Machines
@@ -46,12 +56,12 @@ void input_pin(char button_read){
     }
     else{
       authentication = check_pin(input_buffer,strlen(input_buffer));
-      printf("PIN: %s\n",input_buffer);
+      printd("PIN: %s\n",input_buffer);
 
       reset_buffers();
 
       if(authentication == TRUE){
-    	printf("Authentication Passed\n");
+    	printd("Authentication Passed\n");
 
     	pthread_mutex_lock(&state_Mutex);
     	logged_in = TRUE;
@@ -62,7 +72,7 @@ void input_pin(char button_read){
     	display_string("Enter Track Number.",NOT_BLOCKING);
       }
       else{
-    	printf("Authentication Failed\n");
+    	printd("Authentication Failed\n");
         pthread_mutex_lock(&state_Mutex);
     	logged_in = FALSE;
         pthread_mutex_unlock(&state_Mutex);
@@ -125,12 +135,11 @@ void input_track_number(char button_read){
       display_string("Invalid.",NOT_BLOCKING);
     }
     else{
-      // playing = TRUE;//play_track(buffer,strlen(buffer));
-      printf("input buffer to play track: %s\n", input_buffer);
+      printd("input buffer to play track: %s\n", input_buffer);
       playing = play_track(input_buffer,strlen(input_buffer));
-      printf("playing:%c\n", playing);
+      printd("playing:%c\n", playing);
       if(playing == TRUE){
-        printf("Track number: %s\n",input_buffer);
+        printd("Track number: %s\n",input_buffer);
         sprintf(temp_string,"Track Number %s Playing",input_buffer);
         reset_buffers();
         display_string(temp_string,BLOCKING);

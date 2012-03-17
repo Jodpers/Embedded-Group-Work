@@ -9,20 +9,8 @@
 #ifndef PIO_TERM_H_
 #define PIO_TERM_H_
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <fcntl.h>   /* file descriptors */
-#include <ctype.h>
-#include <termios.h>  /* terminal */
-#include <assert.h>
-#include <sys/types.h>  //threads
-#include <pthread.h>
-
-#include "top.h"
-
 #define SERIAL_DEVICE 	"/dev/ttyACM0"
+#define SLEEP 1400      /* Lowest value needed between write and read */
 
 extern int fd_RS232;   /* Terminal File descriptor */
 
@@ -35,7 +23,7 @@ void rs232_open(void);
 void rs232_close(void);
 
 void setup_ports();
-void write_to_port(int, BYTE);
+void write_to_port(int, unsigned char);
 
 #endif /* PIO_TERM_H_ */
 

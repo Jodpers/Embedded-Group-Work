@@ -8,13 +8,6 @@
 #ifndef DISPLAY_H_
 #define DISPLAY_H_
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include "top.h"
-#include "threads.h"
-
 
 /* Display Flag States */
 enum display_states{
@@ -96,6 +89,6 @@ void display_input_buffer(void);
 void display_time(void);
 void display_volume(long);
 
+void set_menu(BYTE);
 extern void reset_buffers(void);
-extern void set_menu(BYTE);
 #endif /* DISPLAY_H_ */

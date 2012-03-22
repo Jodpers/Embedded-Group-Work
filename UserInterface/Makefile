@@ -6,6 +6,10 @@ CC = gcc
 LFLAGS = -Wall -g -pthread -lasound # lasound is required for alsa libs used in volume control
 EXE = client
 
+# libtool --mode=link gcc `pkg-config --cflags --libs gstreamer-0.10` -o gstClient gstClient.c
+# libtool --mode=link gcc `pkg-config --cflags --libs gstreamer-0.10` -o gstServer gstServer.c
+
+
 all : $(OBJS) $(MOBJS)	
 	$(CC) -o $(EXE) $(MOBJS) $(OBJS) $(LFLAGS)
 

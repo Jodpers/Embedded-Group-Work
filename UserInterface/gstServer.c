@@ -1,8 +1,13 @@
-/*
- *
- * This is based on the Gstreamer hello world application which cam be found here:
+/******************************************************************************************
+ * gstServer.c                                                                            *
+ * Description: This file will setup gstreamer on the server side and stream audio to the *
+ *              client.
+ * External globals: None                                                                 *
+ * Author: James Sleeman                                                                  *
+ * This is based on the Gstreamer hello world application which cam be found here:        *
  * http://gstreamer.freedesktop.org/data/doc/gstreamer/head/manual/html/chapter-helloworld.html
- */
+ *****************************************************************************************/
+
 #include <gst/gst.h>
 #include <glib.h>
 
@@ -13,7 +18,7 @@ char path[PATH_MAX];
 int port;
 char ip[15];
 
-static gboolean bus_call (GstBus *bus, GstMessage *msg, gpointer data)
+static gboolean bus_call(GstBus *bus, GstMessage *msg, gpointer data)
 {
   GMainLoop *loop = (GMainLoop *) data;
 

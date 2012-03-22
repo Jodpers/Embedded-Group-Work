@@ -1,2 +1,7 @@
-If the Make file returns linking errors originating from volume.c, then it is likely the issue is to install the libasound2-dev libary.
+If the Make file returns linking errors originating from volume.c, to fix this issue the libasound2-dev libary will need to be installed.
 
+To compile gstreamer the following tools and libraries need to be installed:
+
+pkg-config 
+libtool
+gstreamer library

@@ -1,8 +1,13 @@
-/*
- *
- * This is based on the Gstreamer hello world application which cam be found here:
+/******************************************************************************************
+ * gstClient.c                                                                            *
+ * Description: This is file is used to setup gstreamer to receive an audio stream and    *
+ *              playback the stream and offer the controls to change the state of the     *
+ *              pipleine used to stream the audio.                                        *
+ * External globals: None                                                                 *
+ * Author: James Sleeman                                                                  *
+ * This is based on the Gstreamer hello world application which cam be found here:        *
  * http://gstreamer.freedesktop.org/data/doc/gstreamer/head/manual/html/chapter-helloworld.html
- */
+ *****************************************************************************************/
 
 #include <gst/gst.h>
 #include <glib.h>
@@ -198,6 +203,7 @@ char * getTimeGst()
   return time;
 }
 
+  /* http://gstreamer.freedesktop.org/data/doc/gstreamer/head/gstreamer/html/GstElement.html#gst-element-seek-simple */
 void seekGst()
 {
 

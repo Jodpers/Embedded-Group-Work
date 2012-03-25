@@ -36,6 +36,12 @@ extern pthread_cond_t network_Signal;
 extern pthread_mutex_t request_Mutex;
 extern pthread_cond_t request_Signal;
 
+/* Timer Signals */
+extern pthread_mutex_t timer_Mutex;
+extern pthread_cond_t timer_Signal;
+
+/* Local Function Prototypes */
+
 void setup_threads(void);
 void start_threads(void);
 void closing_time(void);

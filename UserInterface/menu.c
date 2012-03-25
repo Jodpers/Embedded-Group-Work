@@ -17,8 +17,17 @@
 #include "debug.h"
 
 /**
- *  MENU SELECTION
- @brief description test
+ *  @brief Menu selection routine.
+ *
+ *  This function is called by pressing ENTER_MENU (button E)
+ *  while state machine is in 'WAITING_LOGGED_IN' state and no
+ *  track number has been input.
+ *  Options are navigated using the FORWARD (F) and BACK (B) buttons
+ *  or pressing the relevant option number on the keypad.
+ *  Options are selected by pressing ENTER_MENU (E) or ACCEPT (A).
+ *
+ *  @param Void.
+ *  @return Void.
  */
 void menu_select(void){
   int choice = 1;
@@ -39,6 +48,9 @@ void menu_select(void){
     button_read = button;               // Read the button pressed
     pthread_mutex_unlock(&button_Mutex);
 
+    /* If button has been pressed, but an emergency packet has arrived,
+     * check for it and respond by breaking out of the loop.
+     */
 	pthread_mutex_lock(&state_Mutex);
 	state_read = state;
 	pthread_mutex_unlock(&state_Mutex);
@@ -78,9 +90,11 @@ void menu_select(void){
             show_choice(choice); // After return, display correct choice again
 		    break;
 		  case 2:
+		    //Request Location Information
 	        //wifi_scan();
 		    break;
 		  case 3:
+		    // Settings
 		    break;
 		  case 4:
             set_menu(FALSE);
@@ -128,17 +142,15 @@ void menu_select(void){
   }
 }
 
-/*****************************************************************************************
- * Name: show_choice.
- * Description:
- * @brief Displays the selected choice from the menu on the 7-Segment LED Display.
+/**
+ *  @brief Displays the selected choice from the menu on the 7-Segment LED Display.
+ *
  *        Takes the choice from the parameter,
  *        sends the relevant string to the display_string routine.
- * Inputs: Parameters: (int choice)
- *            Globals:
- * Outputs: Globals:
- *           Return:
- ****************************************************************************************/
+ *
+ *  @param [in] choice integer value of current choice option to display.
+ *  @return Void.
+ */
 void show_choice(int choice){
   char *menu_strings[MENU_STR_NUM] = {
     "",

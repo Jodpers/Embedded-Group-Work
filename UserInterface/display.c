@@ -40,9 +40,23 @@ int cursor_offset = 0;
 int input_len = 0;
 int input_ptr = 0;
 
-/*------------------------------------------------------------------------------
- * Display State Machine
- *------------------------------------------------------------------------------
+
+/**
+ *  @brief Display State Machine.
+ *
+ *   This function scrolls the characters from the display_buffer
+ *   across the 7 seg display. This approach means another thread
+ *   can send the string to be displayed to display_buffer and then
+ *   continue what it was doing without being blocked. While this
+ *   thread handles the scrolling.
+ *
+ *   The menu_set variable is used to determine if the display
+ *   is in menu mode. If so, the string should display its
+ *   first 4 chars after its finished scrolling, to give a persistent
+ *   indication of which choice is currently selected.
+ *
+ *  @param Void.
+ *  @return Void.
  */
 void update_display(void){
   int i;
@@ -178,9 +192,11 @@ void update_display(void){
   }  
 }
 
-/*------------------------------------------------------------------------------
- * Insert character into the buffer and move the cursor
- *------------------------------------------------------------------------------
+/**
+ *  @brief Insert character into the display buffer and move the cursor.
+ * *
+ *  @param [in] in_char Character to display.
+ *  @return Void.
  */
 void insert_char(char in_char){
   char temp_buffer[BUFFER_SIZE] = {0};
@@ -245,10 +261,17 @@ void insert_char(char in_char){
   }
   display_input_buffer();
 }
-/*------------------------------------------------------------------------------
- * Delete Character from the buffer and move the cursor
- *------------------------------------------------------------------------------
+
+/**
+ *  @brief Delete Character from the buffer and move the cursor.
+ *
+ *      This function uses global variables (cursor_pos and cursor_offset)
+ *      to determine where the current cursor position is.
+ *
+ *  @param Void.
+ *  @return Void.
  */
+
 void delete_char(void){
   int i;
   int input_ptr;

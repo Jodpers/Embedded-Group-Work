@@ -34,6 +34,10 @@ int main (void) {
       signal(SIGINT, (void *)closing_time);
       
       setup_term();
+  if(networkSetup() != 0){
+    printf("Network Fail\n");
+    return 1;
+  }
       start_threads();
       
       while((ret = getchar()) != 'x' && alive){

@@ -275,9 +275,9 @@ void delete_char(void){
  */
 
 void move_cursor(int direction){
-  switch(direction){
-    case LEFT:
-      if(input_len){ // Only go left if there is somewhere to go
+  if(input_len){ // Only go left if there is somewhere to go
+    switch(direction){
+      case LEFT:
         if(--cursor_pos < 0){
           cursor_pos = 0;
           if(cursor_offset){
@@ -288,10 +288,8 @@ void move_cursor(int direction){
           cursor_offset--;
           cursor_pos++;
         }
-      }
-      break;
-    case RIGHT:
-      if(input_len){ // Only go right if there is somewhere to go
+        break;
+      case RIGHT:
         if((cursor_pos + cursor_offset) < input_len){
           if(++cursor_pos > DIGITS_MAX){
             cursor_pos = DIGITS_MAX;
@@ -302,10 +300,10 @@ void move_cursor(int direction){
             }
           }
         }
-      }
-      break;
-    default:
-      break;
+        break;
+      default:
+        break;
+    }
   }
   display_input_buffer();
   return;

@@ -47,14 +47,14 @@ void setup_threads(void){
 	  /* Setup Mutex */
 	  pthread_mutex_init(&button_Mutex, NULL);
 	  pthread_mutex_init(&state_Mutex, NULL);
-          pthread_mutex_init(&display_Mutex, NULL);
+      pthread_mutex_init(&display_Mutex, NULL);
 	  pthread_mutex_init(&network_Mutex, NULL);
 	  pthread_mutex_init(&request_Mutex, NULL);
 
 	  /* Setup Conditions */
 	  pthread_cond_init(&button_Signal, NULL);
 	  pthread_cond_init(&state_Signal, NULL);
-          pthread_cond_init(&display_Signal, NULL);
+      pthread_cond_init(&display_Signal, NULL);
 	  pthread_cond_init(&network_Signal, NULL);
 	  pthread_cond_init(&request_Signal, NULL);
 

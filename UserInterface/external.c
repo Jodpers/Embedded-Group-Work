@@ -64,4 +64,5 @@ char * check_time(BYTE flashing){
 
 char * closest_MAC(void){
 
+  return;
 }

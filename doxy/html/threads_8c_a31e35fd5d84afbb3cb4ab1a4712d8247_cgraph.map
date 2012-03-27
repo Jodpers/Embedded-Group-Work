@@ -1,0 +1,6 @@
+<map id="G" name="G">
+<area shape="rect" id="node3" href="$pio__term_8c.html#a4eb2fc39d9b47d2432c0e78acc757619" title="close_term" alt="" coords="164,32,257,61"/>
+<area shape="rect" id="node9" href="$pio__term_8c.html#af62e54dbaba5f4bbb6f9f4736e904e32" title="Write to USB PIO Port." alt="" coords="159,85,263,115"/>
+<area shape="rect" id="node5" href="$pio__term_8c.html#a33ed417939b034b2a1edb8a7fe8650c3" title="rs232_close" alt="" coords="312,5,411,35"/>
+<area shape="rect" id="node7" href="$pio__term_8c.html#abf16d0a43a823d03f9daca056a423138" title="term_exitio" alt="" coords="315,59,408,88"/>
+</map>

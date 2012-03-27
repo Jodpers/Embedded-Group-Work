@@ -1,0 +1,19 @@
+<map id="G" name="G">
+<area shape="rect" id="node3" href="$display_8c.html#a1c7b9a3916c14751ca8b2e7850060a22" title="Display String Routines &#45; Blocking and Non&#45;Blocking." alt="" coords="528,160,637,189"/>
+<area shape="rect" id="node5" href="$input_8c.html#ab116198d8499712c30a4d6a85fc144fb" title="Inputting Pin Number." alt="" coords="359,109,439,139"/>
+<area shape="rect" id="node21" href="$display_8c.html#a717429168fb5542a7b36a94712f7c67e" title="This function is used to refresh the display buffer." alt="" coords="691,499,797,528"/>
+<area shape="rect" id="node23" href="$input_8c.html#a883a94caad8912199a71407a17cb4dbc" title="Inputting Track Number." alt="" coords="324,317,473,347"/>
+<area shape="rect" id="node32" href="$menu_8c.html#a00649801762b62f18f33e0f01d613427" title="Menu selection routine." alt="" coords="171,525,275,555"/>
+<area shape="rect" id="node7" href="$external_8c.html#a691c45fa91850b8dbf1ec8a17640d5ab" title="check_pin" alt="" coords="540,5,625,35"/>
+<area shape="rect" id="node9" href="$display_8c.html#afadc1e699774ad1617159e3622bc6e95" title="Delete Character from the buffer and move the cursor." alt="" coords="535,317,631,347"/>
+<area shape="rect" id="node14" href="$display_8c.html#a36c5a79c1ab5769ef1e119fd733adc91" title="Insert character into the input buffer and move the cursor." alt="" coords="536,264,629,293"/>
+<area shape="rect" id="node17" href="$display_8c.html#a872b29cca7fa5243b7c189b1775729e7" title="Cursor movement along the display buffer." alt="" coords="692,212,796,241"/>
+<area shape="rect" id="node11" href="$display_8c.html#aae7c34e1dd7758a9b37f979f94247a4f" title="Display Input Buffer." alt="" coords="845,264,995,293"/>
+<area shape="rect" id="node29" href="$external_8c.html#a9b2896db5e5e31e1e8f5d6b00bb12a5f" title="play_track" alt="" coords="540,371,625,400"/>
+<area shape="rect" id="node36" href="$display_8c.html#a00570a87d330950a812e6e66ebb89e86" title="Set the menu flag TRUE or FALSE from menu.c." alt="" coords="540,576,625,605"/>
+<area shape="rect" id="node39" href="$menu_8c.html#afeaf1da64f57f44b292e2a6c1ecd9763" title="Displays the selected choice from the menu on the 7&#45;Segment LED Display." alt="" coords="348,213,449,243"/>
+<area shape="rect" id="node42" href="$menu_8h.html#ae1e8b2c919e48c482a9ee22470ff9bd1" title="Volume control from the Menu." alt="" coords="364,627,433,656"/>
+<area shape="rect" id="node45" href="$display_8c.html#a48209155982d90b131e12051253b1cb4" title="Display Volume." alt="" coords="523,680,643,709"/>
+<area shape="rect" id="node47" href="$volume_8c.html#a335624ec99b2ac3a35de7831cd9b0c35" title="Get the Volume for the master channel." alt="" coords="535,733,631,763"/>
+<area shape="rect" id="node52" href="$volume_8c.html#a772475f7f007c0d8168e61e5b9d49d07" title="Set the Volume for the master channel." alt="" coords="524,787,641,816"/>
+</map>

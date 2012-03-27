@@ -1,0 +1,5 @@
+<map id="G" name="G">
+<area shape="rect" id="node3" href="$states_8h.html#aba4f7beb3c7f10145762dba4d8a49ba9" title="State Machine &#45; controls the user interface." alt="" coords="205,5,323,35"/>
+<area shape="rect" id="node5" href="$threads_8h.html#a919f52e9f2a53c65eb1214be43fa54fb" title="Launches threads. Each thread in the system is launched in this function. If any thread cannot start ..." alt="" coords="372,5,479,35"/>
+<area shape="rect" id="node7" href="$main_8c.html#a840291bc02cba5474a4cb46a9b9566fe" title="Main." alt="" coords="529,5,583,35"/>
+</map>

@@ -1,0 +1,14 @@
+<map id="G" name="G">
+<area shape="rect" id="node3" href="$display_8c.html" title="UserInterface/display.c" alt="" coords="5,83,171,112"/>
+<area shape="rect" id="node5" href="$external_8c.html" title="UserInterface/external.c" alt="" coords="195,83,368,112"/>
+<area shape="rect" id="node7" href="$gst_8h.html" title="UserInterface/gst.h" alt="" coords="392,83,536,112"/>
+<area shape="rect" id="node11" href="$input_8c.html" title="UserInterface/input.c" alt="" coords="560,83,715,112"/>
+<area shape="rect" id="node13" href="$keypad_8c.html" title="UserInterface/keypad.c" alt="" coords="739,83,907,112"/>
+<area shape="rect" id="node15" href="$main_8c.html" title="UserInterface/main.c" alt="" coords="931,83,1085,112"/>
+<area shape="rect" id="node17" href="$menu_8c.html" title="UserInterface/menu.c" alt="" coords="1109,83,1269,112"/>
+<area shape="rect" id="node19" href="$network_8c.html" title="UserInterface/network.c" alt="" coords="1293,83,1467,112"/>
+<area shape="rect" id="node21" href="$states_8c.html" title="UserInterface/states.c" alt="" coords="1491,83,1653,112"/>
+<area shape="rect" id="node23" href="$threads_8c.html" title="UserInterface/threads.c" alt="" coords="1677,83,1848,112"/>
+<area shape="rect" id="node25" href="$volume_8c.html" title="UserInterface/volume.c" alt="" coords="1872,83,2043,112"/>
+<area shape="rect" id="node9" href="$gst_8c.html" title="UserInterface/gst.c" alt="" coords="393,160,535,189"/>
+</map>

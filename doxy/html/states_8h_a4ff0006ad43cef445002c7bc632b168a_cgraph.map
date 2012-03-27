@@ -1,0 +1,9 @@
+<map id="G" name="G">
+<area shape="rect" id="node3" href="$display_8c.html#afadc1e699774ad1617159e3622bc6e95" title="Delete Character from the buffer and move the cursor." alt="" coords="368,5,464,35"/>
+<area shape="rect" id="node7" href="$display_8c.html#a1c7b9a3916c14751ca8b2e7850060a22" title="Display String Routines &#45; Blocking and Non&#45;Blocking." alt="" coords="205,43,315,72"/>
+<area shape="rect" id="node9" href="$display_8c.html#a36c5a79c1ab5769ef1e119fd733adc91" title="Insert character into the input buffer and move the cursor." alt="" coords="213,96,307,125"/>
+<area shape="rect" id="node12" href="$display_8c.html#a872b29cca7fa5243b7c189b1775729e7" title="Cursor movement along the display buffer." alt="" coords="364,123,468,152"/>
+<area shape="rect" id="node16" href="$external_8c.html#a9b2896db5e5e31e1e8f5d6b00bb12a5f" title="play_track" alt="" coords="217,200,303,229"/>
+<area shape="rect" id="node18" href="$display_8c.html#a717429168fb5542a7b36a94712f7c67e" title="This function is used to refresh the display buffer." alt="" coords="207,253,313,283"/>
+<area shape="rect" id="node5" href="$display_8c.html#aae7c34e1dd7758a9b37f979f94247a4f" title="Display Input Buffer." alt="" coords="517,71,667,100"/>
+</map>

@@ -1,0 +1,12 @@
+<map id="G" name="G">
+<area shape="rect" id="node3" href="$display_8h.html#afadc1e699774ad1617159e3622bc6e95" title="Delete Character from the buffer and move the cursor." alt="" coords="359,32,455,61"/>
+<area shape="rect" id="node21" href="$display_8h.html#a573f08b4a35154a7fc9b910ba6ea46ef" title="Insert character into the input buffer and move the cursor." alt="" coords="360,85,453,115"/>
+<area shape="rect" id="node26" href="$display_8h.html#a9f625b2f73cfd4cefd1a619e0136aab5" title="Cursor movement along the display buffer." alt="" coords="204,84,308,113"/>
+<area shape="rect" id="node5" href="$states_8h.html#ab642aa5e8279d77e4a41960a6935bfd9" title="Inputting Pin Number." alt="" coords="540,5,620,35"/>
+<area shape="rect" id="node13" href="$states_8h.html#a4ff0006ad43cef445002c7bc632b168a" title="Inputting Track Number." alt="" coords="505,112,655,141"/>
+<area shape="rect" id="node16" href="$volume_8c.html#ae1e8b2c919e48c482a9ee22470ff9bd1" title="Volume control from the Menu." alt="" coords="545,59,615,88"/>
+<area shape="rect" id="node7" href="$states_8h.html#aba4f7beb3c7f10145762dba4d8a49ba9" title="State Machine &#45; controls the user interface." alt="" coords="856,59,973,88"/>
+<area shape="rect" id="node9" href="$threads_8h.html#a919f52e9f2a53c65eb1214be43fa54fb" title="Launches threads. Each thread in the system is launched in this function. If any thread cannot start ..." alt="" coords="1023,59,1129,88"/>
+<area shape="rect" id="node11" href="$main_8c.html#a840291bc02cba5474a4cb46a9b9566fe" title="Main." alt="" coords="1180,59,1233,88"/>
+<area shape="rect" id="node18" href="$states_8h.html#a00649801762b62f18f33e0f01d613427" title="Menu selection routine." alt="" coords="704,59,808,88"/>
+</map>

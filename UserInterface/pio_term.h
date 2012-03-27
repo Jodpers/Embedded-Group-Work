@@ -1,10 +1,14 @@
-/*****
- Terminal and PIO specific defines and prototypes
- 01/02/2012 - Pete Hemery
- 
- terminal code used to send ASCII to USB PIO cable. From:
- http://www.st.ewi.tudelft.nl/~gemund/Courses/In4073/Resources/myterm.c 
-*****/
+/*
+ * @file pio_term.h
+ *
+ *  Created on 1 Feb 2012
+ *     @author Pete Hemery
+ *
+ *  Terminal and PIO specific defines and prototypes.
+ *
+ *  terminal code used to send ASCII to USB PIO cable. From:
+ *  http://www.st.ewi.tudelft.nl/~gemund/Courses/In4073/Resources/myterm.c
+ */
 
 #ifndef PIO_TERM_H_
 #define PIO_TERM_H_

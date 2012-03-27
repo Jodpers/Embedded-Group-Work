@@ -1,3 +1,10 @@
+/*
+ * @file networkLocal.h
+ *
+ *  Created on 7 Feb 2012
+ *     @author James Sleeman
+ */
+
 #ifndef NETWORKLOCAL_H_
 #define NETWORKLOCAL_H_
 

@@ -1,8 +1,8 @@
 /*
- * input.c
+ * @file input.c
  *
- *  Created on: 5 Feb 2012
- *      Author: Pete Hemery
+ *  Created on 5 Feb 2012
+ *     @author Pete Hemery
  */
 
 #include <stdio.h>
@@ -29,6 +29,20 @@ BYTE play_track(char * buffer,int buf_len);
  *------------------------------------------------------------------------------
  */
 
+/**
+ *  @brief Inputting Pin Number.
+ *
+ *    This function allows the user to input a Pin number
+ *    using the keypad and using the 7-Segment display for output.
+ *
+ *    As numbers are entered the cursor moves position. The user
+ *    can navigate the cursor using 'F' and 'B' buttons.
+ *    The 'D' button will delete a character from the display
+ *    and the cursor position shall update accordingly.
+ *
+ *  @param [in] button_read used to determine button pressed.
+ *  @return Void.
+ */
 /*  INPUTTING_PIN */
 
 void input_pin(char button_read){
@@ -55,6 +69,7 @@ void input_pin(char button_read){
       display_string("PIN too short.",BLOCKING);
     }
     else{
+      /* Send pin to the server and block until response received */
       authentication = check_pin(input_buffer,strlen(input_buffer));
       printd("PIN: %s\n",input_buffer);
 
@@ -111,8 +126,20 @@ void input_pin(char button_read){
   }
 }
 
-/*  INPUTTING_TRACK_NUMBER */
-
+/**
+ *  @brief Inputting Track Number.
+ *
+ *    This function allows the user to input a Track number
+ *    using the keypad and using the 7-Segment display for output.
+ *
+ *    As numbers are entered the cursor moves position. The user
+ *    can navigate the cursor using 'F' and 'B' buttons.
+ *    The 'D' button will delete a character from the display
+ *    and the cursor position shall update accordingly.
+ *
+ *  @param [in] button_read used to determine button pressed.
+ *  @return Void.
+ */
 void input_track_number(char button_read){
 
   switch(button_read){

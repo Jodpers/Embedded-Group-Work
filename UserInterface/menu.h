@@ -1,8 +1,8 @@
 /*
- * menu.h
+ * @file menu.h
  *
- *  Created on: 5 Feb 2012
- *      Author: student
+ *  Created on 5 Feb 2012
+ *     @author Pete Hemery
  */
 
 #ifndef MENU_H_

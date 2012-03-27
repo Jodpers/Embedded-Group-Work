@@ -1,8 +1,8 @@
 /*
- * wifi_scan.c
+ * @file wifi_scan.c
  *
- *  Created on: 6 Feb 2012
- *      Author: Pete Hemery
+ *  Created on 6 Feb 2012
+ *     @author Pete Hemery
  */
 
 #include <stdio.h>
@@ -15,6 +15,17 @@
 
 #define MAC_LENGTH  18
 
+
+/**
+ *  @brief Wifi Scan Routine.
+ *
+ *    This function is called every 10 seconds.
+ *    It checks uses 'iwlist wlan0 scan' and updates a global
+ *    variable which holds the closest wifi beacon's MAC address.
+ *
+ *  @param Void.
+ *  @return Void.
+ */
 void wifi_scan(void)
 {
   FILE *pipein_fp;
@@ -59,11 +70,14 @@ void wifi_scan(void)
 	      signal_token = 0;
 	    }
 
-      if ((strcmp("Address:",tokens) == 0) || (strcmp("ESSID:",tokens) == 0) || (strcmp("Quality",tokens) == 0)){
+      if ((strcmp("Address:",tokens) == 0) ||
+          (strcmp("ESSID:",tokens) == 0) ||
+          (strcmp("Quality",tokens) == 0)){
 	      token_cp_flag = 1;
 	    }
 
-      if (signal_token){ /* Output will be two lines, 'Signal' then 'level'. So skip 'level' */
+      /* Output will be two lines, 'Signal' then 'level'. So skip 'level' */
+      if (signal_token){
 	      signal_token++;
 	    }
       if (strcmp("Signal",tokens) == 0){
@@ -82,9 +96,9 @@ void wifi_scan(void)
   
  /* Close iwlist pipe, checking for errors */
   if (pclose (pipein_fp) != 0)
-    {
-      fprintf (stderr, "Could not close 'iwlist', or other error.\n");
-    }
+  {
+    fprintf (stderr, "Could not close 'iwlist', or other error.\n");
+  }
  
   return;
 }

@@ -1,8 +1,8 @@
 /*
- * display.c
+ * @file display.c
  *
- *  Created on: 5 Feb 2012
- *      Author: Pete Hemery
+ *  Created on 5 Feb 2012
+ *     @author Pete Hemery
  */
 
 #include <stdio.h>
@@ -44,16 +44,16 @@ int input_ptr = 0;
 /**
  *  @brief Display State Machine.
  *
- *   This function scrolls the characters from the display_buffer
- *   across the 7 seg display. This approach means another thread
- *   can send the string to be displayed to display_buffer and then
- *   continue what it was doing without being blocked. While this
- *   thread handles the scrolling.
+ *    This function scrolls the characters from the display_buffer
+ *    across the 7 seg display. This approach means another thread
+ *    can send the string to be displayed to display_buffer and then
+ *    continue what it was doing without being blocked. While this
+ *    thread handles the scrolling.
  *
- *   The menu_set variable is used to determine if the display
- *   is in menu mode. If so, the string should display its
- *   first 4 chars after its finished scrolling, to give a persistent
- *   indication of which choice is currently selected.
+ *    The menu_set variable is used to determine if the display
+ *    is in menu mode. If so, the string should display its
+ *    first 4 chars after its finished scrolling, to give a persistent
+ *    indication of which choice is currently selected.
  *
  *  @param Void.
  *  @return Void.
@@ -93,9 +93,13 @@ void update_display(void){
           }
 
           if(display_buffer[offset] != 0){
-            while(display_buffer[offset] == '.' && display_buffer[offset] != 0 && alive){
-              digits[3] |= CURSOR_VALUE; // Only display single '.' on relevant digit
-              offset++;                  // even if there are many in the string
+            while(display_buffer[offset] == '.' &&
+                  display_buffer[offset] != 0 && alive){
+              /* Only display single '.' on relevant digit
+               * even if there are many in the string.
+               */
+              digits[3] |= CURSOR_VALUE;
+              offset++;
             }
             for(i=0;i<3;i++){           // Scroll everything left
               digits[i] = digits[i+1];
@@ -117,7 +121,8 @@ void update_display(void){
             for(i=0;i<COLS;i++){
               digits[i] = digits[i+1];
             }
-            digits[3] = 0;  // Space between end of string and restored digits
+          /* Space between end of string and restored digits */
+            digits[3] = 0;
 
             if(padding == TRUE){
               pad = 4;
@@ -193,8 +198,12 @@ void update_display(void){
 }
 
 /**
- *  @brief Insert character into the display buffer and move the cursor.
- * *
+ *  @brief Insert character into the input buffer and move the cursor.
+ *
+*     This function accepts keypad input and saves to
+*     a character array. This is copied to display_buffer
+*     during display_input_buffer routine.
+ *
  *  @param [in] in_char Character to display.
  *  @return Void.
  */
@@ -265,8 +274,8 @@ void insert_char(char in_char){
 /**
  *  @brief Delete Character from the buffer and move the cursor.
  *
- *      This function uses global variables (cursor_pos and cursor_offset)
- *      to determine where the current cursor position is.
+ *    This function uses global variables (cursor_pos and cursor_offset)
+ *    to determine where the current cursor position is.
  *
  *  @param Void.
  *  @return Void.
@@ -302,11 +311,16 @@ void delete_char(void){
   }
   display_input_buffer();
 }
-/*------------------------------------------------------------------------------
- * Cursor movement along the display buffer
- *------------------------------------------------------------------------------
- */
 
+/**
+ *  @brief Cursor movement along the display buffer.
+ *
+ *    This function uses global variables (cursor_pos and cursor_offset)
+ *    to determine where the current cursor position is.
+ *
+ *  @param [in] direction used to move the cursor left or right.
+ *  @return Void.
+ */
 void move_cursor(int direction){
   if(input_len){ // Only go left if there is somewhere to go
     switch(direction){
@@ -342,11 +356,17 @@ void move_cursor(int direction){
   return;
 }
 
-
-/*------------------------------------------------------------------------------
- * Display Char Routine
- *------------------------------------------------------------------------------
+/**
+ *  @brief Display Char Routine.
+ *
+ *    This function takes a single char as input,
+ *    determines what pattern on the 7 segment to display
+ *    and returns that pattern.
+ *
+ *  @param [in] key ASCII char to be converted.
+ *  @return unsigned char pattern to display on the 7 seg.
  */
+
 BYTE display_char(char key){
   BYTE character = 0;
   switch(key){
@@ -400,10 +420,19 @@ BYTE display_char(char key){
   }
   return character;
 }
-/*------------------------------------------------------------------------------
- * Display String Routines - Blocking and Non-Blocking
- *------------------------------------------------------------------------------
+
+/**
+ *  @brief Display String Routines - Blocking and Non-Blocking.
+ *
+ *    This function takes a single char as input,
+ *    determines what pattern on the 7 segment to display
+ *    and returns that pattern.
+ *
+ *  @param [in] in pointer to ASCII char array to be displayed.
+ *  @param [in] blocked flag used to determine if string display is blocking.
+ *  @return Void.
  */
+
 void display_string(char * in, BYTE blocked){
   int i;
   pthread_mutex_lock(&display_Mutex);
@@ -421,6 +450,17 @@ void display_string(char * in, BYTE blocked){
   }
   pthread_mutex_unlock(&display_Mutex);
 }
+/**
+ *  @brief Display Input Buffer.
+ *
+ *    This function copies the string in input_buffer,
+ *    starting from offset of the cursor value,
+ *    into the display buffer and triggers the
+ *    string to be displayed on the 7 segment display.
+ *
+ *  @param Void.
+ *  @return Void.
+ */
 
 void display_input_buffer(void){
   pthread_mutex_lock(&display_Mutex);
@@ -429,9 +469,34 @@ void display_input_buffer(void){
   display_flag = INPUTTING;
   pthread_mutex_unlock(&display_Mutex);
 }
+/**
+ *  @brief Display Time.
+ *
+ *    This function displays the current time value of
+ *    the current streaming track.
+ *
+ *  @param Void.
+ *  @return Void.
+ */
+void display_time(void){
 
-void display_time(void){};
+  /* TODO */
+  /*
+  long time;
+  time = gst_get_time();
+  sprintf(display_buffer,"%0.2d.0.2d%", time / 60, time % 60);
+  display_flag = CHANGED;
+  */
+};
 
+/**
+ *  @brief Display Volume.
+ *
+ *  This function displays the current volume on the 7 segment display.
+ *
+ *  @param [in] vol Long value, containing the current system volume.
+ *  @return Void.
+ */
 void display_volume(long vol){
   pthread_mutex_lock(&display_Mutex);
   bzero(input_buffer,BUFFER_SIZE);
@@ -443,10 +508,15 @@ void display_volume(long vol){
   pthread_mutex_unlock(&display_Mutex);
 };
 
-/*------------------------------------------------------------------------------
- * Clear the buffer, counter and cursor position on reset
- *------------------------------------------------------------------------------
+/**
+ *  @brief This function is used to refresh the display buffer.
+ *
+ *    Clear the buffer, counter and cursor position on reset.
+ *
+ *  @param Void.
+ *  @return Void.
  */
+
 void reset_buffers(void){ // Reset everything
   int i;
 
@@ -466,13 +536,16 @@ void reset_buffers(void){ // Reset everything
   reset_flag = TRUE;
   pthread_mutex_unlock(&display_Mutex);
 }
-/*------------------------------------------------------------------------------
- * Set the menu flag TRUE or FALSE from menu.c
+
+/**
+ *  @brief Set the menu flag TRUE or FALSE from menu.c.
  *
- * Menu Flag used in the WRITING state to copy the first 4 chars
- * to display after the selected choice string has finished scrolling.
- * e.g. "1.Vol"
- *------------------------------------------------------------------------------
+ *    Menu Flag used in the WRITING state to copy the first 4 chars
+ *    to display after the selected choice string has finished scrolling.
+ *    e.g. "1.Vol"
+ *
+ *  @param [in] in Flag variable.
+ *  @return Void.
  */
 void set_menu(BYTE in){
   pthread_mutex_lock(&display_Mutex);

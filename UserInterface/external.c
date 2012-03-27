@@ -1,8 +1,8 @@
 /*
- * external.c
+ * @file external.c
  *
- *  Created on: 5 Feb 2012
- *      Author: Pete Hemery
+ *  Created on 5 Feb 2012
+ *     @author Pete Hemery
  */
 
 #include <stdio.h>
@@ -57,11 +57,6 @@ BYTE play_track(char * buffer,int buf_len){
   valid = data[0];
   pthread_mutex_unlock(&request_Mutex);
   return valid;	
-}
-
-char * check_time(BYTE flashing){
-  char * time = "04:20";
-  return time;
 }
 
 char * closest_MAC(void){

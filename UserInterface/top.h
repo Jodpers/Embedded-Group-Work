@@ -1,8 +1,8 @@
 /*
- * top.h
+ * @file top.h
  *
- *  Created on: 5 Feb 2012
- *      Author: Pete Hemery
+ *  Created on 5 Feb 2012
+ *     @Author Pete Hemery
  */
 
 #ifndef TOP_H_

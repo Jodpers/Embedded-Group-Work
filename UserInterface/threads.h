@@ -1,8 +1,8 @@
 /*
- * threads.h
+ * @file threads.h
  *
- *  Created on: 6 Feb 2012
- *      Author: Pete Hemery
+ *  Created on 6 Feb 2012
+ *     @author Pete Hemery
  */
 
 #ifndef THREADS_H_

@@ -1,8 +1,8 @@
 /*
- * menu.c
+ * @file menu.c
  *
- *  Created on: 5 Feb 2012
- *      Author: Pete Hemery
+ *  Created on 5 Feb 2012
+ *     @author Pete Hemery
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,12 +19,14 @@
 /**
  *  @brief Menu selection routine.
  *
- *  This function is called by pressing ENTER_MENU (button E)
- *  while state machine is in 'WAITING_LOGGED_IN' state and no
- *  track number has been input.
- *  Options are navigated using the FORWARD (F) and BACK (B) buttons
- *  or pressing the relevant option number on the keypad.
- *  Options are selected by pressing ENTER_MENU (E) or ACCEPT (A).
+ *    This function is called by pressing ENTER_MENU (button E)
+ *    while state machine is in 'WAITING_LOGGED_IN' state and no
+ *    track number has been input.
+ *
+ *    Options are navigated using the FORWARD (F) and BACK (B) buttons
+ *    or pressing the relevant option number on the keypad.
+ *
+ *    Options are selected by pressing ENTER_MENU (E) or ACCEPT (A).
  *
  *  @param Void.
  *  @return Void.
@@ -145,8 +147,8 @@ void menu_select(void){
 /**
  *  @brief Displays the selected choice from the menu on the 7-Segment LED Display.
  *
- *        Takes the choice from the parameter,
- *        sends the relevant string to the display_string routine.
+ *    Takes the choice from the parameter,
+ *    sends the relevant string to the display_string routine.
  *
  *  @param [in] choice integer value of current choice option to display.
  *  @return Void.

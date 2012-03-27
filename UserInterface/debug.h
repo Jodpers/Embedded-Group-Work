@@ -1,3 +1,9 @@
+/*
+ * @file debug.h
+ *
+ *  Created on 07 Mar 2012
+ *     @author James Sleeman
+ */
 #ifndef DEBUG_H_
 #define DEBUG_H_
 

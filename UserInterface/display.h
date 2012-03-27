@@ -1,8 +1,8 @@
 /*
- * display.h
+ * @file display.h
  *
- *  Created on: 5 Feb 2012
- *      Author: Pete Hemery
+ *  Created on 5 Feb 2012
+ *     @author Pete Hemery
  */
 
 #ifndef DISPLAY_H_

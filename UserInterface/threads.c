@@ -1,8 +1,8 @@
 /*
- * threads.c
+ * @file threads.c
  *
- *  Created on: 6 Feb 2012
- *      Author: Pete Hemery
+ *  Created on 6 Feb 2012
+ *     @author Pete Hemery
  */
 
 #include <stdio.h>
@@ -56,7 +56,7 @@ pthread_cond_t timer_Signal;
 int button_thread_state;
 
 /**
- *  @brief Initialises Mutexs, Signals and Attributes
+ *  @brief Initialises Mutexs, Signals and Attributes.
  *
  *  @param Void.
  *  @return Void.
@@ -88,8 +88,8 @@ void setup_threads(void){
 
 /**
  *  @brief Launches threads.
- *         Each thread in the system is launched in this function.
- *         If any thread cannot start the program exits with an error.
+ *    Each thread in the system is launched in this function.
+ *    If any thread cannot start the program exits with an error.
  *
  *  @param Void.
  *  @return Void.

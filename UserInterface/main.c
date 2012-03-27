@@ -1,8 +1,8 @@
 /*
- * main.c
+ * @file main.c
  *
- *  created on: 5 Feb 2012
- *      author: Pete Hemery
+ *  created on 5 Feb 2012
+ *     @author Pete Hemery
  */
  
 #include <stdio.h>
@@ -21,9 +21,23 @@
 
 BYTE alive = TRUE;  // exit condition of while loops
 
-/*------------------------------------------------------------------------------
- * main
- *------------------------------------------------------------------------------
+/**
+ *  @brief Main.
+ *
+ *    This function starts everything.
+ *    It initialises the Network and Keypad.
+ *    If either of these fail then the program exits with an error.
+ *
+ *    If not, then threads are initialised and the
+ *    function 'closing_time' is associated with a signal to exit.
+ *    This allows the threads of be killed safely and the
+ *    7 segment display to be cleared.
+ *
+ *    After initialisation, the user is asked to toggle the
+ *    emergency state with the letter 'e', or to e'x'it the program.
+ *
+ *  @param Void.
+ *  @return Void.
  */
 int main (void) {
   int ret;

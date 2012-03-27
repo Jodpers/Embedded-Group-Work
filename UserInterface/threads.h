@@ -1,17 +1,12 @@
 /*
- * threads.h
+ * @file threads.h
  *
- *  Created on: 6 Feb 2012
- *      Author: Pete Hemery
+ *  Created on 6 Feb 2012
+ *     @author Pete Hemery
  */
 
 #ifndef THREADS_H_
 #define THREADS_H_
-
-#include <sys/types.h>  //threads
-#include <pthread.h>
-
-#include "pio_term.h"
 
 enum thread_states{
 	STATE_RUNNING,
@@ -40,6 +35,12 @@ extern pthread_cond_t network_Signal;
 /* Request Signals */
 extern pthread_mutex_t request_Mutex;
 extern pthread_cond_t request_Signal;
+
+/* Timer Signals */
+extern pthread_mutex_t timer_Mutex;
+extern pthread_cond_t timer_Signal;
+
+/* Local Function Prototypes */
 
 void setup_threads(void);
 void start_threads(void);

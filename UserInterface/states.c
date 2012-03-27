@@ -1,15 +1,33 @@
 /*
- * states.c
+ * @file states.c
  *
- *  Created on: 5 Feb 2012
- *      Author: Pete Hemery
+ *  Created on 5 Feb 2012
+ *     @author Pete Hemery
  */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>  //threads
+#include <pthread.h>
+
+#include "top.h"
+#include "display.h"
+#include "threads.h"
 #include "states.h"
 
 int state = INIT_STATE;	// State machine variable
 int logged_in = FALSE;  		// Client connected to server
 
+/**
+ *  @brief State Machine - controls the user interface.
+ *
+ *    This function is the top level state machine.
+ *    From here the user navigates the states define
+ *    in 'enum ui_states' in states.h.
+ *
+ *  @param Void.
+ *  @return Void.
+ */
 void * state_machine(void){
   char *emergency="! EMERGENCY !";
   char button_read = FALSE;  // Local snapshot of Global 'Button'

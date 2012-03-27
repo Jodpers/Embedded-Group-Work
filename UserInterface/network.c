@@ -22,6 +22,9 @@
 #include <limits.h>
 #include <sys/types.h>
 #include <arpa/inet.h>
+
+#include <sys/types.h>  //threads
+#include <pthread.h>
 #include <netinet/tcp.h>
 
 #include "top.h"
@@ -89,6 +92,51 @@ void * networkingFSM(void)
 		{
 		  state = PARSEPACKET;
 		}
+
+	    case WAITING:
+
+	    	pthread_mutex_lock(&network_Mutex);
+	    	pthread_cond_wait(&network_Signal, &network_Mutex);
+	    	opcode = task;
+	    	strncpy(localRecPacket, receivedPacket, PACKETLEN);
+	    	pthread_mutex_unlock(&network_Mutex);
+	    	if (opcode == RECEIVE)
+			{
+			  printd("sent:%d\n", sentt);
+			  if (sentt == 0)
+			    {
+			      /* Do nothing receiving packet with out sending*/
+			    }
+			  else
+			    {
+		      state = PARSEPACKET;
+			    }
+	    	  break;
+			}
+			pthread_mutex_lock(&request_Mutex);
+			strncpy(localData, data, PACKETLEN);
+			opcode = task;
+			pthread_mutex_unlock(&request_Mutex);
+
+	    case CREATEHEADERS:
+	      createHeaders(opcode,localData);
+
+	      printd("Packet to send:%s", packet);
+
+	      state = SEND;
+	      break;
+	    case SEND:
+
+	      printd("packet at sending time:%s\n", packet);
+	      len = strlen(packet);
+	      printd("len: %d\n", len);
+		if (len > 0)
+		  {
+		    send(sockfd, packet, len+1, 0);
+		    printd("sent\n");
+		  }
+	      state = WAITING;
+>>>>>>> 71278dec2815463d54bc26ea9c785eb306d1feea
 	      break;
 	    }            //Will drop through if UI has woke the thread up
 	  
@@ -162,7 +210,7 @@ int networkSetup()
   memset(&hints, 0, sizeof (struct addrinfo));
   hints.ai_family = AF_UNSPEC;
   hints.ai_socktype = SOCK_STREAM;
-  
+
   if ((rv = getaddrinfo(IP, PORT, &hints, &servinfo)) != 0) 
     {
       fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
@@ -172,6 +220,7 @@ int networkSetup()
   /* loop through all the results and connect to the first we can */
   for(p = servinfo; p != NULL; p = p->ai_next) 
     {
+
       if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) 
 	{
 	  perror("client: socket");
@@ -191,7 +240,7 @@ int networkSetup()
       //  fprintf(stderr, "client: failed to connect\n");
       return 2;
     }
- 
+  
   return 0;
 }
 
@@ -253,7 +302,7 @@ int parsePacket(char * buffer)
   int portGst;
   char ipGst[16];
 
-  printf("buffer:%s\n",buffer);
+  printd("buffer:%s\n",buffer);
 
   /*Checks that buffer isn't empty*/
   if(strlen(buffer))
@@ -367,6 +416,7 @@ int parsePacket(char * buffer)
 void createPacket(char * localData)
 {
 
+<<<<<<< HEAD
   char track[TRACKLEN];
   bzero(packet, PACKETLEN); // Clears the packet
 
@@ -392,4 +442,4 @@ void createPacket(char * localData)
       break;
     }
 }
-
+          

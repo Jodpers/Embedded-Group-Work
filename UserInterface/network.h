@@ -1,3 +1,10 @@
+/*
+ * @file network.h
+ *
+ *  Created on 7 Feb 2012
+ *     @author James Sleeman
+ */
+
 #ifndef NETWORK_H_
 #define NETWORK_H_
 

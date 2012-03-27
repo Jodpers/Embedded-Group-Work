@@ -1,19 +1,45 @@
 /*
- * keypad.c
+ * @file keypad.c
  *
- *  Created on: 5 Feb 2012
- *      Author: Pete Hemery
+ *  Created on 5 Feb 2012
+ *     @author Pete Hemery
  */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>  //threads
+#include <pthread.h>
+
+#include "top.h"
 #include "keypad.h"
+#include "pio_term.h"
+#include "display.h"
+#include "threads.h"
 
-char button = FALSE;  // Button pressed 1-16 or -1 for multiple buttons
+/* Button pressed 1-16 or -1 for multiple buttons */
+char button = FALSE;
 
-BYTE digits[COLS] = {0x00,0x00,0x00,0x00};
+/* Unsigned char array containing 4 values to be displayed */
+BYTE digits[COLS] = {0};
 
-/*------------------------------------------------------------------------------
- * keypad thread - Continuously outputs to 7 Segment display and reads buttons
- *------------------------------------------------------------------------------
+/**
+ *  @brief Keypad thread.
+ *
+ *    Continuously outputs to the 7-Segment displays
+ *    and reads buttons from the keypad.
+ *
+ *    Because of the way the 7-Segment HW are wired to the keypad,
+ *    each column scan is used to update the LEDs for one 7-Segment at a time.
+ *    The only LEDs that are lit at any one time is the one selected by port A.
+ *
+ *    If the current LEDs are turned off, refreshed with a new value,
+ *    and then the next column is selected, there's a ghosting effect.
+ *    To resolve this, the command to turn off the LED is given
+ *    BEFORE the column is changed.
+ *
+ *  @param Void.
+ *  @return Void.
  */
 void * keypad(void){
   int col;
@@ -27,7 +53,7 @@ void * keypad(void){
     }
 
     if(--timeout == 0){
-      update_display(); // display.c
+      update_display(); ///< display.c
       timeout = SCROLL_DELAY;
     }
     pthread_mutex_unlock(&display_Mutex);
@@ -49,13 +75,25 @@ void * keypad(void){
   return 0;
 }
 
-/*------------------------------------------------------------------------------
- * Read Button - Translates the ASCII value read from the serial line.
- *               Single Hex digit represents which buttons are pressed:
- *        E.g. Column Selected | Row 8 4 2 1     Bottom Right button pressed
- *                        0    |     1 0 1 0     Hex: 0x0A
+/**
+ *  @brief Read Button from the keypad.
  *
- *             Only one key press is allowed per complete scan.
+ *    Translates the ASCII value read from the serial line.
+ *    Single Hex digit represents which buttons are pressed.
+ *    E.g.
+ *
+ *       | Column Selected | Row 8 4 2 1 | Two button pressed
+ *
+ *       | _ _ _ _ _ 0 _ _ | _ _ 1 0 1 0 | Hex: 0x0A
+ *
+ *  Only one key press is allowed per complete scan of all four columns.
+ *
+ *  @param [in] col used to determine current column.
+ *  @param [in] in ASCII output from USB-PIO from port B query.
+ *  @return Void.
+ */
+/*------------------------------------------------------------------------------
+ *
  *------------------------------------------------------------------------------
  */
 void read_button(int col, char in){

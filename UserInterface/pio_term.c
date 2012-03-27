@@ -1,7 +1,26 @@
 /*
- terminal code used to send ASCII to USB PIO cable. From:
- http://www.st.ewi.tudelft.nl/~gemund/Courses/In4073/Resources/myterm.c
-*/
+ * @file pio_term.c
+ *
+ *  Created on 1 Feb 2012
+ *     @author Pete Hemery
+ *
+ *  Terminal and PIO specific defines and prototypes.
+ *
+ *  terminal code used to send ASCII to USB PIO cable. From:
+ *  http://www.st.ewi.tudelft.nl/~gemund/Courses/In4073/Resources/myterm.c
+ */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <fcntl.h>   /* file descriptors */
+#include <ctype.h>
+#include <termios.h>  /* terminal */
+#include <assert.h>
+#include <sys/types.h>  //threads
+#include <pthread.h>
+
 #include "pio_term.h"
 
 int fd_RS232;   /* Terminal File descriptor */
@@ -74,11 +93,18 @@ void rs232_close(void){
   result = close(fd_RS232);
   assert (result==0);
 }
-/*------------------------------------------------------------------------------
- * USB-PIO specific functions
- *------------------------------------------------------------------------------
+
+/**
+ *  @brief Setup USB PIO Ports.
+ *
+ *    This function is USB-PIO specific.
+ *    It sets up the 3 ports of the USB-PIO cable
+ *    so that ports A and C are input and port B is output.
+ *
+ *  @param Void.
+ *  @return Void.
  */
-void setup_ports(){
+void setup_ports(void){
   char str[4];
   write(fd_RS232,"@00D000\r",8); /* Port A input */
   usleep(SLEEP);                 /* Needs time for reply */
@@ -94,7 +120,19 @@ void setup_ports(){
   read(fd_RS232,str,4);
 }
 
-void write_to_port(int port, BYTE bits){
+/**
+ *  @brief Write to USB PIO Port.
+ *
+ *    This function is USB-PIO specific.
+ *    It sends the unsigned char value of bits to the port
+ *    specified in the int port.
+ *
+ *  @param [in] port The port number to send 'bits' to.
+ *  @param [in] bits Unsigned char representing a
+ *              value to display on the 7 Segment LEDs.
+ *  @return Void.
+ */
+void write_to_port(int port, unsigned char bits){
   char str[10];
 
   snprintf(str,10,"@00P%d%02x\r",port,bits);

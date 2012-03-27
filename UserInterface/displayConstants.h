@@ -1,8 +1,8 @@
 /*
- * displayConstants.h
+ * @file displayConstants.h
  *
- *  Created on: 22 Feb 2012
- *      Author: Pete Hemery
+ *  Created on 22 Feb 2012
+ *     @author Pete Hemery
  */
 
 #ifndef DISPLAYCONSTANTS_H_
@@ -10,11 +10,11 @@
 
 /******************
   7-Seg hex map
-    --1--
-   20   2
-     40
-   10   4
-    --8-- 80
+   ---1--
+   20---2
+   --40--
+   10---4
+   ---8-- 80
 *******************/
 const BYTE numtab[] = {0x3F,0x06,0x5B,0x4F,0x66,0x6D,0x7D,0x07,0x7F,0x6F};//0-9
 const BYTE uitab[] = {0x00,'1', '2', '3', FORWARD,      // Keypad button assignment

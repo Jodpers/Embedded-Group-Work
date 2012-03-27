@@ -1,3 +1,10 @@
+/*
+ * @file networkLocal.h
+ *
+ *  Created on 7 Feb 2012
+ *     @author James Sleeman
+ */
+
 #ifndef NETWORKLOCAL_H_
 #define NETWORKLOCAL_H_
 
@@ -15,11 +22,15 @@
 /* server info */
 #define PORT "4444"
 //#define IP "164.11.222.103"
-#define IP "164.11.222.88"
+//#define IP "164.11.222.88"
 
+#define IP "localhost"
+
+<<<<<<< HEAD
 #define IPLEN 14
 
 //#define IP "localhost"
+
 #define TIMEOUTVALUE 3
 
 void PANIC(char * msg);
@@ -27,4 +38,4 @@ void * receive(void);
 int parsePacket(char * buffer);
 void createPacket(char * localData);
 
-#endif /* NETWORKLOCAL_H_ */
+#endif /* NETWORKLOCAL_H_ */   

@@ -1,13 +1,36 @@
 /*
- * menu.c
+ * @file menu.c
  *
- *  Created on: 5 Feb 2012
- *      Author: Pete Hemery
+ *  Created on 5 Feb 2012
+ *     @author Pete Hemery
  */
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>  //threads
+#include <pthread.h>
 
+#include "top.h"
 #include "menu.h"
+#include "states.h"
+#include "threads.h"
+#include "display.h"
+#include "debug.h"
 
-/*  MENU SELECTION */
+/**
+ *  @brief Menu selection routine.
+ *
+ *    This function is called by pressing ENTER_MENU (button E)
+ *    while state machine is in 'WAITING_LOGGED_IN' state and no
+ *    track number has been input.
+ *
+ *    Options are navigated using the FORWARD (F) and BACK (B) buttons
+ *    or pressing the relevant option number on the keypad.
+ *
+ *    Options are selected by pressing ENTER_MENU (E) or ACCEPT (A).
+ *
+ *  @param Void.
+ *  @return Void.
+ */
 void menu_select(void){
   int choice = 1;
   char button_read = 0;
@@ -27,6 +50,9 @@ void menu_select(void){
     button_read = button;               // Read the button pressed
     pthread_mutex_unlock(&button_Mutex);
 
+    /* If button has been pressed, but an emergency packet has arrived,
+     * check for it and respond by breaking out of the loop.
+     */
 	pthread_mutex_lock(&state_Mutex);
 	state_read = state;
 	pthread_mutex_unlock(&state_Mutex);
@@ -61,14 +87,16 @@ void menu_select(void){
             state = SUBMENU_SELECT;
             state_read = state;
             pthread_mutex_unlock(&state_Mutex);
-            printf("Volume Selected\n");
+            printd("Volume Selected\n");
 	           volume(); 
             show_choice(choice); // After return, display correct choice again
 		    break;
 		  case 2:
+		    //Request Location Information
 	        //wifi_scan();
 		    break;
 		  case 3:
+		    // Settings
 		    break;
 		  case 4:
             set_menu(FALSE);
@@ -79,12 +107,12 @@ void menu_select(void){
             state = INIT_STATE;
             state_read = state;
             pthread_mutex_unlock(&state_Mutex);
-            printf("Logging Out\n");
+            printd("Logging Out\n");
 		    break;
           default:
 	        break;
 	    }
-	    printf("Choice: %d\n",choice);
+	    printd("Choice: %d\n",choice);
         break;
 
       case CANCEL:
@@ -116,6 +144,15 @@ void menu_select(void){
   }
 }
 
+/**
+ *  @brief Displays the selected choice from the menu on the 7-Segment LED Display.
+ *
+ *    Takes the choice from the parameter,
+ *    sends the relevant string to the display_string routine.
+ *
+ *  @param [in] choice integer value of current choice option to display.
+ *  @return Void.
+ */
 void show_choice(int choice){
   char *menu_strings[MENU_STR_NUM] = {
     "",
@@ -125,7 +162,9 @@ void show_choice(int choice){
     "4.Log out."
   };
 
-  display_string(menu_strings[choice],NOT_BLOCKING);
+  if (choice > 0 && choice < MENU_STR_NUM){
+    display_string(menu_strings[choice],NOT_BLOCKING);
+  }
 
   return;
 }

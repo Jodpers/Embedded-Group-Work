@@ -1,0 +1,421 @@
+* commit 71278dec2815463d54bc26ea9c785eb306d1feea
+| Author: Pete Hemery <petehemery@hotmail.com>
+| Date:   Tue Mar 27 04:27:01 2012 +0100
+| 
+|     removed doxy generated html, in favour of GitHub pages
+|  
+* commit 5758c72af8702a2e3261b57a94b5afb8bd65b61c
+| Author: Pete Hemery <petehemery@hotmail.com>
+| Date:   Tue Mar 27 04:01:58 2012 +0100
+| 
+|     Added Doxygen generated HTML
+|  
+* commit f54963ff754133d8dc4570b89e1ebfcffe0e67b1
+| Author: Pete Hemery <petehemery@hotmail.com>
+| Date:   Tue Mar 27 03:53:22 2012 +0100
+| 
+|     adequate commenting for Doxy generation
+|  
+* commit e55188ed6155b54b16f85bdd04bf68aec7047a1d
+| Author: Pete Hemery <petehemery@hotmail.com>
+| Date:   Sun Mar 25 18:03:09 2012 +0100
+| 
+|     Inserting Doxygen comments
+|  
+* commit 778883451e421906bb66ddbc92999a223e705b2a
+| Author: Pete Hemery <petehemery@hotmail.com>
+| Date:   Sat Mar 17 23:10:55 2012 +0000
+| 
+|     modified the files to show nicely generated graphics with doxywizard =)
+|  
+* commit 1e31676cf3347b4ef25cb1270815e59ff5478029
+| Author: Pete Hemery <petehemery@hotmail.com>
+| Date:   Sat Mar 17 17:26:37 2012 +0000
+| 
+|     merged with james'
+|    
+*   commit 5f62fa5d294b411468a66d47115c005491d4b3ec
+|\  Merge: df5bc77 2ce0bb8
+| | Author: Pete Hemery <petehemery@hotmail.com>
+| | Date:   Sat Mar 17 16:38:11 2012 +0000
+| | 
+| |     merged from joe
+| |     
+| *   commit 2ce0bb866342a1f601fbf2504232bb415941aea4
+| |\  Merge: 7ede58b 57a8987
+| | | Author: jsleeman <its.sleeman@hotmail.co.uk>
+| | | Date:   Sat Mar 17 09:25:19 2012 -0700
+| | | 
+| | |     Merge pull request #4 from jsleeman/master
+| | |     
+| | |     Mering timeeeeeeee
+| | |    
+| | * commit 57a8987698bdd45fc97e86efe417920440c035eb
+| | | Author: Sleeman J.C. CEMS BSc/CompSysInt 1 <jc2-sleeman@rincewindlinux.netlab.cems.uwe.ac.uk>
+| | | Date:   Wed Mar 14 20:08:48 2012 +0000
+| | | 
+| | |     fixed integration for track request on client, fixed receive function setting task, and more cant remember
+| | |    
+| | * commit 840891d5c3e27c0d6d0c0c71e9fa6f021507c029
+| | | Author: Sleeman J.C. CEMS BSc/CompSysInt 1 <jc2-sleeman@luggagelinux.netlab.cems.uwe.ac.uk>
+| | | Date:   Thu Mar 8 20:22:28 2012 +0000
+| | | 
+| | |     Fixed packet creation, so all packets end in \n
+| | |    
+| | * commit 0d7f4ddd93d33d521f7035644a10de630cf20686
+| | | Author: Sleeman J.C. CEMS BSc/CompSysInt 1 <jc2-sleeman@luggagelinux.netlab.cems.uwe.ac.uk>
+| | | Date:   Thu Mar 8 20:16:38 2012 +0000
+| | | 
+| | |     Added /n to end of pin packet, Java server can now receive packets correctly :) added socket init stuff to main
+| | |    
+| | * commit b63dc4fab6b0203937ff29ece5b902b343c18d90
+| | | Author: James Sleeman <its.sleeman@hotmail.co.uk>
+| | | Date:   Thu Mar 8 03:29:08 2012 +0000
+| | | 
+| | |     Added how to fix possible linking error originating from volume.c
+| | |    
+| | * commit 631b789d8dcc00e397a379fd47956c79793b15e1
+| | | Author: James Sleeman <its.sleeman@hotmail.co.uk>
+| | | Date:   Thu Mar 8 03:00:09 2012 +0000
+| | | 
+| | |     Added Makefile, improved debug messaging (now uses macro), removed local declaration of opcode in parsePacket
+| | |    
+| * | commit 7ede58b8b397e42bac342122b5508e2d3ca4a932
+| | | Author: Jodpers <joeyherb@Gmail.com>
+| | | Date:   Tue Mar 13 16:16:25 2012 -0400
+| | | 
+| | |     rewrote the timer function
+| | |    
+| * | commit 6e79aac660c87f2697318487465da8f0aa21a413
+| | | Author: Jodpers <joeyherb@Gmail.com>
+| | | Date:   Tue Mar 13 15:45:35 2012 -0400
+| | | 
+| | |     Added timer thread
+| | |      
+| * |   commit 25bc90ed7e7ebb6a269b2fb92abd9639a3adfdf1
+| |\ \  Merge: 5fcbb77 03dd383
+| | |/  Author: Jodpers <joeyherb@gmail.com>
+| | |   Date:   Wed Feb 22 13:17:58 2012 -0800
+| | |   
+| | |       Merge pull request #3 from PeteHemery/master
+| | |       
+| | |       first big pull request - done and done
+| | |    
+* | | commit df5bc77181c1bfff893229dcaef3413566f7dfe3
+| |/  Author: Pete Hemery <petehemery@hotmail.com>
+|/|   Date:   Thu Feb 23 15:25:42 2012 +0000
+| |   
+| |       Client network integration mods
+| |   
+* | commit 03dd3835e2a8b5900b6cf80fdff7cd21c8792c2b
+| | Author: Pete Hemery <petehemery@hotmail.com>
+| | Date:   Wed Feb 22 21:05:42 2012 +0000
+| | 
+| |     mini merge finished
+| |     
+* |   commit 318b0dfe5c4fe2d5c78edc724db3ce02bb6aaaf3
+|\ \  Merge: 55f76d4 a2c19ad
+| | | Author: Pete Hemery <petehemery@hotmail.com>
+| | | Date:   Wed Feb 22 20:51:15 2012 +0000
+| | | 
+| | |     merging new keypad updates
+| | |    
+| * | commit a2c19ad3f445a12d7a295ea68c2696593885b5c1
+| | | Author: Pete Hemery <petehemery@hotmail.com>
+| | | Date:   Wed Feb 22 20:47:42 2012 +0000
+| | | 
+| | |     added displayConstants header
+| | |    
+| * | commit 0a3dfed4bb03ba9543f58bf0ceba78e33c66e641
+| | | Author: Pete Hemery <petehemery@hotmail.com>
+| | | Date:   Wed Feb 22 20:46:21 2012 +0000
+| | | 
+| | |     Little mods, ready for timing and gstreamer
+| | |    
+| * | commit a9a2365807368064f9dab14af41e6c5951977b07
+| | | Author: Pete Hemery <petehemery@hotmail.com>
+| | | Date:   Wed Feb 22 16:32:30 2012 +0000
+| | | 
+| | |     Volume control now working =D
+| | |    
+* | | commit 55f76d4261eac85fab5626ae7982dbddb2264b4e
+| | | Author: Pete Hemery <petehemery@hotmail.com>
+| | | Date:   Wed Feb 22 00:09:38 2012 +0000
+| | | 
+| | |     added displayConstants
+| | |      
+* | |   commit 26fa1568c5204f9f67cc31715fa4c08ab30da8fa
+|\ \ \  Merge: 517fc63 7085a25
+| |/ /  Author: Pete Hemery <petehemery@hotmail.com>
+|/| |   Date:   Wed Feb 22 00:02:49 2012 +0000
+| | |   
+| | |       used kdiff3 to merge
+| | |    
+| * | commit 7085a251e25cdbf529eeaab572ad154ba8639b23
+| | | Author: Pete Hemery <petehemery@hotmail.com>
+| | | Date:   Wed Feb 8 08:43:23 2012 +0000
+| | | 
+| | |     mostly working with keypad and networking integration with James
+| | |     minor bugs to do with state machine variables still to fix.
+| | |    
+| * | commit 737a83a605b1e158a4a46398e6cf011732bb55eb
+| | | Author: Pete Hemery <petehemery@hotmail.com>
+| | | Date:   Wed Feb 8 07:04:08 2012 +0000
+| | | 
+| | |     integrated networking into keypad threads
+| | |    
+* | | commit 517fc63e9e5ab0d4e83235eaa063177cb108e75a
+| | | Author: Pete Hemery <petehemery@hotmail.com>
+| | | Date:   Thu Feb 16 17:40:40 2012 +0000
+| | | 
+| | |     Added volume control to the menu
+| | |    
+* | | commit 1d71cbae239ff2cd9690be78222d46bce90417d1
+| | | Author: Pete Hemery <petehemery@hotmail.com>
+| | | Date:   Wed Feb 15 01:52:44 2012 +0000
+| | | 
+| | |     mini commit before backup
+| | |    
+* | | commit 053680b2e7d01f6331d4dd462f8322b860b1be99
+| | | Author: Pete Hemery <petehemery@hotmail.com>
+| | | Date:   Tue Feb 14 03:36:01 2012 +0000
+| | | 
+| | |     more little touches on the menu
+| | |    
+* | | commit cafd7acb427b2e92c5c47c06fec9d5b030aef12b
+| | | Author: Pete Hemery <petehemery@hotmail.com>
+| | | Date:   Tue Feb 14 03:05:19 2012 +0000
+| | | 
+| | |     working on getting the menu up together again
+| | |    
+* | | commit 6beeda197477055829fabc8c2777f6f6b6cfe172
+| | | Author: Pete Hemery <petehemery@hotmail.com>
+| | | Date:   Tue Feb 14 01:10:39 2012 +0000
+| | | 
+| | |     managed to get fairly bug free ui and display now
+| | |    
+* | | commit 03217bb9c314165d2f8cc123eb467f7bf8feaf90
+| | | Author: Pete Hemery <petehemery@hotmail.com>
+| | | Date:   Sat Feb 11 03:12:12 2012 +0000
+| | | 
+| | |     added new display style to eclipse, still needs work
+| | |    
+* | | commit 52602316a0e21fe852deeda0ee6a89fbe9280788
+| | | Author: Pete Hemery <petehemery@hotmail.com>
+| | | Date:   Sat Feb 11 02:03:06 2012 +0000
+| | | 
+| | |     little touches to BLOCKING in string display
+| | |    
+* | | commit af10c9d8dc1719db2fd945db879d3b497d7a25cc
+| | | Author: Pete Hemery <petehemery@hotmail.com>
+| | | Date:   Sat Feb 11 01:54:22 2012 +0000
+| | | 
+| | |     nice days work on the display rewrite
+| | |    
+* | | commit ba3c75f3344c246d326ff285a0f3fcd98e579220
+| | | Author: Pete Hemery <petehemery@hotmail.com>
+| | | Date:   Fri Feb 10 20:00:27 2012 +0000
+| | | 
+| | |     new display routines with blocking and cursor working
+| | |    
+* | | commit 24bd804e00646bed14c5ef06b7d860f283ff913c
+| | | Author: Pete Hemery <petehemery@hotmail.com>
+| | | Date:   Fri Feb 10 14:38:57 2012 +0000
+| | | 
+| | |     rewritting the keypad
+| | |    
+* | | commit 4e2dbe1702d6820d1917b71341eb7de5ee5c3fcc
+| | | Author: Pete Hemery <petehemery@hotmail.com>
+| | | Date:   Fri Feb 10 03:42:49 2012 +0000
+| | | 
+| | |     mini commit
+| | |    
+* | | commit aaf14c7b70345c4d6b01c6a42a44fa32a37a2574
+|/ /  Author: Pete Hemery <petehemery@hotmail.com>
+| |   Date:   Fri Feb 10 02:30:04 2012 +0000
+| |   
+| |       compiling but broken updated keypad display
+| |   
+* | commit 5562616aa5bba869190c0efaad8599ef4e2b06d0
+| | Author: PeteHemery <peterhemery@yahoo.co.uk>
+| | Date:   Tue Feb 7 21:42:35 2012 +0000
+| | 
+| |     Git commit for network integration
+| |   
+* | commit 91047102eb61d8ea671befdf7ba55a4f4e7c325e
+| | Author: Pete Hemery <petehemery@hotmail.com>
+| | Date:   Mon Feb 6 06:29:29 2012 +0000
+| | 
+| |     implemented threading. Thanks Si =)
+| |   
+* | commit 8cf89e5c16c1253f690a3fbcec1efaef5d33f0ac
+| | Author: Pete Hemery <petehemery@hotmail.com>
+| | Date:   Sun Feb 5 22:30:49 2012 +0000
+| | 
+| |     heavy day of sorting out the keypad_ui files to seperate files.
+| |     managed to git rm -rf UserInterface by mistake and had to go digging into ntfsundelete =(
+| |     but, it's all working now! =D
+| |   
+* | commit 504dba3137935fa023e6838c519d18a28800150c
+| | Author: Pete Hemery <petehemery@hotmail.com>
+| | Date:   Tue Jan 10 06:59:08 2012 +0000
+| | 
+| |     satisfactory scrolling routuines
+| |   
+* | commit 7c5c58c0101fe4335a439253de31718fc8282edd
+| | Author: Pete Hemery <petehemery@hotmail.com>
+| | Date:   Tue Jan 10 05:39:21 2012 +0000
+| | 
+| |     extensive improvements to the UI code - Menu nearly done
+| |   
+* | commit 1c8fdb1c85b047479c843a9d5db1b95813e02819
+| | Author: Pete Hemery <petehemery@hotmail.com>
+| | Date:   Mon Jan 9 07:35:20 2012 +0000
+| | 
+| |     good time to go to sleep. Track number inputting and menu to go for the UI
+| |   
+* | commit 68dba30088de3f7f778bcc50c77a56d3dfc59324
+| | Author: Pete Hemery <petehemery@hotmail.com>
+| | Date:   Mon Jan 9 06:17:40 2012 +0000
+| | 
+| |     Display Non Blocking routines
+| |   
+* | commit 166f4ea12769c4d41ad0f9b753b7e1a835c2c238
+| | Author: Pete Hemery <petehemery@hotmail.com>
+| | Date:   Mon Jan 9 03:58:32 2012 +0000
+| | 
+| |     WAITING_LOGGED_OUT state pretty much done. Added Functionality for later states
+| |   
+* | commit fb10786086243eee456a9f14f3d69915514842c1
+| | Author: Pete Hemery <petehemery@hotmail.com>
+| | Date:   Sat Jan 7 16:06:25 2012 +0000
+| | 
+| |     finished waiting logged out state
+| |   
+* | commit d8daf4ec24d7c8d901866cbe02b0e326387cb4d0
+| | Author: Pete Hemery <petehemery@hotmail.com>
+| | Date:   Sat Jan 7 06:43:58 2012 +0000
+| | 
+| |     extensive updates, begun state machine
+| |   
+* | commit 054a4ecbf1a864ec56c9e2b6ab364ed22a019daa
+| | Author: Pete Hemery <petehemery@hotmail.com>
+| | Date:   Thu Dec 22 01:47:50 2011 +0000
+| | 
+| |     Tidied up old variables and comments
+| |   
+* | commit 834043b6937f711e8d0ce49ec91a999195cda035
+| | Author: Pete Hemery <petehemery@hotmail.com>
+| | Date:   Thu Dec 22 01:36:34 2011 +0000
+| | 
+| |     string in keypad function wasn't large enough
+| |   
+* | commit 28e4b0b20d84d985855a61dfbdd2ca7a5f0ffb3c
+| | Author: Pete Hemery <petehemery@hotmail.com>
+| | Date:   Thu Dec 22 00:54:19 2011 +0000
+| | 
+| |     minor prettification
+| |   
+* | commit be3211ff703a0b0d3e1c26bf3061820b3d646bbb
+| | Author: Pete Hemery <petehemery@hotmail.com>
+| | Date:   Thu Dec 22 00:34:31 2011 +0000
+| | 
+| |     Keypad displays relevant button on the LEDs with strings
+| |   
+* | commit 05e8945fbca4412dd044d08829dbc513d01714d3
+| | Author: Pete Hemery <petehemery@hotmail.com>
+| | Date:   Wed Dec 21 20:08:56 2011 +0000
+| | 
+| |     main thread receives button presses from keypad thread =)
+| |   
+* | commit 76b55ad53f8076cf431e9f5025693857017b7cb5
+| | Author: Pete Hemery <petehemery@hotmail.com>
+| | Date:   Wed Dec 21 08:13:19 2011 +0000
+| | 
+| |     detects and copes with multiple key presses
+| |   
+* | commit c8267c302890e0b09ce710c631627deb17051776
+| | Author: Pete Hemery <petehemery@hotmail.com>
+| | Date:   Wed Dec 21 06:42:14 2011 +0000
+| | 
+| |     keypad working with buttons detection
+| |   
+* | commit 0c7367babe56870ac7ea38f7a4c3e29ae19d2a90
+| | Author: Pete Hemery <petehemery@hotmail.com>
+| | Date:   Wed Dec 21 05:04:05 2011 +0000
+| | 
+| |     keypad with terminal and threading
+| |   
+* | commit d104701a67a7cf5dea685017fc271669285cf669
+| | Author: Pete Hemery <petehemery@hotmail.com>
+| | Date:   Tue Dec 20 07:04:54 2011 +0000
+| | 
+| |     keypad working with terminal ascii chars
+| |   
+* | commit dd8d5de11046dc759991a4dcfa6b0b3292a935f2
+| | Author: Pete Hemery <petehemery@hotmail.com>
+| | Date:   Mon Dec 19 04:01:56 2011 +0000
+| | 
+| |     few little tweaks to the alphabet soup
+| |   
+* | commit 3d796d45312e1170196e8827e2f3d9fca9fcc441
+|/  Author: Pete Hemery <petehemery@hotmail.com>
+|   Date:   Mon Dec 19 03:35:57 2011 +0000
+|   
+|       Got the keypad working and wifi scanning and parsing address and strength
+|    
+*   commit 5fcbb778ec39a86a7d1765b7b770c4e1bf5a715a
+|\  Merge: ad1970b 5c3e797
+| | Author: Jodpers <joeyherb@gmail.com>
+| | Date:   Tue Nov 22 08:52:13 2011 -0800
+| | 
+| |     Merge pull request #2 from PeteHemery/master
+| |     
+| |     YAR YEAL
+| |   
+| * commit 5c3e79712507f5c01b831bb0fd62d53467409bf3
+| | Author: Pete Hemery <peterhemery@yahoo.co.uk>
+| | Date:   Tue Nov 22 16:47:50 2011 +0000
+| | 
+| |     Added USB keypad C Source code
+| |   
+| * commit faf6353a960f66c098b60025ae1835416eb10067
+| | Author: Pete Hemery <petehemery@hotmail.com>
+| | Date:   Sun Nov 20 11:58:05 2011 +0000
+| | 
+| |     Keypad driver by Attie
+| |     	new file:   Attie/Makefile
+| |     	new file:   Attie/Makefile-igep
+| |     	new file:   Attie/mod.c
+| |     	new file:   Attie/mod.h
+| |   
+* | commit ad1970b833e47e95b7054beab94c52c99132740f
+|/  Author: Pete Hemery <petehemery@hotmail.com>
+|   Date:   Sun Nov 20 19:58:05 2011 +0800
+|   
+|       Keypad driver by Attie
+|       	new file:   Attie/Makefile
+|       	new file:   Attie/Makefile-igep
+|       	new file:   Attie/mod.c
+|       	new file:   Attie/mod.h
+|    
+*   commit e4eb73688d5ad387783aa6bf94a987c1ffb2513e
+|\  Merge: cf367e5 0835b35
+| | Author: Jodpers <joeyherb@gmail.com>
+| | Date:   Sun Nov 13 12:08:59 2011 -0800
+| | 
+| |     Merge pull request #1 from dummytesterforEmbedd/master
+| |     
+| |     test
+| |   
+| * commit 0835b3572048e8dec8ad5a3f68ccfa6ffca08792
+|/  Author: dummytesterforEmbedd <r_o_c_k@hotmail.com>
+|   Date:   Sun Nov 13 20:03:29 2011 +0000
+|   
+|       testing the edit command
+|  
+* commit cf367e51d2a9a38dfff2abd04bb77ef12bdde7ef
+  Author: Joseph Herbert <joeyherb@gmail.com>
+  Date:   Mon Oct 31 20:38:08 2011 +0000
+  
+      first commit

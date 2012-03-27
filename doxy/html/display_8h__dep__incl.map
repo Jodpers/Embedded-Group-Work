@@ -1,8 +1,0 @@
-<map id="G" name="G">
-<area shape="rect" id="node3" href="$display_8c.html" title="UserInterface/display.c" alt="" coords="5,83,171,112"/>
-<area shape="rect" id="node5" href="$input_8c.html" title="UserInterface/input.c" alt="" coords="195,83,349,112"/>
-<area shape="rect" id="node7" href="$keypad_8c.html" title="UserInterface/keypad.c" alt="" coords="373,83,541,112"/>
-<area shape="rect" id="node9" href="$menu_8c.html" title="UserInterface/menu.c" alt="" coords="565,83,725,112"/>
-<area shape="rect" id="node11" href="$states_8c.html" title="UserInterface/states.c" alt="" coords="749,83,912,112"/>
-<area shape="rect" id="node13" href="$volume_8c.html" title="UserInterface/volume.c" alt="" coords="936,83,1107,112"/>
-</map>

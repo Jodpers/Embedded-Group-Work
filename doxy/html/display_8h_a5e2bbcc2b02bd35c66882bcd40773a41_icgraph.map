@@ -1,6 +1,0 @@
-<map id="G" name="G">
-<area shape="rect" id="node3" href="$display_8h.html#ac57966e6d883ddf6cd64302148052921" title="Display State Machine." alt="" coords="156,5,273,35"/>
-<area shape="rect" id="node5" href="$keypad_8h.html#ae8dd273dbbf0a713f0d03d7424f35ea7" title="Keypad thread." alt="" coords="324,5,391,35"/>
-<area shape="rect" id="node7" href="$threads_8h.html#a919f52e9f2a53c65eb1214be43fa54fb" title="Launches threads. Each thread in the system is launched in this function. If any thread cannot start ..." alt="" coords="441,5,548,35"/>
-<area shape="rect" id="node9" href="$main_8c.html#a840291bc02cba5474a4cb46a9b9566fe" title="Main." alt="" coords="599,5,652,35"/>
-</map>

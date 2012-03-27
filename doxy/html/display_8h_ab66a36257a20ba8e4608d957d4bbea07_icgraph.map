@@ -1,9 +1,0 @@
-<map id="G" name="G">
-<area shape="rect" id="node3" href="$states_8h.html#ab642aa5e8279d77e4a41960a6935bfd9" title="Inputting Pin Number." alt="" coords="375,5,455,35"/>
-<area shape="rect" id="node5" href="$states_8h.html#aba4f7beb3c7f10145762dba4d8a49ba9" title="State Machine &#45; controls the user interface." alt="" coords="515,84,632,113"/>
-<area shape="rect" id="node11" href="$states_8h.html#a4ff0006ad43cef445002c7bc632b168a" title="Inputting Track Number." alt="" coords="164,109,313,139"/>
-<area shape="rect" id="node14" href="$states_8h.html#a00649801762b62f18f33e0f01d613427" title="Menu selection routine." alt="" coords="363,161,467,191"/>
-<area shape="rect" id="node17" href="$menu_8h.html#a770f4e032cbc44c763f6de79c6c8d857" title="Displays the selected choice from the menu on the 7&#45;Segment LED Display." alt="" coords="188,213,289,243"/>
-<area shape="rect" id="node7" href="$threads_8h.html#a919f52e9f2a53c65eb1214be43fa54fb" title="Launches threads. Each thread in the system is launched in this function. If any thread cannot start ..." alt="" coords="681,84,788,113"/>
-<area shape="rect" id="node9" href="$main_8c.html#a840291bc02cba5474a4cb46a9b9566fe" title="Main." alt="" coords="839,84,892,113"/>
-</map>

@@ -1,9 +1,0 @@
-<map id="G" name="G">
-<area shape="rect" id="node3" href="$gst_8h.html" title="UserInterface/gst.h" alt="" coords="5,83,149,112"/>
-<area shape="rect" id="node7" href="$input_8c.html" title="UserInterface/input.c" alt="" coords="173,83,328,112"/>
-<area shape="rect" id="node9" href="$main_8c.html" title="UserInterface/main.c" alt="" coords="352,83,507,112"/>
-<area shape="rect" id="node11" href="$menu_8c.html" title="UserInterface/menu.c" alt="" coords="531,83,691,112"/>
-<area shape="rect" id="node13" href="$states_8c.html" title="UserInterface/states.c" alt="" coords="715,83,877,112"/>
-<area shape="rect" id="node15" href="$volume_8c.html" title="UserInterface/volume.c" alt="" coords="901,83,1072,112"/>
-<area shape="rect" id="node5" href="$gst_8c.html" title="UserInterface/gst.c" alt="" coords="7,160,148,189"/>
-</map>

@@ -1,9 +1,0 @@
-<map id="G" name="G">
-<area shape="rect" id="node3" href="$external_8c.html#a691c45fa91850b8dbf1ec8a17640d5ab" title="check_pin" alt="" coords="145,5,231,35"/>
-<area shape="rect" id="node5" href="$display_8c.html#afadc1e699774ad1617159e3622bc6e95" title="Delete Character from the buffer and move the cursor." alt="" coords="296,72,392,101"/>
-<area shape="rect" id="node9" href="$display_8c.html#a1c7b9a3916c14751ca8b2e7850060a22" title="Display String Routines &#45; Blocking and Non&#45;Blocking." alt="" coords="133,109,243,139"/>
-<area shape="rect" id="node11" href="$display_8c.html#a36c5a79c1ab5769ef1e119fd733adc91" title="Insert character into the input buffer and move the cursor." alt="" coords="141,163,235,192"/>
-<area shape="rect" id="node14" href="$display_8c.html#a872b29cca7fa5243b7c189b1775729e7" title="Cursor movement along the display buffer." alt="" coords="292,189,396,219"/>
-<area shape="rect" id="node18" href="$display_8c.html#a717429168fb5542a7b36a94712f7c67e" title="This function is used to refresh the display buffer." alt="" coords="135,267,241,296"/>
-<area shape="rect" id="node7" href="$display_8c.html#aae7c34e1dd7758a9b37f979f94247a4f" title="Display Input Buffer." alt="" coords="445,137,595,167"/>
-</map>

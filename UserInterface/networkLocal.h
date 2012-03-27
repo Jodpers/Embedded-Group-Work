@@ -26,11 +26,16 @@
 
 #define IP "localhost"
 
+<<<<<<< HEAD
+#define IPLEN 14
+
+//#define IP "localhost"
+
 #define TIMEOUTVALUE 3
 
 void PANIC(char * msg);
 void * receive(void);
 int parsePacket(char * buffer);
-void createHeaders(char opcode, char * localData);
+void createPacket(char * localData);
 
-#endif /* NETWORKLOCAL_H_ */
+#endif /* NETWORKLOCAL_H_ */   

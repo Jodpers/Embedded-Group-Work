@@ -50,8 +50,9 @@ void * state_machine(void){
       button_read = button;
       pthread_mutex_unlock(&button_Mutex);
       if(!alive) continue;                     // Check for kill signal
-
-      pthread_mutex_lock(&state_Mutex); 	// Check for Emergency since we've been waiting
+	  
+		/* Check for Emergency since we've been waiting */
+      pthread_mutex_lock(&state_Mutex);
       state_read = state;
       pthread_mutex_unlock(&state_Mutex);
 

@@ -4,7 +4,7 @@
  *****************************************************************************************/
 
 #ifndef GSTCLIENT_H_
-define GSTCLIENT_H_
+#define GSTCLIENT_H_
 
 //#define STANDALONE 
 
@@ -18,5 +18,4 @@ void seekGst()
 int gst(int port, char ip[])
 #endif
 
-#define TRUE 1
-#define FALSE 0
+#endif

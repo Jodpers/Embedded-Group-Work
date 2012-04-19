@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "top.h"
 #include "debug.h"
 #define COMMAND_LEN 150
 #define DATA_SIZE 512
@@ -56,7 +57,7 @@ void wifi_scan(void)
   }
 
   /* Processing loop */
-  while(fgets(data, DATA_SIZE, pipein_fp))
+  while(fgets(data, DATA_SIZE, pipein_fp) && alive)
   {
     printd("%s",data);
 	tokens = strtok (data," ,.=\"\n");

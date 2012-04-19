@@ -12,7 +12,7 @@
 #include <gst/gst.h>
 #include <glib.h>
 
-#include "gstClient.g"
+#include "gstClient.h"
 
 char ip[15];
 int port;

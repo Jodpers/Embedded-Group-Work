@@ -66,22 +66,26 @@ void setup_threads(void){
 	  /* Setup Mutex */
 	  pthread_mutex_init(&button_Mutex, NULL);
 	  pthread_mutex_init(&state_Mutex, NULL);
-      pthread_mutex_init(&display_Mutex, NULL);
+    pthread_mutex_init(&display_Mutex, NULL);
 	  pthread_mutex_init(&network_Mutex, NULL);
 	  pthread_mutex_init(&request_Mutex, NULL);
+	  pthread_mutex_init(&timer_Mutex, NULL);
 
 	  /* Setup Signals */
 	  pthread_cond_init(&button_Signal, NULL);
 	  pthread_cond_init(&state_Signal, NULL);
-      pthread_cond_init(&display_Signal, NULL);
+    pthread_cond_init(&display_Signal, NULL);
 	  pthread_cond_init(&network_Signal, NULL);
 	  pthread_cond_init(&request_Signal, NULL);
+	  pthread_cond_init(&timer_Signal, NULL);
 
 	  /* Setup Thread Attributes */
 	  pthread_attr_init(&keypad_Attr);
 	  pthread_attr_init(&state_machine_Attr);
 	  pthread_attr_init(&network_Attr);
 	  pthread_attr_init(&receive_Attr);
+	  pthread_attr_init(&timer_Attr);
+
 
 	  return;
 }
@@ -102,23 +106,28 @@ void start_threads(void){
   extern void * receive(void);
   extern void * timer(void);
 
-  if(pthread_create( &keypad_thread, &keypad_Attr, (void *)keypad, NULL) != 0){
+  if(pthread_create( &keypad_thread, &keypad_Attr, 
+  											(void *)keypad, NULL) != 0){
     perror("Keypad thread failed to start\n");
     exit(EXIT_FAILURE);
   }
-  if(pthread_create( &state_machine_thread, &state_machine_Attr, (void *)state_machine, NULL) != 0){
+  if(pthread_create( &state_machine_thread, &state_machine_Attr, 
+											(void *)state_machine, NULL) != 0){
     perror("State Machine thread failed to start\n");
     exit(EXIT_FAILURE);
   }
-  if(pthread_create( &network_thread, &network_Attr, (void *)networkingFSM, NULL) != 0){
+  if(pthread_create( &network_thread, &network_Attr, 
+											(void *)networkingFSM, NULL) != 0){
     perror("Network thread failed to start\n");
     exit(EXIT_FAILURE);
   }
-  if(pthread_create( &receive_thread, &receive_Attr, (void *)receive, NULL) != 0){
+  if(pthread_create( &receive_thread, &receive_Attr, 
+  											(void *)receive, NULL) != 0){
     perror("Network Receive thread failed to start\n");
     exit(EXIT_FAILURE);
   }
-  if((pthread_create( &timer_thread, &timer_Attr, (void *)timer, NULL)) != 0){
+  if((pthread_create( &timer_thread, &timer_Attr, 
+  											(void *)timer, NULL)) != 0){
     perror("Timer thread failed to start\n");
     exit(EXIT_FAILURE);
   }
@@ -172,12 +181,16 @@ void closing_time(void){
   pthread_mutex_destroy(&network_Mutex);
   pthread_mutex_destroy(&request_Mutex);
 
+  pthread_mutex_destroy(&timer_Mutex);
+  
   pthread_cond_destroy(&button_Signal);
   pthread_cond_destroy(&state_Signal);
   pthread_cond_destroy(&display_Signal);
 
   pthread_cond_destroy(&network_Signal);
   pthread_cond_destroy(&request_Signal);
+  
+  pthread_cond_destroy(&timer_Signal);
   printf("Closing\n");
 }
 

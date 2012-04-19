@@ -23,6 +23,7 @@
 #include <sys/types.h>
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
+#include <pthread.h>
 
 #include "top.h"
 #include "network.h"
@@ -184,7 +185,6 @@ int networkSetup()
 	  close(sockfd);
 	  sockfd = NULL;
 	  perror("client: connect");
-	  printf("%x\n",p);
 	  continue;
 	}
       break;

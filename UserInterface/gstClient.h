@@ -12,10 +12,9 @@ void killGst();
 void playGst();
 void pauseGst();
 char * getTimeGst();
-void seekGst()
-
-#ifndef STANDALONE
-int gst(int port, char ip[])
+void seekGst();
 #endif
 
+#ifndef STANDALONE
+int gst(int port, char *ip[]);
 #endif

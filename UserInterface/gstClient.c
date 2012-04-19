@@ -17,8 +17,9 @@
 char ip[15];
 int port;
 GstElement * pipeline; // Moved here to allow other gst functions to use the variable.
+GMainLoop *loop;
 
-int playing = FALSE;
+int gst_playing = FALSE;
 
 static gboolean bus_call (GstBus *bus, GstMessage *msg, gpointer data)
 {
@@ -67,25 +68,26 @@ static void on_pad_added (GstElement *element, GstPad *pad, gpointer data)
   gst_pad_link (pad, sinkpad);  
   gst_object_unref (sinkpad);
 
-  playing = TRUE;
+  gst_playing = TRUE;
 }
 
 
 #ifdef STANDALONE
 int main (int argc, char *argv[])
 #else
-int gst(int port, char ip[])
+int gst(int port, char *ip[])
 #endif
-  
 {
-  GMainLoop *loop;
   
   GstElement *source, *demuxer, *decoder, *conv, *sink;
   GstBus *bus;
   
   /* Initialisation */
+#ifdef STANDALONE  
   gst_init (&argc, &argv);
-
+#else
+  gst_init (&port, &ip);
+#endif
   loop = g_main_loop_new (NULL, FALSE);
 
   /* Check input arguments, used before intergration for testing */
@@ -186,21 +188,20 @@ void pauseGst()
 
 char * getTimeGst()
 {
-
-  char time[7] = {0};
+/*  char time[10] = {0};
   GstFormat format = GST_FORMAT_TIME; //Time in nanoseconds 
   gint64 curPos; //Stores the current position
-  if(playing)
+  if(gst_playing)
     {
       if(gst_element_query_position(pipeline, &format, &curPos))
-	{
+	{*/
 	  /* The maximum time supported is by this print statement is 9 hours 59 minutes 
-	     and 59 seconds */
-	  snprintf(msg, 7, "%u:%02u:%.2u\n", GST_TIME_ARGS (curPos)); 
+	     and 59 seconds *//*
+	  snprintf(time, 8, "%u:%02u:%.2u\n", GST_TIME_ARGS (curPos)); 
 	}
     }
                       
-  return time;
+  return time;*/
 }
 
   /* http://gstreamer.freedesktop.org/data/doc/gstreamer/head/gstreamer/html/GstElement.html#gst-element-seek-simple */

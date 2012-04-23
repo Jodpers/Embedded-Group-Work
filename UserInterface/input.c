@@ -21,6 +21,9 @@ BYTE authentication = FALSE;
 char temp_string[BUFFER_SIZE] = {0};
 
 BYTE playing = FALSE;
+BYTE pause = FALSE;
+
+extern void playGst();
 
 BYTE play_track(char * buffer,int buf_len);
 
@@ -157,6 +160,7 @@ void input_track_number(char button_read){
     break;
 
   case ACCEPT_PLAY:
+ 
   case ENTER_MENU:
     if(input_len < TRACK_MIN || input_len >= TRACK_MAX){
       display_string("Invalid.",NOT_BLOCKING);
@@ -170,6 +174,7 @@ void input_track_number(char button_read){
         sprintf(temp_string,"Track Number %s Playing",input_buffer);
         reset_buffers();
         display_string(temp_string,BLOCKING);
+	playGst();
       }
       else{
         display_string("Track not found.",BLOCKING);

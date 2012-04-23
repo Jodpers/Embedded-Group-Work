@@ -26,7 +26,6 @@
 
 #define IP "localhost"
 
-<<<<<<< HEAD
 #define IPLEN 14
 
 //#define IP "localhost"

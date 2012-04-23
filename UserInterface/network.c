@@ -49,6 +49,7 @@ char packet[PACKETLEN] = {0};
 char opcode;
 int sentt = 0;
 
+
 /*****************************************************************************************
  * Name: networkingFSM                                                                   *
  * Description: This state machine will control the networking section of the client     *
@@ -92,54 +93,9 @@ void * networkingFSM(void)
 		{
 		  state = PARSEPACKET;
 		}
-
-	    case WAITING:
-
-	    	pthread_mutex_lock(&network_Mutex);
-	    	pthread_cond_wait(&network_Signal, &network_Mutex);
-	    	opcode = task;
-	    	strncpy(localRecPacket, receivedPacket, PACKETLEN);
-	    	pthread_mutex_unlock(&network_Mutex);
-	    	if (opcode == RECEIVE)
-			{
-			  printd("sent:%d\n", sentt);
-			  if (sentt == 0)
-			    {
-			      /* Do nothing receiving packet with out sending*/
-			    }
-			  else
-			    {
-		      state = PARSEPACKET;
-			    }
-	    	  break;
-			}
-			pthread_mutex_lock(&request_Mutex);
-			strncpy(localData, data, PACKETLEN);
-			opcode = task;
-			pthread_mutex_unlock(&request_Mutex);
-
-	    case CREATEHEADERS:
-	      createHeaders(opcode,localData);
-
-	      printd("Packet to send:%s", packet);
-
-	      state = SEND;
+	      
 	      break;
-	    case SEND:
-
-	      printd("packet at sending time:%s\n", packet);
-	      len = strlen(packet);
-	      printd("len: %d\n", len);
-		if (len > 0)
-		  {
-		    send(sockfd, packet, len+1, 0);
-		    printd("sent\n");
-		  }
-	      state = WAITING;
->>>>>>> 71278dec2815463d54bc26ea9c785eb306d1feea
-	      break;
-	    }            //Will drop through if UI has woke the thread up
-	  
+	    }
 	  pthread_mutex_lock(&request_Mutex);
 	  strncpy(localData, data, PACKETLEN);
 	  opcode = task;
@@ -148,20 +104,21 @@ void * networkingFSM(void)
 	case CREATEHEADERS:
 	  createPacket(localData);
 	  printd("Packet to send:%s", packet);
+	  
 	  state = SEND;
 	  break;
-
 	case SEND:
+	  
 	  printd("packet at sending time:%s\n", packet);
 	  len = strlen(packet);
 	  printd("len: %d\n", len);
-	  
 	  if (len > 0)
 	    {
 	      send(sockfd, packet, len+1, 0);
-	      printf("sent\n");
+	      printd("sent\n");
 	    }
 	  state = WAITING;
+	  
 	  break;
 
 	case PARSEPACKET:
@@ -278,6 +235,7 @@ void * receive(void)
       pthread_cond_signal(&network_Signal);
       pthread_mutex_unlock(&network_Mutex);
     }
+  return 0;
 }
 
 /****************************************************************************************
@@ -292,7 +250,10 @@ void * receive(void)
  ****************************************************************************************/
 int parsePacket(char * buffer)
 {
-  
+  extern pthread_attr_t gst_control_Attr;
+  extern pthread_t gst_control_thread;
+  extern void * gst(int port, char ip[]);
+
   static int timeout = TIMEOUTVALUE;
   int state = 1;
   char loggedIn;
@@ -300,7 +261,7 @@ int parsePacket(char * buffer)
 
   char tmp[5];
   int portGst;
-  char ipGst[16];
+  char ipGst[20];
 
   printd("buffer:%s\n",buffer);
 
@@ -385,10 +346,19 @@ int parsePacket(char * buffer)
 	    }
 	  break;
 
-        case MULTICAST: /* Passes port and IP to gstreamer */
+        case MULTICAST: 
           printd("%s", buffer);
 
 	  portGst = atoi(tmp); 
+
+	  set_ip_and_port(ipGst,portGst);
+
+	  /* Starts the gstreamer thread and passes the IP and port*/
+	  if(pthread_create( &gst_control_thread, &gst_control_Attr, (void *)gst, NULL) != 0)
+	    {
+	      perror("Network thread failed to start\n");
+	      exit(EXIT_FAILURE);
+	    }
 
 	  state = CREATEHEADERS;
 	  opcode = ACK;
@@ -416,7 +386,6 @@ int parsePacket(char * buffer)
 void createPacket(char * localData)
 {
 
-<<<<<<< HEAD
   char track[TRACKLEN];
   bzero(packet, PACKETLEN); // Clears the packet
 

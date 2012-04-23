@@ -4,7 +4,7 @@
  *****************************************************************************************/
 
 #ifndef GSTCLIENT_H_
-define GSTCLIENT_H_
+#define GSTCLIENT_H_
 
 //#define STANDALONE 
 
@@ -12,11 +12,11 @@ void killGst();
 void playGst();
 void pauseGst();
 char * getTimeGst();
-void seekGst()
+void seekGst();
+void set_ip_and_port(char *ip_in[], int port_in);
 
 #ifndef STANDALONE
-int gst(int port, char ip[])
+void * gst(void);
 #endif
 
-#define TRUE 1
-#define FALSE 0
+#endif

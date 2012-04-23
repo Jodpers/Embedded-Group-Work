@@ -24,6 +24,8 @@ pthread_t receive_thread;
 pthread_t timer_thread;
 pthread_t receiver_thread;
 
+pthread_t gst_control_thread;
+
 /* Thread Attributes */
 pthread_attr_t keypad_Attr;
 pthread_attr_t state_machine_Attr;
@@ -33,6 +35,9 @@ pthread_attr_t receive_Attr;
 
 pthread_attr_t timer_Attr;
 pthread_attr_t receiver_Attr;
+
+pthread_attr_t gst_control_Attr;
+pthread_attr_t gstreamer_Attr;
 
 /* Mutexs and Signals */
 pthread_mutex_t button_Mutex;
@@ -53,6 +58,9 @@ pthread_cond_t request_Signal;
 pthread_mutex_t timer_Mutex;
 pthread_cond_t timer_Signal;
 
+pthread_mutex_t gst_control_Mutex;
+pthread_cond_t gst_control_Signal;
+
 int button_thread_state;
 
 /**
@@ -66,17 +74,18 @@ void setup_threads(void){
 	  /* Setup Mutex */
 	  pthread_mutex_init(&button_Mutex, NULL);
 	  pthread_mutex_init(&state_Mutex, NULL);
-      pthread_mutex_init(&display_Mutex, NULL);
+	  pthread_mutex_init(&display_Mutex, NULL);
 	  pthread_mutex_init(&network_Mutex, NULL);
 	  pthread_mutex_init(&request_Mutex, NULL);
+	  pthread_mutex_init(&gst_control_Mutex, NULL);
 
 	  /* Setup Signals */
 	  pthread_cond_init(&button_Signal, NULL);
 	  pthread_cond_init(&state_Signal, NULL);
-      pthread_cond_init(&display_Signal, NULL);
+	  pthread_cond_init(&display_Signal, NULL);
 	  pthread_cond_init(&network_Signal, NULL);
 	  pthread_cond_init(&request_Signal, NULL);
-
+	  pthread_cond_init(&gst_control_Signal, NULL);
 	  /* Setup Thread Attributes */
 	  pthread_attr_init(&keypad_Attr);
 	  pthread_attr_init(&state_machine_Attr);
@@ -155,7 +164,7 @@ void closing_time(void){
 
   pthread_join(network_thread, NULL);
   pthread_join(receive_thread, NULL);
-
+  pthread_join(gst_control_thread, NULL);
 
   write_to_port(C, 0);      /* Last LED off */
   close_term();
@@ -164,6 +173,7 @@ void closing_time(void){
   pthread_attr_destroy(&state_machine_Attr);
   pthread_attr_destroy(&network_Attr);
   pthread_attr_destroy(&receive_Attr);
+  pthread_attr_destroy(&gst_control_Attr);
 
   pthread_mutex_destroy(&button_Mutex);
   pthread_mutex_destroy(&state_Mutex);
@@ -171,6 +181,7 @@ void closing_time(void){
 
   pthread_mutex_destroy(&network_Mutex);
   pthread_mutex_destroy(&request_Mutex);
+  pthread_mutex_destroy(&gst_control_Mutex);
 
   pthread_cond_destroy(&button_Signal);
   pthread_cond_destroy(&state_Signal);
@@ -178,6 +189,8 @@ void closing_time(void){
 
   pthread_cond_destroy(&network_Signal);
   pthread_cond_destroy(&request_Signal);
+  pthread_cond_destroy(&gst_control_Signal);
+
   printf("Closing\n");
 }
 

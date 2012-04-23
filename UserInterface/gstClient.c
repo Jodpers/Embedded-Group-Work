@@ -12,13 +12,16 @@
 #include <gst/gst.h>
 #include <glib.h>
 
-#include "gstClient.g"
+#include "gstClient.h"
 
-char ip[15];
+char * ip[20];
 int port;
 GstElement * pipeline; // Moved here to allow other gst functions to use the variable.
+GMainLoop *loop;
 
-int playing = FALSE;
+int gst_playing = FALSE;
+
+char trackTime[12] = {0};
 
 static gboolean bus_call (GstBus *bus, GstMessage *msg, gpointer data)
 {
@@ -36,13 +39,13 @@ static gboolean bus_call (GstBus *bus, GstMessage *msg, gpointer data)
       {
 	gchar  *debug;
 	GError *error;
-	
+
 	gst_message_parse_error(msg, &error, &debug);
 	g_free(debug);
-	
+
 	g_printerr("Error: %s\n", error->message);
 	g_error_free(error);
-	
+
 	g_main_loop_quit(loop);
 	break;
       }
@@ -67,25 +70,31 @@ static void on_pad_added (GstElement *element, GstPad *pad, gpointer data)
   gst_pad_link (pad, sinkpad);  
   gst_object_unref (sinkpad);
 
-  playing = TRUE;
+  gst_playing = TRUE;
 }
 
 
 #ifdef STANDALONE
 int main (int argc, char *argv[])
 #else
-int gst(int port, char ip[])
-#endif
-  
+void set_ip_and_port(char *ip_in[], int port_in)
 {
-  GMainLoop *loop;
+  strcpy(ip,ip_in);
+  port = port_in;
+}
+void * gst(void)
+#endif
+{
   
   GstElement *source, *demuxer, *decoder, *conv, *sink;
   GstBus *bus;
   
   /* Initialisation */
-  gst_init (&argc, &argv);
-
+#ifdef STANDALONE  
+  gst_init (NULL);
+#else
+  gst_init (NULL);
+#endif
   loop = g_main_loop_new (NULL, FALSE);
 
   /* Check input arguments, used before intergration for testing */
@@ -187,20 +196,19 @@ void pauseGst()
 char * getTimeGst()
 {
 
-  char time[7] = {0};
   GstFormat format = GST_FORMAT_TIME; //Time in nanoseconds 
   gint64 curPos; //Stores the current position
-  if(playing)
+  if(gst_playing)
     {
       if(gst_element_query_position(pipeline, &format, &curPos))
 	{
 	  /* The maximum time supported is by this print statement is 9 hours 59 minutes 
 	     and 59 seconds */
-	  snprintf(msg, 7, "%u:%02u:%.2u\n", GST_TIME_ARGS (curPos)); 
+	  snprintf(trackTime, 11, "%u:%02u:%.2u.%2.2u\n", GST_TIME_ARGS (curPos)); 
 	}
     }
                       
-  return time;
+  return trackTime;
 }
 
   /* http://gstreamer.freedesktop.org/data/doc/gstreamer/head/gstreamer/html/GstElement.html#gst-element-seek-simple */

@@ -35,15 +35,10 @@ BYTE check_pin(char * buffer, int buf_len){
 }
 
 BYTE play_track(char * buffer,int buf_len){
-  /*	if (buf_len == 4){
-		return TRUE;
-			  }
-	  else{
-		return FALSE;
-		}*/
+
   BYTE valid = FALSE;
   pthread_mutex_lock(&network_Mutex);
-  printd("track buffer:%s\n, buffer_len: %d\n %d",buffer, buf_len,strlen(buffer));
+  printd("track buffer:%s\n, buffer_len: %d\n %u",buffer, buf_len,strlen(buffer));
   strncpy(data,buffer,buf_len);
   data[buf_len] = '\0';
   printd("data after strcpy= %s\n", data);

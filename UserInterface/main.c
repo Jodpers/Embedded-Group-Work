@@ -44,7 +44,7 @@ int main (void) {
   int prev_state = state;
 //  sighandler_t
 
-  if(networkSetup() != 0){
+  if(ret = networkSetup() != 0){
     printd("Socket failed to init, error no: %d\n", ret);
     printf("Network setup failed\n");
     return 1;

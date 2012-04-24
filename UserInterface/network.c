@@ -261,7 +261,7 @@ int parsePacket(char * buffer)
 
   char tmp[5];
   int portGst;
-  char ipGst[20];
+  char * ipGst;
 
   printd("buffer:%s\n",buffer);
 
@@ -350,6 +350,7 @@ int parsePacket(char * buffer)
           printd("%s", buffer);
 
 	  portGst = atoi(tmp); 
+	  ipGst = (char*) malloc(IPLEN * sizeof (char));
 
 	  set_ip_and_port(ipGst,portGst);
 

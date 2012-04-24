@@ -14,7 +14,8 @@
 
 #include "gstClient.h"
 
-char * ip[20];
+//char * ip[20];
+char ip[16];
 int port;
 GstElement * pipeline; // Moved here to allow other gst functions to use the variable.
 GMainLoop *loop;
@@ -77,7 +78,7 @@ static void on_pad_added (GstElement *element, GstPad *pad, gpointer data)
 #ifdef STANDALONE
 int main (int argc, char *argv[])
 #else
-void set_ip_and_port(char *ip_in[], int port_in)
+void set_ip_and_port(char *ip_in, int port_in)
 {
   strcpy(ip,ip_in);
   port = port_in;
@@ -89,12 +90,9 @@ void * gst(void)
   GstElement *source, *demuxer, *decoder, *conv, *sink;
   GstBus *bus;
   
-  /* Initialisation */
-#ifdef STANDALONE  
-  gst_init (NULL);
-#else
-  gst_init (NULL);
-#endif
+  /* Initialisation */ 
+  gst_init (NULL,NULL);
+
   loop = g_main_loop_new (NULL, FALSE);
 
   /* Check input arguments, used before intergration for testing */

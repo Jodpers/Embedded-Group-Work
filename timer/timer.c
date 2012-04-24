@@ -3,6 +3,8 @@
  Name        : Timer.c
  Author      : Joe Herbert
  Version     : 0.1
+ Author      : Pete Hemery 
+ Version     : 0.2
  Copyright   :
  Description : First attempt at timer function for iGep in uni
  ============================================================================
@@ -31,13 +33,12 @@ pthread_cond_t timer_Signal;
 int msg = 0;
 void * timer(void){
 	time_t start_time, current_time;
-	time_t gst_ping, wifi_ping;
+	struct tm gst_ping, wifi_ping;
 
 	int gst_time = 100;
 	int wifi_time = 1000;
 
-	current_time = clock() / (CLOCKS_PER_SEC/1000);
-	start_time = current_time;
+	current_time = time(start_time);
 
 	gst_ping = current_time + gst_time;
 	wifi_ping = current_time + wifi_time;
@@ -46,8 +47,8 @@ void * timer(void){
 	{
 	  usleep(100000);
 
-	  current_time = clock() / (CLOCKS_PER_SEC/1000);
-	  printf("current_time: %d\n",current_time);
+	  current_time = time();
+	  printf("current_time: %s\n",current_time);
 
     if (current_time >= gst_ping){
       pthread_mutex_lock(&timer_Mutex);
@@ -60,7 +61,6 @@ void * timer(void){
 
 	  if(current_time >= wifi_ping)
 	  {
-			/*printf ("%ld \n ", five_second_flag);*/
 			pthread_mutex_lock(&timer_Mutex);
       msg = 2;
 			pthread_cond_signal(&timer_Signal); 
@@ -84,7 +84,8 @@ int local_msg = 0;
 	return 0;
 }
 
-int main ()
+//int main ()
+int not_called()
 {
 
   /* Setup Mutex */

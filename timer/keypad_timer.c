@@ -19,9 +19,13 @@
 #include <time.h>
 #include <sys/types.h>  //threads
 #include <pthread.h>
-#include "keypad_rewrite.h"
+#include "../keypad_rewrite.h"
 
 pthread_t keypad_thread;
+pthread_mutex_t timer_Mutex;
+pthread_cond_t timer_Signal;
+pthread_attr_t timer_Attr;
+
 BYTE alive = TRUE;  // Exit condition of while loops
 char button = FALSE;  // Button pressed 1-16 or -1 for multiple buttons
 int fd_RS232;   // Terminal File descriptor
@@ -47,6 +51,9 @@ int cursor_offset = 0;
 int input_len = 0;
 int input_ptr = 0;
 
+
+extern void * timer(void);
+
 /*------------------------------------------------------------------------------
  * main -- Open terminal and launch keypad thread.
  *         Check for button input and respond appropriately
@@ -67,7 +74,24 @@ int main (void) {
   rs232_open();
   
   setup_ports();
-  ret = pthread_create( &keypad_thread, NULL, keypad, NULL);
+  
+
+	  
+
+  if((pthread_create( &timer_thread, &timer_Attr, 
+  											(void *)timer, NULL)) != 0){
+    perror("Timer thread failed to start\n");
+    exit(EXIT_FAILURE);
+  }	  
+  
+  if((pthread_create( &keypad_thread, &timer_Attr, 
+  											(void *)timer, NULL)) != 0){
+    perror("Keypad thread failed to start\n");
+    exit(EXIT_FAILURE);
+  }	  
+  
+  
+
     
   while(alive){
     button_read = button;

@@ -153,7 +153,6 @@ void start_threads(void){
     exit(EXIT_FAILURE);
   }
     
-
   return;
 }
 

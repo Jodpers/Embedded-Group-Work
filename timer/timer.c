@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <errno.h>
+#include <string.h> 
 
 #include "top.h"
 
@@ -32,7 +33,7 @@ pthread_mutex_t wifi_Mutex;
 pthread_cond_t wifi_Signal;
 
 
-void * timer(void){
+/*void * timer(void){
 	time_t start_time, current_time;
 
   char time_string [10];
@@ -73,17 +74,20 @@ void * timer(void){
 	}
 	return 0;
 }
-
+*/
 
 #define TIMEOUT 1
 
 extern void * wifi_scan(void);
-/*
+
+void * timer(void)
 {
   struct timespec timeToWait;
   struct timeval now;
   int err;
-
+  
+  extern char closest_mac[];
+  
   gettimeofday(&now,NULL);
 
   while(alive)
@@ -100,10 +104,15 @@ extern void * wifi_scan(void);
     {
       printf("called\n");
     }
+    
+    if (strlen(closest_mac) != 0)
+    {
+      printf("timer seeing mac: %s\n",closest_mac);
+    }
     pthread_mutex_unlock(&wifi_Mutex);
   }
 }
-*/
+
 
 //int setup_timer()
 int main(void)

@@ -32,6 +32,7 @@ void * state_machine(void){
   char *emergency="! EMERGENCY !";
   char button_read = FALSE;  // Local snapshot of Global 'Button'
   int state_read;
+  int pause = FALSE;
 
   while(alive){
 	pthread_mutex_lock(&state_Mutex);
@@ -93,21 +94,40 @@ void * state_machine(void){
         break;
 
       case WAITING_LOGGED_IN:
-        if(button_read >= '0' && button_read <= '9'){
-          pthread_mutex_lock(&state_Mutex);
-          state = INPUTTING_TRACK_NUMBER; // Fall through to next state
-      	  pthread_mutex_unlock(&state_Mutex);
-        }
-        else if(button_read == ENTER_MENU){
-          pthread_mutex_lock(&state_Mutex);
-          state = MENU_SELECT; // Don't know how to jump 2 states below
-      	  pthread_mutex_unlock(&state_Mutex);
-          break; // So Round We Go Again         T_T
-        }
-        else{
-          display_string("Enter Track Number.",NOT_BLOCKING);
+        switch(button_read){
+
+          case ACCEPT_PLAY:
+            pause=~pause;
+
+            if (pause == TRUE)
+            {
+              //pauseGst();
+            }
+            else if (pause == FALSE)
+            {
+              //playGst();
+            }
+            printf("pause = %d\n",pause);
+            break;
+
+          case ENTER_MENU:
+            pthread_mutex_lock(&state_Mutex);
+            state = MENU_SELECT;
+            pthread_mutex_unlock(&state_Mutex);
+            break;
+
+          default:
+            if(button_read >= '0' && button_read <= '9'){
+              pthread_mutex_lock(&state_Mutex);
+              state = INPUTTING_TRACK_NUMBER;
+              pthread_mutex_unlock(&state_Mutex);
+            }
+            else{
+              display_string("Enter Track Number.",NOT_BLOCKING);
+            }
+            break;
+          }
           break;
-        }
 
       case INPUTTING_TRACK_NUMBER:
         if(button_read){

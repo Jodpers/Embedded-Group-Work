@@ -171,11 +171,11 @@ void closing_time(void){
 
   pthread_mutex_lock(&state_Mutex);
   button_thread_state = STATE_KILL;
-  pthread_cond_signal(&state_Signal);
+  pthread_cond_broadcast(&state_Signal);
   pthread_mutex_unlock(&state_Mutex);
 
   pthread_mutex_lock(&button_Mutex);
-  pthread_cond_signal(&button_Signal);
+  pthread_cond_broadcast(&button_Signal);
   pthread_mutex_unlock(&button_Mutex);
 
   pthread_join(keypad_thread, NULL);

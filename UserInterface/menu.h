@@ -9,8 +9,6 @@
 #define MENU_H_
 
 
-#define MENU_STR_NUM  5
-
 void menu_select(void);
 void show_choice(int);
 

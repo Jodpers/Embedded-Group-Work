@@ -22,6 +22,7 @@
 #include "../keypad_rewrite.h"
 
 pthread_t keypad_thread;
+pthread_t timer_thread;
 pthread_mutex_t timer_Mutex;
 pthread_cond_t timer_Signal;
 pthread_attr_t timer_Attr;

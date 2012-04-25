@@ -22,7 +22,7 @@ pthread_t network_thread;
 pthread_t receive_thread;
 
 pthread_t timer_thread;
-pthread_t receiver_thread;
+pthread_t wifi_thread;
 
 /* Thread Attributes */
 pthread_attr_t keypad_Attr;
@@ -32,7 +32,7 @@ pthread_attr_t network_Attr;
 pthread_attr_t receive_Attr;
 
 pthread_attr_t timer_Attr;
-pthread_attr_t receiver_Attr;
+pthread_attr_t wifi_Attr;
 
 /* Mutexs and Signals */
 pthread_mutex_t button_Mutex;
@@ -53,6 +53,10 @@ pthread_cond_t request_Signal;
 pthread_mutex_t timer_Mutex;
 pthread_cond_t timer_Signal;
 
+/* Wifi Signals */
+pthread_mutex_t wifi_Mutex;
+pthread_cond_t wifi_Signal;
+
 int button_thread_state;
 
 /**
@@ -70,6 +74,7 @@ void setup_threads(void){
 	  pthread_mutex_init(&network_Mutex, NULL);
 	  pthread_mutex_init(&request_Mutex, NULL);
 	  pthread_mutex_init(&timer_Mutex, NULL);
+	  pthread_mutex_init(&wifi_Mutex, NULL);
 
 	  /* Setup Signals */
 	  pthread_cond_init(&button_Signal, NULL);
@@ -78,6 +83,7 @@ void setup_threads(void){
 	  pthread_cond_init(&network_Signal, NULL);
 	  pthread_cond_init(&request_Signal, NULL);
 	  pthread_cond_init(&timer_Signal, NULL);
+	  pthread_cond_init(&wifi_Signal, NULL);
 
 	  /* Setup Thread Attributes */
 	  pthread_attr_init(&keypad_Attr);
@@ -85,6 +91,14 @@ void setup_threads(void){
 	  pthread_attr_init(&network_Attr);
 	  pthread_attr_init(&receive_Attr);
 	  pthread_attr_init(&timer_Attr);
+	  pthread_attr_init(&wigi_Attr);
+
+    pthread_attr_setdetachstate(&keypad_Attr), PTHREAD_CREATE_JOINABLE);
+    pthread_attr_setdetachstate(&state_machine_Attr), PTHREAD_CREATE_JOINABLE);
+    pthread_attr_setdetachstate(&network_Attr), PTHREAD_CREATE_JOINABLE);
+    pthread_attr_setdetachstate(&receive_Attr), PTHREAD_CREATE_JOINABLE);
+    pthread_attr_setdetachstate(&timer_Attr), PTHREAD_CREATE_JOINABLE);
+    pthread_attr_setdetachstate(&wifi_Attr), PTHREAD_CREATE_JOINABLE);
 
 
 	  return;
@@ -105,6 +119,7 @@ void start_threads(void){
   extern void * networkingFSM(void);
   extern void * receive(void);
   extern void * timer(void);
+  extern void * wifi_scan(void);
 
   if(pthread_create( &keypad_thread, &keypad_Attr, 
   											(void *)keypad, NULL) != 0){
@@ -112,12 +127,12 @@ void start_threads(void){
     exit(EXIT_FAILURE);
   }
   if(pthread_create( &state_machine_thread, &state_machine_Attr, 
-											(void *)state_machine, NULL) != 0){
+										   (void *)state_machine, NULL) != 0){
     perror("State Machine thread failed to start\n");
     exit(EXIT_FAILURE);
   }
   if(pthread_create( &network_thread, &network_Attr, 
-											(void *)networkingFSM, NULL) != 0){
+											 (void *)networkingFSM, NULL) != 0){
     perror("Network thread failed to start\n");
     exit(EXIT_FAILURE);
   }
@@ -131,7 +146,13 @@ void start_threads(void){
     perror("Timer thread failed to start\n");
     exit(EXIT_FAILURE);
   }
+  if((pthread_create( &wifi_thread, &wifi_Attr,
+                        (void *)wifi_scan, NULL)) != 0){
 
+    perror("Wifi thread failed to start\n");
+    exit(EXIT_FAILURE);
+  }
+    
 
   return;
 }
@@ -164,6 +185,9 @@ void closing_time(void){
 
   pthread_join(network_thread, NULL);
   pthread_join(receive_thread, NULL);
+  
+  pthread_join(timer_thread, NULL);
+  pthread_join(wifi_thread, NULL);
 
 
   write_to_port(C, 0);      /* Last LED off */
@@ -173,6 +197,8 @@ void closing_time(void){
   pthread_attr_destroy(&state_machine_Attr);
   pthread_attr_destroy(&network_Attr);
   pthread_attr_destroy(&receive_Attr);
+  pthread_attr_destroy(&timer_Attr);
+  pthread_attr_destroy(&wifi_Attr);
 
   pthread_mutex_destroy(&button_Mutex);
   pthread_mutex_destroy(&state_Mutex);
@@ -182,6 +208,7 @@ void closing_time(void){
   pthread_mutex_destroy(&request_Mutex);
 
   pthread_mutex_destroy(&timer_Mutex);
+  pthread_mutex_destroy(&wifi_Mutex);
   
   pthread_cond_destroy(&button_Signal);
   pthread_cond_destroy(&state_Signal);
@@ -191,6 +218,7 @@ void closing_time(void){
   pthread_cond_destroy(&request_Signal);
   
   pthread_cond_destroy(&timer_Signal);
+  pthread_cond_destroy(&wifi_Signal);
   printf("Closing\n");
 }
 

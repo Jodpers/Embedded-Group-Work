@@ -40,6 +40,10 @@ extern pthread_cond_t request_Signal;
 extern pthread_mutex_t timer_Mutex;
 extern pthread_cond_t timer_Signal;
 
+/* Wifi Signals */
+extern pthread_mutex_t wifi_Mutex;
+extern pthread_cond_t wifi_Signal;
+
 /* Local Function Prototypes */
 
 void setup_threads(void);

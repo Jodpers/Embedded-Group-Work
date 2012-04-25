@@ -30,7 +30,6 @@ typedef unsigned int DWORD;
 #define BUFFER_SIZE     50
 #define BUFFER_MAX      BUF_SIZE - 1
 
-extern BYTE alive;  	/* Exit condition of while loops */
 
 extern char display_buffer[BUFFER_SIZE];
 #endif /* TOP_H_ */

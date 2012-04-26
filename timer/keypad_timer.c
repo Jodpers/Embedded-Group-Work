@@ -134,7 +134,8 @@ int main (void) {
                 default:
                   break;
               }
-              pthread_cond_signal(&timer_Signal);
+              if (0 == strlen(input_buffer))
+                pthread_cond_signal(&timer_Signal);
               pthread_mutex_unlock(&timer_Mutex);
               
               break;
@@ -143,12 +144,28 @@ int main (void) {
               break;
             case 'C':
               display_string("Cancel =(",NOT_BLOCKING);
+              pthread_mutex_lock(&timer_Mutex);              
+              gst_state = RESETTING;
+              if (0 == strlen(input_buffer))
+                pthread_cond_signal(&timer_Signal);
+              pthread_mutex_unlock(&timer_Mutex);
+              
+              cursor_blink = TRUE;
               break;
+              
             case 'D':
               delete_char();
               break;
+              
             case 'E':
-              display_string(emergency,BLOCKING);
+              //display_string(emergency,BLOCKING);
+              pthread_mutex_lock(&timer_Mutex);
+              gst_state = RESETTING;
+              if (0 == strlen(input_buffer))
+                pthread_cond_signal(&timer_Signal);
+              pthread_mutex_unlock(&timer_Mutex);
+              
+              cursor_blink = TRUE;
               break;
             case 'F':
               move_cursor(RIGHT);
@@ -185,8 +202,16 @@ void display_input_buffer(void){
 }
 
 void display_time(char *in){
-  strcpy(display_buffer,in);
-  display_flag = DISPLAYING_TIME;
+  if (display_flag == WAITING && (0 == strlen(input_buffer)))
+  {
+    strcpy(display_buffer,in);
+    display_flag = DISPLAYING_TIME;
+  }
+}
+
+void clear_time(char *in){
+  bzero(display_buffer,BUF_SIZE);
+  display_flag = CLEARING_TIME;
 }
 
 void insert_char(char in_char){
@@ -437,7 +462,7 @@ void update_display(void){
       block = FALSE;
       display_flag = WAITING;
       break;
-      
+        
     case DISPLAYING_TIME:
       cursor_blink = FALSE;
       for(i=0;i<COLSX;i++){
@@ -446,6 +471,15 @@ void update_display(void){
       digits[1] |= CURSOR_VALUE;
       
       display_flag = WAITING;
+      break;
+      
+    case CLEARING_TIME:
+      cursor_blink = TRUE;
+      for(i=0;i<COLSX;i++){
+        digits[i] = 0;
+      }
+      display_flag = WAITING;
+
       
     case WAITING:
       if(started_waiting){

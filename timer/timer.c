@@ -84,6 +84,7 @@ extern void * wifi_scan(void);
 
 extern enum gst_state_t gst_state;
 extern void display_time(char * in);
+extern void clear_time(void);
 
 int count = 0;
 
@@ -136,7 +137,7 @@ void * timer(void)
       case STOPPED:
         printf("gst_stopped\n");
         
-        timeToWait.tv_sec = now.tv_sec+10;
+        timeToWait.tv_sec = now.tv_sec+3;
         timeToWait.tv_nsec = 0;
         break;
         
@@ -146,19 +147,17 @@ void * timer(void)
         switch(prev_state)
         {
           case STOPPED:
-          case RESETTING:
             {
               start_time.tv_sec = now.tv_sec;
               start_time.tv_usec = now.tv_usec;
               timeToWait.tv_sec = now.tv_sec+1;
-              timeToWait.tv_nsec = (now.tv_usec * 1000UL) % (1000000000UL);
-              count = 0;              
+              timeToWait.tv_nsec = (now.tv_usec * 1000UL) % (1000000000UL);          
             }
             break;
             
           case PAUSED:
             {
-              start_time.tv_sec += (((now.tv_sec - pause_time.tv_sec) * 1000000UL);
+              start_time.tv_sec += (now.tv_sec - pause_time.tv_sec);
               start_time.tv_usec += (now.tv_usec - pause_time.tv_usec);
               timeToWait.tv_sec = now.tv_sec + ((start_time.tv_usec + pause_time.tv_usec) / (1000000UL));
               timeToWait.tv_nsec = (start_time.tv_usec * 1000UL) % (1000000000UL);
@@ -206,8 +205,10 @@ void * timer(void)
         
       case RESETTING:
         printf("gst_resetting\n");
-      
         timeToWait.tv_sec = now.tv_sec+1;
+        gst_state = STOPPED;
+        count = 0;
+        clear_time();
         break;
         
       default:

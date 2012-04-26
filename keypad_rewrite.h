@@ -53,6 +53,7 @@ enum display_states{
 	CHANGED,
 	INPUTTING,
 	DISPLAYING_TIME,
+	CLEARING_TIME,
 	WRITING
 } display_state;
 

@@ -14,7 +14,9 @@
 #define GST_TIME    1
 #define WIFI_TIME   6
 
-int alive = TRUE;
+enum gst_state_t { STOPPED, PLAYING, PAUSED, RESETTING };
+
+extern int alive;
 
 /* Thread Names */
 pthread_t timer_thread;
@@ -80,23 +82,43 @@ pthread_cond_t wifi_Signal;
 
 extern void * wifi_scan(void);
 
+extern enum gst_state_t gst_state;
+extern void display_time(char * in);
+
+int count = 0;
+
+#define BLOCKING        1
+#define NOT_BLOCKING    0
+
+void show_time(void)
+{
+  char str[6];
+  sprintf(str,"%02d%02d",((count / 60) % 99), count % 60);
+  display_time(str);
+}
+
 void * timer(void)
 {
+//  time_t start_time, current_time, pause_time;
   struct timespec timeToWait;
-  struct timeval now;
+  struct timeval now, start_time, pause_time;
   int err;
+  int paused_blink = FALSE;
+  int prev_state = gst_state;
   
-  extern char closest_mac[];
+  //extern char closest_mac[];
   
   gettimeofday(&now,NULL);
+  timeToWait.tv_sec = now.tv_sec+1;
+  timeToWait.tv_nsec = 0;
+
 
   while(alive)
   {
-    gettimeofday(&now,NULL);  
-    timeToWait.tv_sec = now.tv_sec + TIMEOUT;
-    timeToWait.tv_nsec = now.tv_usec+(1500UL*1500UL);
-    pthread_mutex_lock(&wifi_Mutex);
-    err = pthread_cond_timedwait(&wifi_Signal, &wifi_Mutex, &timeToWait);
+
+    
+    pthread_mutex_lock(&timer_Mutex);
+    err = pthread_cond_timedwait(&timer_Signal, &timer_Mutex, &timeToWait);
     if (err == ETIMEDOUT) {
       printf("timed out\n");
     }
@@ -105,17 +127,107 @@ void * timer(void)
       printf("called\n");
     }
     
+    pthread_mutex_unlock(&timer_Mutex);
+
+    gettimeofday(&now,NULL);
+        
+    switch(gst_state)
+    {
+      case STOPPED:
+        printf("gst_stopped\n");
+        
+        timeToWait.tv_sec = now.tv_sec+10;
+        timeToWait.tv_nsec = 0;
+        break;
+        
+      case PLAYING:
+        printf("gst_playing\n");
+
+        switch(prev_state)
+        {
+          case STOPPED:
+          case RESETTING:
+            {
+              start_time.tv_sec = now.tv_sec;
+              start_time.tv_usec = now.tv_usec;
+              timeToWait.tv_sec = now.tv_sec+1;
+              timeToWait.tv_nsec = (now.tv_usec * 1000UL) % (1000000000UL);
+              count = 0;              
+            }
+            break;
+            
+          case PAUSED:
+            {
+              start_time.tv_sec += (((now.tv_sec - pause_time.tv_sec) * 1000000UL);
+              start_time.tv_usec += (now.tv_usec - pause_time.tv_usec);
+              timeToWait.tv_sec = now.tv_sec + ((start_time.tv_usec + pause_time.tv_usec) / (1000000UL));
+              timeToWait.tv_nsec = (start_time.tv_usec * 1000UL) % (1000000000UL);
+            }
+            break;
+            
+          default:
+            timeToWait.tv_sec = now.tv_sec+1;
+            break;
+        }
+        count = now.tv_sec - start_time.tv_sec;
+        
+        show_time();
+
+//        timeToWait.tv_nsec = (start_time.tv_usec * 1000UL);
+        printf("now usec %ld\n",now.tv_usec);
+        printf("timeToWait.tv_nsec %ld\n",timeToWait.tv_nsec);
+        break;
+        
+      case PAUSED:
+        printf("gst_paused\n");
+        
+        if (prev_state == PLAYING)
+        {
+          pause_time = now;
+          count = now.tv_sec - start_time.tv_sec;
+          paused_blink = FALSE;
+          timeToWait.tv_sec = now.tv_sec+1;
+          timeToWait.tv_nsec = (now.tv_usec * 1000UL) % (1000000000UL);
+        }
+        
+        printf("paused_blink = %d\n",paused_blink);
+        if (paused_blink == TRUE)
+        {
+          show_time();
+          paused_blink = FALSE;
+        }
+        else
+        {
+          display_time("    ");
+          paused_blink = TRUE;
+        }
+        timeToWait.tv_sec = now.tv_sec+1;
+        break;
+        
+      case RESETTING:
+        printf("gst_resetting\n");
+      
+        timeToWait.tv_sec = now.tv_sec+1;
+        break;
+        
+      default:
+        timeToWait.tv_sec = now.tv_sec+1;
+        break;
+    }
+    prev_state = gst_state;
+    
+    /*
     if (strlen(closest_mac) != 0)
     {
       printf("timer seeing mac: %s\n",closest_mac);
     }
-    pthread_mutex_unlock(&wifi_Mutex);
+    */
   }
 }
 
 
-//int setup_timer()
-int main(void)
+int setup_timer()
+//int main(void)
 {
 
   /* Setup Mutex */
@@ -135,16 +247,21 @@ int main(void)
   	  perror("Timer thread failed to start\n");
   	  exit(EXIT_FAILURE);
     }
-  if((pthread_create( &wifi_thread, &wifi_Attr, (void *)wifi_scan, NULL)) != 0){
+/*  if((pthread_create( &wifi_thread, &wifi_Attr, (void *)wifi_scan, NULL)) != 0){
   	  perror("Wifi thread failed to start\n");
   	  exit(EXIT_FAILURE);
     }
-    
-  
+ */   
+/*  
   pthread_join(timer_thread, NULL);
   printf("timer dead\n");
   pthread_join(wifi_thread, NULL);
   printf("wifi dead\n");
-
+*/
   return 0;
+}
+
+void close_timer(void)
+{
+  pthread_join(timer_thread, NULL);
 }

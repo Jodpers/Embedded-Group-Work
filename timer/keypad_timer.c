@@ -22,10 +22,9 @@
 #include "../keypad_rewrite.h"
 
 pthread_t keypad_thread;
-pthread_t timer_thread;
-pthread_mutex_t timer_Mutex;
-pthread_cond_t timer_Signal;
-pthread_attr_t timer_Attr;
+pthread_attr_t keypad_Attr;
+/*pthread_mutex_t timer_Mutex;
+pthread_cond_t timer_Signal;*/
 
 BYTE alive = TRUE;  // Exit condition of while loops
 char button = FALSE;  // Button pressed 1-16 or -1 for multiple buttons
@@ -52,8 +51,15 @@ int cursor_offset = 0;
 int input_len = 0;
 int input_ptr = 0;
 
+enum gst_state_t { STOPPED, PLAYING, PAUSED, RESETTING } gst_state;
 
-extern void * timer(void);
+extern pthread_mutex_t timer_Mutex;
+extern pthread_cond_t timer_Signal;
+
+
+extern int setup_timer();
+extern void close_timer(void);
+extern void get_time(char time[]);
 
 /*------------------------------------------------------------------------------
  * main -- Open terminal and launch keypad thread.
@@ -66,6 +72,9 @@ int main (void) {
   char *emergency="! EMERGENCY !";
   char button_read = FALSE;  // Local snapshot of Global 'Button'
   char prev_button = 0;
+  
+  
+  char time[6] = {'\0'};
 
   /* error handling - reset LEDs */
   atexit(closing_time);
@@ -76,17 +85,13 @@ int main (void) {
   
   setup_ports();
   
+  setup_timer();
 
-	  
-
-  if((pthread_create( &timer_thread, &timer_Attr, 
-  											(void *)timer, NULL)) != 0){
-    perror("Timer thread failed to start\n");
-    exit(EXIT_FAILURE);
-  }	  
   
-  if((pthread_create( &keypad_thread, &timer_Attr, 
-  											(void *)timer, NULL)) != 0){
+  pthread_attr_setdetachstate(&keypad_Attr, PTHREAD_CREATE_JOINABLE);
+  
+  if((pthread_create( &keypad_thread, &keypad_Attr, 
+  											(void *)keypad, NULL)) != 0){
     perror("Keypad thread failed to start\n");
     exit(EXIT_FAILURE);
   }	  
@@ -107,7 +112,31 @@ int main (void) {
           printf("button: %c\n",button_read);
           switch(button_read){
             case 'A':
-              display_string("Hello. =)",BLOCKING);
+              pthread_mutex_lock(&timer_Mutex);
+              switch(gst_state)
+              {
+                case STOPPED:
+                  gst_state = PLAYING;
+                  cursor_blink = FALSE;
+                  break;
+                  
+                case PLAYING:
+                  gst_state = PAUSED;
+                  cursor_blink = TRUE;
+                  cursor_pos = 2;
+                  break;
+                  
+                case PAUSED:
+                  gst_state = PLAYING;
+                  cursor_blink = FALSE;
+                  break;
+                  
+                default:
+                  break;
+              }
+              pthread_cond_signal(&timer_Signal);
+              pthread_mutex_unlock(&timer_Mutex);
+              
               break;
             case 'B':
               move_cursor(LEFT);
@@ -137,6 +166,7 @@ int main (void) {
   }
 
   pthread_join(keypad_thread, NULL);
+  close_timer();
 
   term_exitio();
   rs232_close();
@@ -152,6 +182,11 @@ void display_string(char * in, BYTE blocked){
 void display_input_buffer(void){
   strcpy(display_buffer,&input_buffer[cursor_offset]);
   display_flag = INPUTTING;
+}
+
+void display_time(char *in){
+  strcpy(display_buffer,in);
+  display_flag = DISPLAYING_TIME;
 }
 
 void insert_char(char in_char){
@@ -207,7 +242,7 @@ void delete_char(void){
       if(--cursor_offset < 0){
         cursor_offset = 0;
       }
-      if(cursor_pos < input_len){
+      if(cursor_pos < input_len){digits[3] |= CURSOR_VALUE;
         if(++cursor_pos >= COLSX-1){
           cursor_pos = COLSX-1;
         }
@@ -402,6 +437,15 @@ void update_display(void){
       block = FALSE;
       display_flag = WAITING;
       break;
+      
+    case DISPLAYING_TIME:
+      cursor_blink = FALSE;
+      for(i=0;i<COLSX;i++){
+        digits[i] = display_char(display_buffer[i]);
+      }
+      digits[1] |= CURSOR_VALUE;
+      
+      display_flag = WAITING;
       
     case WAITING:
       if(started_waiting){

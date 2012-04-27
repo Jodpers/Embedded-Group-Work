@@ -333,7 +333,7 @@ int parsePacket(char * buffer)
           break;
         
 	case NAK: /* Resends last packet */
-          printd("%s", buffer);
+      printd("%s", buffer);
 
 	  if (timeout-- > 0) // Stops resending after it gets bored.
 	    {
@@ -361,18 +361,19 @@ int parsePacket(char * buffer)
 	      exit(EXIT_FAILURE);
 	    }
 
-	  state = CREATEHEADERS;
-	  opcode = ACK;
+          state = CREATEHEADERS;
+          opcode = ACK;
           break;
 
 	default:
           printd("Unknown packet:%s", buffer);
-	  state = CREATEHEADERS;
-	  opcode = NAK;
+          state = CREATEHEADERS;
+          opcode = NAK;
           break;
 
         }      
     }
+  printd("Data: %s\n",data);
   return state;
 }
 

@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <pthread.h>
 
 #include "top.h"
 #include "threads.h"
@@ -26,11 +27,11 @@ BYTE check_pin(char * buffer, int buf_len){
 
 	pthread_mutex_lock(&request_Mutex);
 	pthread_cond_wait(&request_Signal, &request_Mutex);
-	printd("data[0] = %c", data[0]);
+	printd("data[0] = %c\n", data[0]);
 	valid = data[0];
 	pthread_mutex_unlock(&request_Mutex);
 
-	return valid;
+	return valid - '0';
 
 }
 

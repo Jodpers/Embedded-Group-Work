@@ -123,7 +123,7 @@ void read_button(int col, char in){
         if(--timeout <= 0){ // Slow down button presses
           button=temp; // Write ASCII value from uitab in display.c
           timeout = BUTTON_PRESS_DELAY;  // Reset button press delay
-          pthread_cond_signal(&button_Signal); // Signal UI to wake
+          pthread_cond_broadcast(&button_Signal); // Signal UI to wake
         }
         break;
       default:

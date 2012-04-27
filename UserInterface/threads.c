@@ -110,7 +110,7 @@ void setup_threads(void){
     pthread_attr_setdetachstate(&wifi_Attr, PTHREAD_CREATE_JOINABLE);
 
 
-	  return;
+	return;
 }
 
 /**
@@ -155,13 +155,13 @@ void start_threads(void){
     perror("Timer thread failed to start\n");
     exit(EXIT_FAILURE);
   }
-  if((pthread_create( &wifi_thread, &wifi_Attr,
+/*  if((pthread_create( &wifi_thread, &wifi_Attr,
                         (void *)wifi_scan, NULL)) != 0){
 
     perror("Wifi thread failed to start\n");
     exit(EXIT_FAILURE);
   }
-    
+  */
   return;
 }
 

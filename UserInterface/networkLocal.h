@@ -23,8 +23,8 @@
 #define PORT "4444"
 //#define IP "164.11.222.103"
 //#define IP "164.11.222.88"
-
-#define IP "localhost"
+#define IP "192.168.0.3"
+//#define IP "localhost"
 
 #define IPLEN 16
 

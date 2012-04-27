@@ -146,7 +146,7 @@ void update_display(void){
             pad--;
           }
           else{
-            pthread_cond_signal(&display_Signal);
+            pthread_cond_broadcast(&display_Signal);
             blocking = FALSE;
             block = blocking;
             offset = 0;

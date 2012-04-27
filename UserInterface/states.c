@@ -120,14 +120,21 @@ void * state_machine(void){
             break;
 
           default:
-            if(button_read >= '0' && button_read <= '9'){
-              pthread_mutex_lock(&state_Mutex);
-              state = INPUTTING_TRACK_NUMBER;
-              pthread_mutex_unlock(&state_Mutex);
-            }
-            else{
-              display_string("Enter Track Number.",NOT_BLOCKING);
-            }
+	    if (getFollower())
+	      {
+		printd("For you are a follower, you may not request a track. You have to listen to what i want.\n");
+	      }
+	    else
+	      {
+		if(button_read >= '0' && button_read <= '9'){
+		  pthread_mutex_lock(&state_Mutex);
+		  state = INPUTTING_TRACK_NUMBER;
+		  pthread_mutex_unlock(&state_Mutex);
+		}
+		else{
+		  display_string("Enter Track Number.",NOT_BLOCKING);
+		}
+	      }
             break;
           }
           break;

@@ -48,6 +48,7 @@ char packet[PACKETLEN] = {0};
 
 char opcode;
 int sentt = 0;
+int follower;
 
 
 /*****************************************************************************************
@@ -67,6 +68,7 @@ void * networkingFSM(void)
   char localData[PACKETLEN] = {0};
   char localRecPacket[MAXDATASIZE]  = {0};
   int len = 0;
+ 
 
   while (alive)
     {      
@@ -259,9 +261,11 @@ int parsePacket(char * buffer)
   char loggedIn;
   char emergency = '0';
 
-  char tmp[5];
+  char * tmp;
   int portGst;
   char * ipGst;
+  int i;
+  int j = 0;
 
   printd("buffer:%s\n",buffer);
 
@@ -271,13 +275,48 @@ int parsePacket(char * buffer)
       switch (buffer[0])
         {
         
-	case PIN:
+	case PIN: //format: 111,port.ip#
 	  printd("buffer[1]:%c\n",buffer[1]);
 
           if (buffer[1] == PASS)
             {
               loggedIn = PASS;      
               printd("PIN Authenticated\n");
+	      follower = atoi(buffer[2]); 
+	      
+	      /*Copy out Port*/
+	      i = 3;
+	      
+	      while(buffer[i] != ',')
+		{
+		  tmp = (char*) malloc (n+1);
+		  tmp[j] = buffer[n]; 
+		  i++;
+		  j++;
+		}
+
+	      portGst = atoi(tmp);
+	      free(tmp);
+	      tmp = (char*) malloc (IPLEN);     
+	      i += 1;
+	      j = 0;
+	      ipGst = (char*) malloc(IPLEN * sizeof (char));
+	      
+	      while(buffer[i] != ',')
+		{
+		  ipGst[j] = buffer[i]; 
+		  i++;
+		  j++;
+		}
+	      
+	      set_ip_and_port(ipGst,portGst);
+	      
+	  /* Starts the gstreamer thread and passes the IP and port*/
+	      if(pthread_create( &gst_control_thread, &gst_control_Attr, (void *)gst, NULL) != 0)
+		{
+	      perror("Network thread failed to start\n");
+	      exit(EXIT_FAILURE);
+		}
             }
           else
             {
@@ -349,18 +388,6 @@ int parsePacket(char * buffer)
         case MULTICAST: 
           printd("%s", buffer);
 
-	  portGst = atoi(tmp); 
-	  ipGst = (char*) malloc(IPLEN * sizeof (char));
-
-	  set_ip_and_port(ipGst,portGst);
-
-	  /* Starts the gstreamer thread and passes the IP and port*/
-	  if(pthread_create( &gst_control_thread, &gst_control_Attr, (void *)gst, NULL) != 0)
-	    {
-	      perror("Network thread failed to start\n");
-	      exit(EXIT_FAILURE);
-	    }
-
           state = CREATEHEADERS;
           opcode = ACK;
           break;
@@ -399,6 +426,11 @@ void createPacket(char * localData)
       break;
 
     case PLAY:
+      if (follower == TRUE)
+	{
+	  state = WAITING;
+	  break;
+	}
     case TRACKINFO:
       sprintf(packet, "%c%s\n", opcode, localData); // request packet, used for play and track info
       break;
@@ -413,4 +445,9 @@ void createPacket(char * localData)
       break;
     }
 }
-          
+
+
+int getFollower()
+{
+  return follower;
+}

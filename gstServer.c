@@ -127,3 +127,8 @@ int main (int argc, char *argv[])
 
   return 0;
 }
+
+void killGst()
+{
+  g_main_loop_quit(loop);
+}

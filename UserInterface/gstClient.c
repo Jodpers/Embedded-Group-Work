@@ -199,7 +199,7 @@ char * getTimeGst()
   if(gst_playing)
     {
       if(gst_element_query_position(pipeline, &format, &curPos))
-	{
+	{*/
 	  /* The maximum time supported is by this print statement is 9 hours 59 minutes 
 	     and 59 seconds */
 	  snprintf(trackTime, 11, "%u:%02u:%.2u.%2.2u\n", GST_TIME_ARGS (curPos)); 

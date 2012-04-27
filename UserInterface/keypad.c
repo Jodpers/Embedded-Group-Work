@@ -92,10 +92,6 @@ void * keypad(void){
  *  @param [in] in ASCII output from USB-PIO from port B query.
  *  @return Void.
  */
-/*------------------------------------------------------------------------------
- *
- *------------------------------------------------------------------------------
- */
 void read_button(int col, char in){
   int row;
   int out = 0; // Used to decode ASCII to binary

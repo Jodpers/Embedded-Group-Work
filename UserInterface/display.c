@@ -307,7 +307,8 @@ void delete_char(void){
         cursor_pos++;
       }
     }
-    printd("cursor_offset: %d\n cursor_pos: %d\n input_len: %d\n",cursor_offset,cursor_pos,input_len);
+    printd("cursor_offset: %d\n cursor_pos: %d\n input_len: %d\n",
+			cursor_offset,      cursor_pos,      input_len);
   }
   display_input_buffer();
 }
@@ -341,7 +342,8 @@ void move_cursor(int direction){
           if(++cursor_pos > DIGITS_MAX){
             cursor_pos = DIGITS_MAX;
             if(logged_in == TRUE){ // Inputting Track Number
-              if((cursor_pos + cursor_offset) < TRACK_MAX-1){ // limit digits displayed
+				/* limit digits displayed */
+              if((cursor_pos + cursor_offset) < TRACK_MAX-1){
                 cursor_offset++;
               }
             }
@@ -487,7 +489,7 @@ void display_time(void){
   sprintf(display_buffer,"%0.2d.0.2d%", time / 60, time % 60);
   display_flag = CHANGED;
   */
-};
+}
 
 /**
  *  @brief Display Volume.
@@ -506,7 +508,7 @@ void display_volume(long vol){
   cursor_pos = 2;
   reset_flag = TRUE;
   pthread_mutex_unlock(&display_Mutex);
-};
+}
 
 /**
  *  @brief This function is used to refresh the display buffer.

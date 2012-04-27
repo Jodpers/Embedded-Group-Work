@@ -145,7 +145,8 @@ void menu_select(void){
 }
 
 /**
- *  @brief Displays the selected choice from the menu on the 7-Segment LED Display.
+ *  @brief Displays the selected choice from the menu on the 7-Segment
+ *			LED Display.
  *
  *    Takes the choice from the parameter,
  *    sends the relevant string to the display_string routine.

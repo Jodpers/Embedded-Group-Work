@@ -94,14 +94,18 @@ void menu_select(void){
 	           volume(); 
             show_choice(choice); // After return, display correct choice again
 		    break;
+
 		  case LOCATION:
 		    //Request Location Information
 	        //wifi_scan();
 		    break;
-      case SCROLL:
-        break;
-      case PLAYBACK:
-        break;
+
+          case SCROLL:
+            break;
+
+          case PLAYBACK:
+            break;
+
 		  case LOG_OUT:
             set_menu(FALSE);
             reset_buffers();
@@ -113,10 +117,12 @@ void menu_select(void){
             pthread_mutex_unlock(&state_Mutex);
             printd("Logging Out\n");
 		    break;
+
 		  case EXIT_PROG:
 		    printf("Exiting\n");
-		    exit(0);
+		    exit(1);
           default:
+
 	        break;
 	    }
 	    printd("Choice: %d\n",choice);

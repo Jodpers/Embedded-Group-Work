@@ -289,9 +289,8 @@ int parsePacket(char * buffer)
 	      
 	      while(buffer[i] != ',')
 		{
-		  tmp = (char*) malloc (n+1);
-		  tmp[j] = buffer[n]; 
-		  i++;
+		  tmp[j] = (char*) malloc (1);
+		  tmp[j] = buffer[j+3];
 		  j++;
 		}
 
@@ -304,8 +303,7 @@ int parsePacket(char * buffer)
 	      
 	      while(buffer[i] != ',')
 		{
-		  ipGst[j] = buffer[i]; 
-		  i++;
+		  ipGst[j] = buffer[j+3]; 
 		  j++;
 		}
 	      

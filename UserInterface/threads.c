@@ -76,38 +76,38 @@ int button_thread_state;
  */
 void setup_threads(void){
 
-	  /* Setup Mutex */
-	  pthread_mutex_init(&button_Mutex, NULL);
-	  pthread_mutex_init(&state_Mutex, NULL);
-	  pthread_mutex_init(&display_Mutex, NULL);
-	  pthread_mutex_init(&network_Mutex, NULL);
-	  pthread_mutex_init(&request_Mutex, NULL);
-	  pthread_mutex_init(&gst_control_Mutex, NULL);
-	  pthread_mutex_init(&wifi_Mutex, NULL);
+    /* Setup Mutex */
+    pthread_mutex_init(&button_Mutex, NULL);
+    pthread_mutex_init(&state_Mutex, NULL);
+    pthread_mutex_init(&display_Mutex, NULL);
+    pthread_mutex_init(&network_Mutex, NULL);
+    pthread_mutex_init(&request_Mutex, NULL);
+    pthread_mutex_init(&gst_control_Mutex, NULL);
+    pthread_mutex_init(&wifi_Mutex, NULL);
 
-	  /* Setup Signals */
-	  pthread_cond_init(&button_Signal, NULL);
-	  pthread_cond_init(&state_Signal, NULL);
-	  pthread_cond_init(&display_Signal, NULL);
-	  pthread_cond_init(&network_Signal, NULL);
-	  pthread_cond_init(&request_Signal, NULL);
-	  pthread_cond_init(&gst_control_Signal, NULL);
-	  pthread_cond_init(&wifi_Signal, NULL);
+    /* Setup Signals */
+    pthread_cond_init(&button_Signal, NULL);
+    pthread_cond_init(&state_Signal, NULL);
+    pthread_cond_init(&display_Signal, NULL);
+    pthread_cond_init(&network_Signal, NULL);
+    pthread_cond_init(&request_Signal, NULL);
+    pthread_cond_init(&gst_control_Signal, NULL);
+    pthread_cond_init(&wifi_Signal, NULL);
 
-	  /* Setup Thread Attributes */
-	  pthread_attr_init(&keypad_Attr);
-	  pthread_attr_init(&state_machine_Attr);
-	  pthread_attr_init(&network_Attr);
-	  pthread_attr_init(&receive_Attr);
-	  pthread_attr_init(&timer_Attr);
-	  pthread_attr_init(&wigi_Attr);
+    /* Setup Thread Attributes */
+    pthread_attr_init(&keypad_Attr);
+    pthread_attr_init(&state_machine_Attr);
+    pthread_attr_init(&network_Attr);
+    pthread_attr_init(&receive_Attr);
+    pthread_attr_init(&timer_Attr);
+    pthread_attr_init(&wifi_Attr);
 
-    pthread_attr_setdetachstate(&keypad_Attr), PTHREAD_CREATE_JOINABLE);
-    pthread_attr_setdetachstate(&state_machine_Attr), PTHREAD_CREATE_JOINABLE);
-    pthread_attr_setdetachstate(&network_Attr), PTHREAD_CREATE_JOINABLE);
-    pthread_attr_setdetachstate(&receive_Attr), PTHREAD_CREATE_JOINABLE);
-    pthread_attr_setdetachstate(&timer_Attr), PTHREAD_CREATE_JOINABLE);
-    pthread_attr_setdetachstate(&wifi_Attr), PTHREAD_CREATE_JOINABLE);
+    pthread_attr_setdetachstate(&keypad_Attr, PTHREAD_CREATE_JOINABLE);
+    pthread_attr_setdetachstate(&state_machine_Attr, PTHREAD_CREATE_JOINABLE);
+    pthread_attr_setdetachstate(&network_Attr, PTHREAD_CREATE_JOINABLE);
+    pthread_attr_setdetachstate(&receive_Attr, PTHREAD_CREATE_JOINABLE);
+    pthread_attr_setdetachstate(&timer_Attr, PTHREAD_CREATE_JOINABLE);
+    pthread_attr_setdetachstate(&wifi_Attr, PTHREAD_CREATE_JOINABLE);
 
 
 	  return;

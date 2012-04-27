@@ -24,11 +24,12 @@ enum display_states{
 #define RIGHT           1
 
 #define NOT_BLOCKING    0
+#define BLOCKING        1
 
-#define PIN_MAX		  	  4
+#define PIN_MAX		  	4
 #define TRACK_MIN       1
-#define TRACK_MAX	  	  8
-#define DIGITS_MAX		  3
+#define TRACK_MAX	  	8
+#define DIGITS_MAX		3
 
 #define ACCEPT_PLAY    'A'
 #define BACK           'B'

@@ -78,11 +78,15 @@ static void on_pad_added (GstElement *element, GstPad *pad, gpointer data)
 #ifdef STANDALONE
 int main (int argc, char *argv[])
 #else
+
+#include <string.h>
+
 void set_ip_and_port(char *ip_in, int port_in)
 {
   strcpy(ip,ip_in);
   port = port_in;
 }
+
 void * gst(void)
 #endif
 {
@@ -199,11 +203,11 @@ char * getTimeGst()
   if(gst_playing)
     {
       if(gst_element_query_position(pipeline, &format, &curPos))
-	{*/
-	  /* The maximum time supported is by this print statement is 9 hours 59 minutes 
-	     and 59 seconds */
-	  snprintf(trackTime, 11, "%u:%02u:%.2u.%2.2u\n", GST_TIME_ARGS (curPos)); 
-	}
+      {
+        /* The maximum time supported is by this print statement is 9 hours 59 minutes
+           and 59 seconds */
+        snprintf(trackTime, 11, "%u:%02u:%.2u.%2.2u\n", GST_TIME_ARGS (curPos));
+      }
     }
                       
   return trackTime;

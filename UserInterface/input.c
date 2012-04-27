@@ -21,7 +21,6 @@ BYTE playing = FALSE;
 BYTE authentication = FALSE;
 char temp_string[BUFFER_SIZE] = {0};
 
-BYTE playing = FALSE;
 BYTE pause = FALSE;
 
 extern void playGst();

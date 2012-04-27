@@ -15,7 +15,9 @@
 #include "threads.h"
 #include "states.h"
 
-int state = INIT_STATE;	// State machine variable
+//int state = INIT_STATE;	// State machine variable
+int state = WAITING_LOGGED_IN; // State machine variable
+
 int logged_in = FALSE;  		// Client connected to server
 
 /**
@@ -96,16 +98,16 @@ void * state_machine(void){
 	case WAITING_LOGGED_IN:
 	  switch(button_read){
 	    
-	  case ACCEPT_PLAY:
-	    pause=~pause;
-	    
-	    if (pause == TRUE)
-	      {	     
-		pauseGst();
+        case ACCEPT_PLAY:
+          pause=~pause;
+
+          if (pause == TRUE)
+            {
+              pauseGst();
             }
             else if (pause == FALSE)
             {
-              //playGst();
+              playGst();
             }
             printf("pause = %d\n",pause);
             break;
@@ -118,20 +120,9 @@ void * state_machine(void){
 
           default:
             if(button_read >= '0' && button_read <= '9'){
-	      }
-	  
-	  break;
-	  
-	case ENTER_MENU:
               pthread_mutex_lock(&state_Mutex);
               state = INPUTTING_TRACK_NUMBER;
               pthread_mutex_unlock(&state_Mutex);
-	  
-	default:
-	  if(button_read >= '0' && button_read <= '9'){
-	    pthread_mutex_lock(&state_Mutex);
-	    state = INPUTTING_TRACK_NUMBER;
-	    pthread_mutex_unlock(&state_Mutex);
             }
             else{
               display_string("Enter Track Number.",NOT_BLOCKING);

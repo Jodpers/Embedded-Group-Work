@@ -64,44 +64,44 @@ void * state_machine(void){
     }
 
 	switch(state_read){
-      case EMERGENCY:  // Emergency since we've been waiting
-    	break;         // Drop out and catch it next round
-
-      case INIT_STATE:
-        reset_buffers();
-   	    pthread_mutex_lock(&state_Mutex);
-    	state = WAITING_LOGGED_OUT;
-    	pthread_mutex_unlock(&state_Mutex);
-
-      case WAITING_LOGGED_OUT:
-        if(button_read >= '0' && button_read <= '9'){
-          pthread_mutex_lock(&state_Mutex);
-          state = INPUTTING_PIN; // Fall through to next state
-      	  pthread_mutex_unlock(&state_Mutex);
-        }
-        else{
-          if(button_read == 'C' && input_len == 0){
-            alive = FALSE; // NEEDS WORK
-          }
-          display_string("Please Enter PIN.",NOT_BLOCKING);
-          break;
-        }
-
-      case INPUTTING_PIN:
-        if(button_read){
-          input_pin(button_read);  // Sends a snapshot of button pressed
-        }
-        break;
-
-      case WAITING_LOGGED_IN:
-        switch(button_read){
-
-          case ACCEPT_PLAY:
-            pause=~pause;
-
-            if (pause == TRUE)
-            {
-              //pauseGst();
+	case EMERGENCY:  // Emergency since we've been waiting
+	  break;         // Drop out and catch it next round
+	  
+	case INIT_STATE:
+	  reset_buffers();
+	  pthread_mutex_lock(&state_Mutex);
+	  state = WAITING_LOGGED_OUT;
+	  pthread_mutex_unlock(&state_Mutex);
+	  
+	case WAITING_LOGGED_OUT:
+	  if(button_read >= '0' && button_read <= '9'){
+	    pthread_mutex_lock(&state_Mutex);
+	    state = INPUTTING_PIN; // Fall through to next state
+	    pthread_mutex_unlock(&state_Mutex);
+	  }
+	  else{
+	    if(button_read == 'C' && input_len == 0){
+	      alive = FALSE; // NEEDS WORK
+	    }
+	    display_string("Please Enter PIN.",NOT_BLOCKING);
+	    break;
+	  }
+	  
+	case INPUTTING_PIN:
+	  if(button_read){
+	    input_pin(button_read);  // Sends a snapshot of button pressed
+	  }
+	  break;
+	  
+	case WAITING_LOGGED_IN:
+	  switch(button_read){
+	    
+	  case ACCEPT_PLAY:
+	    pause=~pause;
+	    
+	    if (pause == TRUE)
+	      {	     
+		pauseGst();
             }
             else if (pause == FALSE)
             {
@@ -118,9 +118,20 @@ void * state_machine(void){
 
           default:
             if(button_read >= '0' && button_read <= '9'){
+	      }
+	  
+	  break;
+	  
+	case ENTER_MENU:
               pthread_mutex_lock(&state_Mutex);
               state = INPUTTING_TRACK_NUMBER;
               pthread_mutex_unlock(&state_Mutex);
+	  
+	default:
+	  if(button_read >= '0' && button_read <= '9'){
+	    pthread_mutex_lock(&state_Mutex);
+	    state = INPUTTING_TRACK_NUMBER;
+	    pthread_mutex_unlock(&state_Mutex);
             }
             else{
               display_string("Enter Track Number.",NOT_BLOCKING);
@@ -128,23 +139,23 @@ void * state_machine(void){
             break;
           }
           break;
-
-      case INPUTTING_TRACK_NUMBER:
-        if(button_read){
-          input_track_number(button_read);  // Sends a snapshot of button
-        }
-        break;
-
-      case MENU_SELECT:
-        display_string("MENU.",BLOCKING);
-        menu_select();
-        break;
-
-      case SUBMENU_SELECT:
-
-      default:
-        break;
+	
+  case INPUTTING_TRACK_NUMBER:
+    if(button_read){
+      input_track_number(button_read);  // Sends a snapshot of button
     }
+    break;
+
+  case MENU_SELECT:
+    display_string("MENU.",BLOCKING);
+    menu_select();
+    break;
+
+  case SUBMENU_SELECT:
+    
+  default:
+    break;
+	}
   }
   return 0;
 }

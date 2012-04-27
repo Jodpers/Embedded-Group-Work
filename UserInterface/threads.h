@@ -40,6 +40,10 @@ extern pthread_cond_t request_Signal;
 extern pthread_mutex_t timer_Mutex;
 extern pthread_cond_t timer_Signal;
 
+/* Gstreamer Signals  */
+extern pthread_mutex_t gst_control_Mutex;
+extern pthread_cond_t gst_control_Signal;
+
 /* Wifi Signals */
 extern pthread_mutex_t wifi_Mutex;
 extern pthread_cond_t wifi_Signal;

@@ -1,14 +1,14 @@
-/*******************************************************************************
- * networking.c                                                                *
- * Description: This file will hande all of the networking needs of the client *
- * External globals: int task: This is used to inform a thread what to do with *
- * the data passed to/from a thread.                                           *
- *                   char data[]: This is used to transfer data between threads*
- * Author: James Sleeman                                                       *
- * I have used code from http-client.c                                         *
- * Copyright (c) 2000 Sean Walton and Macmillan Publishers.  Use may be in     *
- * whole or in part in accordance to the General Public License (GPL).         *
- ******************************************************************************/
+/******************************************************************************************
+ * networking.c                                                                           *
+ * Description:                                                                           *
+ * External globals: int task: This is used to inform a thread what to do with the data   *
+ *                             passed to/from a thread.                                   *
+ *                   char data[]: This is used to transfer data between threads           *
+ * Author: James Sleeman                                                                  *
+ * I have used code from http-client.c                                                    *
+ * Copyright (c) 2000 Sean Walton and Macmillan Publishers.  Use may be in                *
+ * whole or in part in accordance to the General Public License (GPL).                    *
+ *****************************************************************************************/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,8 +22,10 @@
 #include <limits.h>
 #include <sys/types.h>
 #include <arpa/inet.h>
-#include <netinet/tcp.h>
+
+#include <sys/types.h>  //threads
 #include <pthread.h>
+#include <netinet/tcp.h>
 
 #include "top.h"
 #include "network.h"
@@ -47,18 +49,18 @@ char packet[PACKETLEN] = {0};
 char opcode;
 int sentt = 0;
 
-/*******************************************************************************
- * Name: networkingFSM                                                         *
- * Description: This state machine will control the networking section of the  *
-                client                                                         *
- * Inputs: Parameters: None                                                    *
- *            Globals: alive: This is an exit condition for while loops        *
-                       task: This is used to inform a thread what to do with   *
-					   the data passed to/from a thread.                       *
- *                     data[]: This is used to transfer data between threads   *
- * Outputs: Globals: task and data above are also outputs                      *
- *           Return: None                                                      *
- ******************************************************************************/
+
+/*****************************************************************************************
+ * Name: networkingFSM                                                                   *
+ * Description: This state machine will control the networking section of the client     *
+ * Inputs: Parameters: None                                                              *
+ *            Globals: alive: This is an exit condition for while loops                  *
+                       task: This is used to inform a thread what to do with the data    *
+ *                           passed to/from a thread.                                    *
+ *                     data[]: This is used to transfer data between threads             *
+ * Outputs: Globals: task and data above are also outputs                                *
+ *           Return: None                                                                *
+ ****************************************************************************************/
 void * networkingFSM(void)
 {
   char state = WAITING;
@@ -82,8 +84,8 @@ void * networkingFSM(void)
 	  if (opcode == RECEIVE)
 	    {
 	      printd("sentt:%d\n", sentt);
-	      if (sentt == 0) /* This was added, as some times an empty packet was 
-		                     being sent after the socket was init'd */ 
+	      if (sentt == 0) /* This was added, as some times an empty packet was being 
+                                 sent after the socket was init'd */ 
 		{
 		  /* Do nothing receiving packet with out sending*/
 		}
@@ -91,9 +93,9 @@ void * networkingFSM(void)
 		{
 		  state = PARSEPACKET;
 		}
+	      
 	      break;
-	    }            //Will drop through if UI has woke the thread up
-	  
+	    }
 	  pthread_mutex_lock(&request_Mutex);
 	  strncpy(localData, data, PACKETLEN);
 	  opcode = task;
@@ -102,20 +104,21 @@ void * networkingFSM(void)
 	case CREATEHEADERS:
 	  createPacket(localData);
 	  printd("Packet to send:%s", packet);
+	  
 	  state = SEND;
 	  break;
-
 	case SEND:
+	  
 	  printd("packet at sending time:%s\n", packet);
 	  len = strlen(packet);
 	  printd("len: %d\n", len);
-	  
 	  if (len > 0)
 	    {
 	      send(sockfd, packet, len+1, 0);
-	      printf("sent\n");
+	      printd("sent\n");
 	    }
 	  state = WAITING;
+	  
 	  break;
 
 	case PARSEPACKET:
@@ -132,14 +135,14 @@ void * networkingFSM(void)
   close(sockfd);
   return 0;
 }
-/*******************************************************************************
- * Name: get_in_addr                                                           *
- * Description: This function will get the address for IPv4 or IPv6            *
- * Inputs: Parameters: sockaddr: this will contain the address                 *
- *            Globals: None                                                    *
- * Outputs: Globals: None                                                      *
- *           Return: Returns a pointer to the address                          *
- ******************************************************************************/
+/*****************************************************************************************
+ * Name: get_in_addr                                                                     *
+ * Description: This function will get the address for IPv4 or IPv6                      *
+ * Inputs: Parameters: sockaddr: this will contain the address                           *
+ *            Globals: None                                                              *
+ * Outputs: Globals: None                                                                *
+ *           Return: Returns a pointer to the address                                    *
+ ****************************************************************************************/
 void *get_in_addr(struct sockaddr *sa)
 {
   if (sa->sa_family == AF_INET) {
@@ -149,22 +152,22 @@ void *get_in_addr(struct sockaddr *sa)
   return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
-/*******************************************************************************
- * Name: networkSetup                                                          *
- * Description: This function will initialise the socket, bind and connect.    *
- * Inputs: Parameters: None                                                    *
- *            Globals: None                                                    *
- * Outputs: Globals: None                                                      *
- *           Return: 0 - Passed, 1 - Failed to get infomation about the address*
- *                   2 - Failed to connect                                     *
- ******************************************************************************/
+/*****************************************************************************************
+ * Name: networkSetup                                                                    *
+ * Description: This function will initialise the socket, bind and connect.              *
+ * Inputs: Parameters: None                                                              *
+ *            Globals: None                                                              *
+ * Outputs: Globals: None                                                                *
+ *           Return: 0 - Passed, 1 - Failed to get infomation about the address,         *
+ *                   2 - Failed to connect                                               *
+ ****************************************************************************************/
 int networkSetup()
 {
   
   memset(&hints, 0, sizeof (struct addrinfo));
   hints.ai_family = AF_UNSPEC;
   hints.ai_socktype = SOCK_STREAM;
-  
+
   if ((rv = getaddrinfo(IP, PORT, &hints, &servinfo)) != 0) 
     {
       fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
@@ -174,6 +177,7 @@ int networkSetup()
   /* loop through all the results and connect to the first we can */
   for(p = servinfo; p != NULL; p = p->ai_next) 
     {
+
       if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) 
 	{
 	  perror("client: socket");
@@ -183,41 +187,39 @@ int networkSetup()
       if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) 
 	{
 	  close(sockfd);
-	  sockfd = NULL;
 	  perror("client: connect");
 	  continue;
 	}
       break;
     }
-  if (p == NULL || sockfd == NULL) 
+  if (p == NULL) 
     {
-      fprintf(stderr, "client: failed to connect\n");
+      //  fprintf(stderr, "client: failed to connect\n");
       return 2;
     }
- 
+  
   return 0;
 }
 
-/*******************************************************************************
- * Name: receive                                                               *
- * Description: This function will wait to receive a packet, once the packet   *
- *              has been received the packet will be saved, and the function   *
- *              will go back to waiting for the next packet to be received     *
- * Inputs: Parameters: None                                                    *
- *            Globals: alive: This is an exit condition for while loops        *
- *                      task: This is used to inform a thread what to do with  *
- *					          the data passed to/from a thread.                *
- *                     data[]: This is used to transfer data between threads   *
- * Outputs: Globals: task and data above are also outputs                      *
- *           Return: None                                                      *
- ******************************************************************************/
+/*****************************************************************************************
+ * Name: receive                                                                         *
+ * Description: This function will wait to receive a packet, once the packet has been    *
+ *              received the packet will be saved, and the function will go back to      *
+ *              waiting for the next packet to be received                               *
+ * Inputs: Parameters: None                                                              *
+ *            Globals: alive: This is an exit condition for while loops                  *
+                       task: This is used to inform a thread what to do with the data    *
+ *                           passed to/from a thread.                                    *
+ *                     data[]: This is used to transfer data between threads             *
+ * Outputs: Globals: task and data above are also outputs                                *
+ *           Return: None                                                                *
+ ****************************************************************************************/
 void * receive(void)
 {
   while(alive)
     {
       char buffer[MAXDATASIZE];
-	  // Blocking if statement
-      if ((numbytes = recv(sockfd, buffer, MAXDATASIZE-1, 0)) == -1) 
+      if ((numbytes = recv(sockfd, buffer, MAXDATASIZE-1, 0)) == -1) // Blocking if statement
 	{
 	  perror("recv");
 	  alive = FALSE;
@@ -233,21 +235,25 @@ void * receive(void)
       pthread_cond_signal(&network_Signal);
       pthread_mutex_unlock(&network_Mutex);
     }
+  return 0;
 }
 
-/*******************************************************************************
- * Name: parsePacket                                                           *
- * Description: Determines whether your request was successful e.g. Track      *
- *              request or logging in authentication.                          *
- * Inputs: Parameters: buffer: This will contain the packet to parse           *
- *            Globals: None                                                    *
- * Outputs: Globals: data[]: This is used to transfer data between threads     *
- *                   opcode: This will set the opcode for packet creation      *
- *           Return: state: This will change the state of the Networking FSM   *
- ******************************************************************************/
+/****************************************************************************************
+ * Name: parsePacket                                                                    *
+ * Description: Determines whether your request was successful e.g. Track request or    *
+ *              logging in authentication.                                              *
+ * Inputs: Parameters: buffer: This will contain the packet to parse                    *
+ *            Globals: None                                                             *
+ * Outputs: Globals: data[]: This is used to transfer data between threads              *
+ *                   opcode: This will set the opcode for packet creation               *
+ *           Return: state: This will change the state of the Networking FSM            *
+ ****************************************************************************************/
 int parsePacket(char * buffer)
 {
-  
+  extern pthread_attr_t gst_control_Attr;
+  extern pthread_t gst_control_thread;
+  extern void * gst(int port, char ip[]);
+
   static int timeout = TIMEOUTVALUE;
   int state = 1;
   char loggedIn;
@@ -255,9 +261,9 @@ int parsePacket(char * buffer)
 
   char tmp[5];
   int portGst;
-  char ipGst[16];
+  char * ipGst;
 
-  printf("buffer:%s\n",buffer);
+  printd("buffer:%s\n",buffer);
 
   /*Checks that buffer isn't empty*/
   if(strlen(buffer))
@@ -340,10 +346,20 @@ int parsePacket(char * buffer)
 	    }
 	  break;
 
-        case MULTICAST: /* Passes port and IP to gstreamer */
+        case MULTICAST: 
           printd("%s", buffer);
 
 	  portGst = atoi(tmp); 
+	  ipGst = (char*) malloc(IPLEN * sizeof (char));
+
+	  set_ip_and_port(ipGst,portGst);
+
+	  /* Starts the gstreamer thread and passes the IP and port*/
+	  if(pthread_create( &gst_control_thread, &gst_control_Attr, (void *)gst, NULL) != 0)
+	    {
+	      perror("Network thread failed to start\n");
+	      exit(EXIT_FAILURE);
+	    }
 
 	  state = CREATEHEADERS;
 	  opcode = ACK;
@@ -360,23 +376,21 @@ int parsePacket(char * buffer)
   return state;
 }
 
-/*******************************************************************************
- * Name: void createPacket                                                     *
- * Description: Creates the packets to be sent to the server                   *
- * Inputs: Parameters: localData: This contains the data to be sent            *
- *            Globals: opcode this is used to select the type of packet to     *
- *                     create                                                  *
- * Outputs: Globals: Packet: this stores information to be sent                *
- *           Return: None                                                      *
- ******************************************************************************/
+/*****************************************************************************************
+ * Name: void createPacket                                                               *
+ * Description: Creates the packets to be sent to the server                             *
+ * Inputs: Parameters: localData: This contains the data to be sent                      *
+ *            Globals: opcode this is used to select the type of packet to create        *
+ * Outputs: Globals: Packet: this stores information to be sent                          *
+ *           Return: None                                                                *
+ ****************************************************************************************/
 void createPacket(char * localData)
 {
 
   char track[TRACKLEN];
   bzero(packet, PACKETLEN); // Clears the packet
 
-  //This is used to stop any packets being sent before a packet has been sent.
-  sentt= 1; 
+  sentt= 1; //This is used to stop any packets being sent before a packet has been sent.
   switch (opcode)
     {
     case PIN:
@@ -385,8 +399,7 @@ void createPacket(char * localData)
 
     case PLAY:
     case TRACKINFO:
-	  // request packet, used for play and track info	
-      sprintf(packet, "%c%s\n", opcode, localData); 
+      sprintf(packet, "%c%s\n", opcode, localData); // request packet, used for play and track info
       break;
 
     case ACK:
@@ -399,3 +412,4 @@ void createPacket(char * localData)
       break;
     }
 }
+          

@@ -39,4 +39,8 @@ extern void input_pin(char);
 extern void input_track_number(char);
 extern void menu_select(void);
 
+extern void playGst();
+extern void pauseGst();
+extern void seekGst();
+
 #endif /* STATES_H_ */

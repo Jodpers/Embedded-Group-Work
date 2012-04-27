@@ -24,6 +24,8 @@ pthread_t receive_thread;
 pthread_t timer_thread;
 pthread_t wifi_thread;
 
+pthread_t gst_control_thread;
+
 /* Thread Attributes */
 pthread_attr_t keypad_Attr;
 pthread_attr_t state_machine_Attr;
@@ -33,6 +35,9 @@ pthread_attr_t receive_Attr;
 
 pthread_attr_t timer_Attr;
 pthread_attr_t wifi_Attr;
+
+pthread_attr_t gst_control_Attr;
+pthread_attr_t gstreamer_Attr;
 
 /* Mutexs and Signals */
 pthread_mutex_t button_Mutex;
@@ -57,6 +62,10 @@ pthread_cond_t timer_Signal;
 pthread_mutex_t wifi_Mutex;
 pthread_cond_t wifi_Signal;
 
+pthread_mutex_t gst_control_Mutex;
+pthread_cond_t gst_control_Signal;
+
+
 int button_thread_state;
 
 /**
@@ -70,19 +79,19 @@ void setup_threads(void){
 	  /* Setup Mutex */
 	  pthread_mutex_init(&button_Mutex, NULL);
 	  pthread_mutex_init(&state_Mutex, NULL);
-    pthread_mutex_init(&display_Mutex, NULL);
+	  pthread_mutex_init(&display_Mutex, NULL);
 	  pthread_mutex_init(&network_Mutex, NULL);
 	  pthread_mutex_init(&request_Mutex, NULL);
-	  pthread_mutex_init(&timer_Mutex, NULL);
+	  pthread_mutex_init(&gst_control_Mutex, NULL);
 	  pthread_mutex_init(&wifi_Mutex, NULL);
 
 	  /* Setup Signals */
 	  pthread_cond_init(&button_Signal, NULL);
 	  pthread_cond_init(&state_Signal, NULL);
-    pthread_cond_init(&display_Signal, NULL);
+	  pthread_cond_init(&display_Signal, NULL);
 	  pthread_cond_init(&network_Signal, NULL);
 	  pthread_cond_init(&request_Signal, NULL);
-	  pthread_cond_init(&timer_Signal, NULL);
+	  pthread_cond_init(&gst_control_Signal, NULL);
 	  pthread_cond_init(&wifi_Signal, NULL);
 
 	  /* Setup Thread Attributes */
@@ -196,7 +205,7 @@ void closing_time(void){
   pthread_attr_destroy(&state_machine_Attr);
   pthread_attr_destroy(&network_Attr);
   pthread_attr_destroy(&receive_Attr);
-  pthread_attr_destroy(&timer_Attr);
+  pthread_attr_destroy(&gst_control_Attr);
   pthread_attr_destroy(&wifi_Attr);
 
   pthread_mutex_destroy(&button_Mutex);
@@ -205,6 +214,7 @@ void closing_time(void){
 
   pthread_mutex_destroy(&network_Mutex);
   pthread_mutex_destroy(&request_Mutex);
+  pthread_mutex_destroy(&gst_control_Mutex);
 
   pthread_mutex_destroy(&timer_Mutex);
   pthread_mutex_destroy(&wifi_Mutex);
@@ -215,6 +225,8 @@ void closing_time(void){
 
   pthread_cond_destroy(&network_Signal);
   pthread_cond_destroy(&request_Signal);
+  pthread_cond_destroy(&gst_control_Signal);
+
   
   pthread_cond_destroy(&timer_Signal);
   pthread_cond_destroy(&wifi_Signal);

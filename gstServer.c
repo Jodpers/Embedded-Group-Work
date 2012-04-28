@@ -14,7 +14,7 @@
 #include <linux/limits.h> // not sure which one i need for MAX_PATH
 #include <limits.h>
 
-char path[PATH_MAX];
+
 int port;
 char ip[15];
 
@@ -131,4 +131,16 @@ int main (int argc, char *argv[])
 void killGst()
 {
   g_main_loop_quit(loop);
+}
+void playGst()
+{
+  gst_element_set_state(pipeline, GST_STATE_PLAYING);
+}
+void stopGst()
+{
+  gst_element_set_state(pipeline, GST_STATE_STOP);
+}
+void setPathGst(char * path)
+{
+ g_object_set (G_OBJECT (source), "location", path, NULL);
 }

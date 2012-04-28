@@ -27,7 +27,7 @@
 
 extern char task;
 extern char data[];
-extern char * emergMsg;
+
 
 extern int networkSetup();
 #endif /* NETWORK_H_ */

@@ -30,6 +30,7 @@ enum gst_states{
 /* External Variables */
 extern int state;
 extern BYTE playing;
+extern char * emergMsg;
 
 /* Local Prototypes */
 void * state_machine(void);

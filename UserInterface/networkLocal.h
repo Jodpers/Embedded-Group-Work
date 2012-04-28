@@ -35,6 +35,6 @@
 void PANIC(char * msg);
 void * receive(void);
 int parsePacket(char * buffer);
-void createPacket(char * localData);
+int createPacket(char * localData);
 
 #endif /* NETWORKLOCAL_H_ */   

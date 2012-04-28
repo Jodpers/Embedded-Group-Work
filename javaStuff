@@ -1,0 +1,11 @@
+ static 
+  {
+    System.loadLibrary("HelloWorldImp");         // correct
+    System.loadLibrary("HelloWorldImp.DLL");     // WRONG!
+    System.loadLibrary("libHelloWorldImp.so");   // WRONG!
+  }
+
+gcc -c calc_mean.c -o calc_mean.o
+gcc -c -fPIC calc_mean.c -o calc_mean.o    
+gcc -shared -Wl,-soname,libmean.so.1 -o libmean.so.1.0.1  calc_mean.o
+output must begin with lib

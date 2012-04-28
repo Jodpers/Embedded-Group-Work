@@ -191,7 +191,7 @@ void closing_time(void){
   pthread_join(state_machine_thread, NULL);
   printf("Signalled threads to close\n");
 
-  pthread_join(network_thread, NULL);
+  //pthread_join(network_thread, NULL);
   pthread_join(receive_thread, NULL);
   
   pthread_join(timer_thread, NULL);

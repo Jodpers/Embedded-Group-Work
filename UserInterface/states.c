@@ -14,12 +14,13 @@
 #include "display.h"
 #include "threads.h"
 #include "states.h"
+#include "debug.h"
 
-//int state = INIT_STATE;	// State machine variable
-//int logged_in = FALSE;  		// Client connected to server
+int state = INIT_STATE;	// State machine variable
+int logged_in = FALSE;  		// Client connected to server
 
-int state = WAITING_LOGGED_IN; // State machine variable
-int logged_in = TRUE;          // Client connected to server
+//int state = WAITING_LOGGED_IN; // State machine variable
+//int logged_in = TRUE;          // Client connected to server
 
 /**
  *  @brief State Machine - controls the user interface.

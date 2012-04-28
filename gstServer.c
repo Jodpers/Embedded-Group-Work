@@ -13,11 +13,14 @@
 
 #include <linux/limits.h> // not sure which one i need for MAX_PATH
 #include <limits.h>
-
+#define STANDALONE 1
 
 int port;
 char ip[15];
 
+GMainLoop *loop;
+GstElement *source, *pipeline;
+  
 static gboolean bus_call(GstBus *bus, GstMessage *msg, gpointer data)
 {
   GMainLoop *loop = (GMainLoop *) data;
@@ -32,17 +35,17 @@ static gboolean bus_call(GstBus *bus, GstMessage *msg, gpointer data)
       
     case GST_MESSAGE_ERROR:
       {
-gchar *debug;
-GError *error;
+        gchar *debug;
+        GError *error;
 
-gst_message_parse_error (msg, &error, &debug);
-g_free (debug);
+        gst_message_parse_error (msg, &error, &debug);
+        g_free (debug);
 
-g_printerr ("Error: %s\n", error->message);
-g_error_free (error);
+        g_printerr ("Error: %s\n", error->message);
+        g_error_free (error);
 
-g_main_loop_quit (loop);
-break;
+        g_main_loop_quit (loop);
+        break;
       }
       
     default:
@@ -56,12 +59,11 @@ break;
 #ifdef STANDALONE
 int main (int argc, char *argv[])
 #else
-  int gstServer(int port, char * ip, char * path+)
+  int gstServer(int port, char * ip, char * path)
 #endif
 {
-  GMainLoop *loop;
   
-  GstElement *pipeline, *source, *sink;
+  GstElement *sink;
   GstBus *bus;
 
   /* Initialisation */
@@ -136,10 +138,10 @@ void playGst()
 {
   gst_element_set_state(pipeline, GST_STATE_PLAYING);
 }
-void stopGst()
+/*void stopGst()
 {
-  gst_element_set_state(pipeline, GST_STATE_STOP);
-}
+  gst_element_set_state(pipeline, GST_STATE_STOPPED);
+}*/
 void setPathGst(char * path)
 {
  g_object_set (G_OBJECT (source), "location", path, NULL);

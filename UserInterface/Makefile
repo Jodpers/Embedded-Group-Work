@@ -18,3 +18,4 @@ clean:
 
 .c.o:
 	$(CC) $(LFLAGS) -c $<
+#gcc -fPIC -g -c `pkg-config --cflags --libs gstreamer-0.10`

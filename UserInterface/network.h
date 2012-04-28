@@ -14,10 +14,10 @@
 #define PACKETLEN 22 /* Op Code = 1, Location = 1, MAC = 18, newline = 1 */
 
 /* for parsing and create headers state machine*/
-#define PIN '1'
-#define PLAY '2'
-#define TRACKINFO '3'
-#define EMERGENCY '4'
+//#define EMERGENCY '1'
+#define PIN '2'
+#define PLAY '3'
+#define TRACKINFO '4'
 #define ACK '5'
 #define NAK '6'
 #define MULTICAST '7'
@@ -27,6 +27,7 @@
 
 extern char task;
 extern char data[];
+extern char * emergMsg;
 
 extern int networkSetup();
 #endif /* NETWORK_H_ */

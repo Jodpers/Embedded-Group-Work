@@ -45,6 +45,7 @@ void * state_machine(void){
     if(state_read == EMERGENCY){ // Display Blocking Message
       reset_buffers();
       display_string(emergency,BLOCKING);
+      display_string(emergMsg, BLOCKING);
       continue;
     }
 

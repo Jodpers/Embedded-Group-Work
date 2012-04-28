@@ -155,7 +155,7 @@ void input_track_number(char button_read){
         display_string(temp_string,BLOCKING);
 	playGst();
       }
-      else{
+       else{
         display_string("Track not found.",BLOCKING);
       }
 

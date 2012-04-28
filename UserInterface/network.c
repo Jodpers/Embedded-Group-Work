@@ -33,6 +33,8 @@
 #include "threads.h"
 #include "debug.h"
 
+char * emergMsg;
+
 char task;
 char data[PACKETLEN] = {0}; /* Setting to NULL */
 

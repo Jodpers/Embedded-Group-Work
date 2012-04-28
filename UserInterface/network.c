@@ -50,6 +50,8 @@ char opcode;
 int sentt = 0;
 int follower;
 
+char * msg;
+
 
 /*****************************************************************************************
  * Name: networkingFSM                                                                   *
@@ -104,10 +106,9 @@ void * networkingFSM(void)
 	  pthread_mutex_unlock(&request_Mutex);
 	  
 	case CREATEHEADERS:
-	  createPacket(localData);
+	  state = createPacket(localData);
 	  printd("Packet to send:%s", packet);
 	  
-	  state = SEND;
 	  break;
 	case SEND:
 	  
@@ -264,7 +265,7 @@ int parsePacket(char * buffer)
   char * tmp;
   int portGst;
   char * ipGst;
-  int i;
+  int i,len;
   int j = 0;
 
   printd("buffer:%s\n",buffer);
@@ -274,22 +275,47 @@ int parsePacket(char * buffer)
     {
       switch (buffer[0])
         {
-        
-	case PIN: //format: 111,port.ip#
+	case EMERGENCY:
+          printd("Emergency, stop, leave the building! \n\n");
+	  
+	  len = strlen(buffer);
+	  tmp = (char*) malloc (len-1);
+	  emergMsg = (char*) malloc (len-1);
+	  i = 0;
+	  for(i = 0; i < len; i++)
+	    {
+	      tmp[j] = buffer[j+1]; 
+	    }
+
+	  pthread_mutex_lock(&state_Mutex);
+	  data[0] = 1;
+	  strcpy(emergMsg, tmp);
+	  pthread_cond_signal(&state_Signal);
+	  pthread_mutex_unlock(&state_Mutex);
+	  state = CREATEHEADERS;
+	  opcode = ACK;
+	  free(tmp);
+          break;
+
+
+	case PIN: //format: 111,port.ip
 	  printd("buffer[1]:%c\n",buffer[1]);
 
           if (buffer[1] == PASS)
             {
               loggedIn = PASS;      
               printd("PIN Authenticated\n");
-	      follower = atoi(buffer[2]); 
+	      tmp = (char*) malloc(1); 
+	      tmp[0] = buffer[2];
+
+	      follower = atoi(tmp); 
 	      
 	      /*Copy out Port*/
 	      i = 3;
 	      
-	      while(buffer[i] != ',')
+	      while(buffer[j+3] != ',')
 		{
-		  tmp[j] = (char*) malloc (1);
+		  tmp = (char*) malloc (j);
 		  tmp[j] = buffer[j+3];
 		  j++;
 		}
@@ -301,7 +327,7 @@ int parsePacket(char * buffer)
 	      j = 0;
 	      ipGst = (char*) malloc(IPLEN * sizeof (char));
 	      
-	      while(buffer[i] != ',')
+	      while(buffer[j+3] != ',')
 		{
 		  ipGst[j] = buffer[j+3]; 
 		  j++;
@@ -352,19 +378,8 @@ int parsePacket(char * buffer)
 	  opcode = ACK;
           break;
 
-        case EMERGENCY:
-          printd("Emergency, stop, leave the building!\n\n");
-	  emergency = 1;
-
-	  pthread_mutex_lock(&state_Mutex);
-	  data[0] = emergency;
-	  pthread_cond_signal(&state_Signal);
-	  pthread_mutex_unlock(&state_Mutex);
-	  state = CREATEHEADERS;
-	  opcode = ACK;
-          break;
-
-        case ACK: /* Do nothing */
+       
+         case ACK: /* Do nothing */
           printd("%s", buffer);
           state = WAITING;
           break;
@@ -410,10 +425,10 @@ int parsePacket(char * buffer)
  * Outputs: Globals: Packet: this stores information to be sent                          *
  *           Return: None                                                                *
  ****************************************************************************************/
-void createPacket(char * localData)
+int createPacket(char * localData)
 {
 
-  char track[TRACKLEN];
+
   bzero(packet, PACKETLEN); // Clears the packet
 
   sentt= 1; //This is used to stop any packets being sent before a packet has been sent.
@@ -426,8 +441,7 @@ void createPacket(char * localData)
     case PLAY:
       if (follower == TRUE)
 	{
-	  state = WAITING;
-	  break;
+	  return  WAITING;
 	}
     case TRACKINFO:
       sprintf(packet, "%c%s\n", opcode, localData); // request packet, used for play and track info
@@ -442,6 +456,7 @@ void createPacket(char * localData)
       printd("tried to create unknown packet\n");
       break;
     }
+  return SEND;
 }
 
 

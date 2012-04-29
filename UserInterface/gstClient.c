@@ -16,7 +16,7 @@
 
 //char * ip[20];
 char ip[16];
-int port;
+int port = 4001;
 GstElement * pipeline; // Moved here to allow other gst functions to use the variable.
 GMainLoop *loop;
 

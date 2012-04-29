@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <sys/types.h>  //threads
 #include <pthread.h>
+#include <unistd.h>
 
 #include "top.h"
 #include "pio_term.h"
@@ -177,6 +178,7 @@ void start_threads(void){
  */
 void closing_time(void){
   alive = FALSE;
+  extern int sockfd; //close the recv functions file descriptor
 
   pthread_mutex_lock(&state_Mutex);
   button_thread_state = STATE_KILL;
@@ -186,16 +188,21 @@ void closing_time(void){
   pthread_mutex_lock(&button_Mutex);
   pthread_cond_broadcast(&button_Signal);
   pthread_mutex_unlock(&button_Mutex);
+  
+  close(sockfd);
+  pthread_mutex_lock(&network_Mutex);
+  pthread_cond_broadcast(&network_Signal);
+  pthread_mutex_unlock(&network_Mutex);
 
   pthread_join(keypad_thread, NULL);
   pthread_join(state_machine_thread, NULL);
   printf("Signalled threads to close\n");
 
   //pthread_join(network_thread, NULL);
-  pthread_join(receive_thread, NULL);
+  //pthread_join(receive_thread, NULL);
   
-  pthread_join(timer_thread, NULL);
-  pthread_join(wifi_thread, NULL);
+  //pthread_join(timer_thread, NULL);
+  //pthread_join(wifi_thread, NULL);
 
 
   write_to_port(C, 0);      /* Last LED off */
@@ -231,5 +238,6 @@ void closing_time(void){
   pthread_cond_destroy(&timer_Signal);
   pthread_cond_destroy(&wifi_Signal);
   printf("Closing\n");
+  exit(0);
 }
 

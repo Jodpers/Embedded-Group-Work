@@ -8,15 +8,17 @@
 * http://gstreamer.freedesktop.org/data/doc/gstreamer/head/manual/html/chapter-helloworld.html
 *****************************************************************************************/
 
+#include <string.h>
+
 #include <gst/gst.h>
 #include <glib.h>
 
 #include <linux/limits.h> // not sure which one i need for MAX_PATH
 #include <limits.h>
-#define STANDALONE 1
+//#define STANDALONE 1
 
 int port;
-char ip[15];
+char ip[16];
 
 GMainLoop *loop;
 GstElement *source, *pipeline;
@@ -59,9 +61,14 @@ static gboolean bus_call(GstBus *bus, GstMessage *msg, gpointer data)
 #ifdef STANDALONE
 int main (int argc, char *argv[])
 #else
-  int gstServer(int port, char * ip, char * path)
+ int gstServer(int port_in, char * ip_in, char * path_in)
 #endif
 {
+  char path[100];
+  port = port_in;
+  strcpy(ip,ip_in);
+  strcpy(path,path_in);
+
   
   GstElement *sink;
   GstBus *bus;
@@ -73,7 +80,7 @@ int main (int argc, char *argv[])
   /* Create gstreamer elements */
   pipeline = gst_pipeline_new ("client");
   source = gst_element_factory_make ("filesrc", "file-source");
-  sink = gst_element_factory_make ("autoaudiosink", "client");
+  sink = gst_element_factory_make ("tcpclientsink", "client");
 
   if (!pipeline || !source || !sink)
     {

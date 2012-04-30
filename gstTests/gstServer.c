@@ -27,18 +27,16 @@ int gst_playing = STOPPED;
 GError *error;
 
 GMainLoop *loop;
-GstElement *source, *pipeline;
+GstElement *src, *pipeline;
   
 static gboolean bus_call(GstBus *bus, GstMessage *msg, gpointer data)
 {
-  gst_playing = PLAYING;
   GMainLoop *loop = (GMainLoop *) data;
 
   switch (GST_MESSAGE_TYPE (msg))
     {
 
     case GST_MESSAGE_EOS:
-      gst_playing = EOS;
       g_print ("End of stream\n");
       g_main_loop_quit (loop);
       break;
@@ -54,7 +52,6 @@ static gboolean bus_call(GstBus *bus, GstMessage *msg, gpointer data)
         g_printerr ("Error: %s\n", error->message);
         g_error_free (error);
 
-        gst_playing = ERROR;
         printf("error code: %d\n",error->code);
         g_main_loop_quit (loop);
         break;
@@ -75,12 +72,12 @@ int main (int argc, char *argv[])
  int gstServer(int port_in, char * ip_in, char * path_in)
 {
 
-  char path[100];
+  char path[500];
   port = port_in;
   strcpy(ip,ip_in);
   strcpy(path,path_in);
 #endif
-  
+
   GstElement *sink;
   GstBus *bus;
 
@@ -90,24 +87,29 @@ int main (int argc, char *argv[])
 
   /* Create gstreamer elements */
   pipeline = gst_pipeline_new ("server");
-  source = gst_element_factory_make ("filesrc", "file-source");
+  src = gst_element_factory_make ("filesrc", "src");
   sink = gst_element_factory_make ("tcpclientsink", "client");
-
-  if (!pipeline || !source || !sink)
+  
+  if (!pipeline || !src || !sink)
     {
       g_printerr ("One element could not be created. Exiting.\n");
+#ifdef STANDALONE
       return -1;
+#else
+      pthread_exit(-1);
+#endif
     }
 
   /* Set up the pipeline */
   /* we set the input filename to the source element */
 #ifdef STANDALONE
-  g_object_set (G_OBJECT (source), "location", argv[1], NULL);
+  g_object_set (G_OBJECT (src), "location", argv[1], NULL);
 #else
-  g_object_set (G_OBJECT (source), "location", path, NULL);
+  g_object_set (G_OBJECT (src), "location", path, NULL);
 #endif
   g_object_set (G_OBJECT (sink), "host", ip, NULL);
   g_object_set (G_OBJECT (sink), "port", port, NULL);
+
 
   /* we add a message handler */
   bus = gst_pipeline_get_bus (GST_PIPELINE (pipeline));
@@ -116,12 +118,12 @@ int main (int argc, char *argv[])
 
   /* we add all elements into the pipeline */
   /* source | sink */
-  gst_bin_add_many (GST_BIN (pipeline), source, sink, NULL);
-
+  gst_bin_add_many (GST_BIN (pipeline), src, sink, NULL);
 
   /* we link the elements together */
   /* source -> sink */
-  gst_element_link (source, sink);
+  gst_element_link_many (src, sink, NULL);
+  
 
   /* Set the pipeline to "playing" state*/
 #ifdef STANDALONE
@@ -135,12 +137,20 @@ int main (int argc, char *argv[])
   /* wait until it's up and running or failed */
   if (gst_element_get_state (pipeline, NULL, NULL, -1) == GST_STATE_CHANGE_FAILURE) {
     g_error ("Failed to go into PLAYING state");
+#ifdef STANDALONE
+    return -1;
+#else
+    pthread_exit(-1);
+#endif
   }
+  
+  gst_playing = PLAYING;
 
   /* Iterate */
   g_print ("Running...\n");
   g_main_loop_run (loop);
-
+  
+  gst_playing = STOPPED;
 
   /* Out of the main loop, clean up nicely */
   g_print ("Returned, stopping playback\n");
@@ -148,8 +158,12 @@ int main (int argc, char *argv[])
 
   g_print ("Deleting pipline\n");
   gst_object_unref (GST_OBJECT (pipeline));
-
+  
+#ifdef STANDALONE
   return 0;
+#else
+  pthread_exit(0);
+#endif
 }
 
 void killGst()
@@ -166,5 +180,5 @@ void stopGst()
 }
 void setPathGst(char * path)
 {
- g_object_set (G_OBJECT (source), "location", path, NULL);
+ g_object_set (G_OBJECT (src), "location", path, NULL);
 }

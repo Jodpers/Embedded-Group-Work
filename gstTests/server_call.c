@@ -25,7 +25,7 @@ void main(void)
 #ifndef MULTI
   while(--count)
   {
-    ret = gstServer(4444, "127.0.0.1", "/media/Data/Ab/Work/ESD/bingxiang.ogg");
+    ret = gstServer(4444, "127.0.0.1", "/media/Data/Ab/My Music/FlashGot/Kid Koala - Third World Lover.mp3");
     printf("gstServer returned: %d\n",ret);
 /*
     if (gst_playing == STOPPED)

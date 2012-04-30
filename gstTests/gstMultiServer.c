@@ -15,7 +15,10 @@
 
 #include <linux/limits.h> // not sure which one i need for MAX_PATH
 #include <limits.h>
+
 //#define STANDALONE 1
+
+//#define OGG
 
 int port = 12000;
 char ip[16] = {"224.0.0.2"};
@@ -56,7 +59,7 @@ static gboolean bus_call(GstBus *bus, GstMessage *msg, gpointer data)
   
   return TRUE;
 }
-
+#ifdef OGG
 static void on_pad_added (GstElement *element, GstPad *pad, gpointer data)
 {
   GstPad *sinkpad;
@@ -70,31 +73,7 @@ static void on_pad_added (GstElement *element, GstPad *pad, gpointer data)
   gst_pad_link (pad, sinkpad);  
   gst_object_unref (sinkpad);
 }
-
-/* http://gstreamer.freedesktop.org/data/doc/gstreamer/head/manual/html/chapter-dataaccess.html */
-static gboolean
-cb_have_data (GstPad    *pad,
-	      GstBuffer *buffer,
-	      gpointer   u_data)
-{
-  gint x, y;
-  guint16 *data = (guint16 *) GST_BUFFER_DATA (buffer), t;
-
-  /* invert data */
-/*
-  for (y = 0; y < 288; y++) {
-    for (x = 0; x < 384 / 2; x++) {
-      t = data[384 - 1 - x];
-      data[384 - 1 - x] = data[x];
-      data[x] = t;
-    }
-    data += 384;
-  }
-  */
-  printf("callback!\n");
-
-  return TRUE;
-}
+#endif
 
 #ifdef STANDALONE
 int main (int argc, char *argv[])
@@ -108,7 +87,13 @@ int main (int argc, char *argv[])
   strcpy(ip,ip_in);
   strcpy(path,path_in);
 #endif
-  GstElement *demuxer, *decoder, *conv, *filter, *rtp, *sink;
+
+  GstElement *filter, *sink;
+#ifdef OGG
+  GstElement *demuxer, *decoder, *conv, *filter, *rtp;
+#else
+  GstElement *ffdemux_mp3, *rtpmpapay;
+#endif
   GstCaps *filtercaps;
   GstPad *pad;
   GstBus *bus;
@@ -120,22 +105,39 @@ int main (int argc, char *argv[])
   /* Create gstreamer elements */
   pipeline = gst_pipeline_new ("multicast-server");
   src      = gst_element_factory_make ("filesrc", "src");
+  filter   = gst_element_factory_make ("capsfilter", "filter");
+  sink     = gst_element_factory_make ("udpsink", "sink");
+#ifdef OGG
+
+/* OGG
+gst-launch filesrc location=/media/Data/Ab/Work/ESD/example.ogg ! oggdemux ! vorbisdec ! audioconvert ! audio/x-raw-int,channels=1,depth=16,width=16,rate=44100 ! rtpL16pay ! udpsink host=224.0.0.2 port=12000
+*/
   demuxer  = gst_element_factory_make ("oggdemux", "demuxer");
   decoder  = gst_element_factory_make ("vorbisdec", "decoder");
   conv     = gst_element_factory_make ("audioconvert", "converter");
-  filter   = gst_element_factory_make ("capsfilter", "filter");
   rtp      = gst_element_factory_make ("rtpL16pay", "rtp");
-  sink     = gst_element_factory_make ("udpsink", "sink");
 
-  if (!pipeline || !src || !demuxer || !decoder || !conv || !filter || !rtp || !sink)
+  if (!pipeline || !src || !demuxer || !decoder || !conv || !filter || !rtp || !sink)  
+#else
+
+/* MP3
+gst-launch filesrc location="hello.mp3" ! ffdemux_mp3 ! rtpmpapay ! udpsink host=224.0.0.2 port=4444
+*/
+  ffdemux_mp3     = gst_element_factory_make ("ffdemux_mp3", "ffdemux_mp3");
+  rtpmpapay      = gst_element_factory_make ("rtpmpapay", "rtpmpapay");
+
+  if (!pipeline || !src || !ffdemux_mp3 || !rtpmpapay || !sink)
+#endif
   {
     g_printerr ("One element could not be created. Exiting.\n");
-    return -1;
+#ifdef STANDALONE
+      return -1;
+#else
+      pthread_exit(-1);
+#endif
   }
-
-  /*
-  gst-launch filesrc location=/media/Data/Ab/Work/ESD/example.ogg ! oggdemux ! vorbisdec ! audioconvert ! audio/x-raw-int,channels=1,depth=16,width=16,rate=44100 ! rtpL16pay ! udpsink host=224.0.0.2 port=12000
-  */
+  
+#ifdef OGG  
   
   /* we add all elements into the pipeline */
   gst_bin_add_many (GST_BIN (pipeline), src, demuxer, decoder, conv, filter, rtp, sink, NULL);
@@ -193,12 +195,20 @@ int main (int argc, char *argv[])
   /* wait until it's up and running or failed */
   if (gst_element_get_state (pipeline, NULL, NULL, -1) == GST_STATE_CHANGE_FAILURE) {
     g_error ("Failed to go into PLAYING state");
+#ifdef STANDALONE
+    return -1;
+#else
+    pthread_exit(-1);
+#endif
   }
+  
+  gst_playing = PLAYING;
 
   /* Iterate */
   g_print ("Running...\n");
   g_main_loop_run (loop);
-
+  
+  gst_playing = STOPPED;
 
   /* Out of the main loop, clean up nicely */
   g_print ("Returned, stopping playback\n");
@@ -207,7 +217,11 @@ int main (int argc, char *argv[])
   g_print ("Deleting pipline\n");
   gst_object_unref (GST_OBJECT (pipeline));
 
+#ifdef STANDALONE
   return 0;
+#else
+  pthread_exit(0);
+#endif
 }
 
 void killGst()
@@ -217,12 +231,31 @@ void killGst()
 void playGst()
 {
   gst_element_set_state(pipeline, GST_STATE_PLAYING);
+  if (gst_element_get_state (pipeline, NULL, NULL, -1) == GST_STATE_CHANGE_FAILURE) {
+    g_error ("Failed to go into PLAYING state");
+  }
 }
-/*void stopGst()
+
+void pauseGst()
 {
-  gst_element_set_state(pipeline, GST_STATE_STOPPED);
-}*/
-void setPathGst(char * path)
+  gst_element_set_state(pipeline, GST_STATE_PAUSED);
+  if (gst_element_get_state (pipeline, NULL, NULL, -1) == GST_STATE_CHANGE_FAILURE) {
+    g_error ("Failed to go into PLAYING state");
+  }
+}
+
+void stopGst()
 {
- g_object_set (G_OBJECT (src), "location", path, NULL);
+  gst_element_set_state(pipeline, GST_STATE_PAUSED);
+  if (gst_element_get_state (pipeline, NULL, NULL, -1) == GST_STATE_CHANGE_FAILURE) {
+    g_error ("Failed to go into PLAYING state");
+  }
+  gst_element_set_state(pipeline, GST_STATE_READY);
+  if (gst_element_get_state (pipeline, NULL, NULL, -1) == GST_STATE_CHANGE_FAILURE) {
+    g_error ("Failed to go into PLAYING state");
+  }
+  gst_element_set_state(pipeline, GST_STATE_NULL);
+  if (gst_element_get_state (pipeline, NULL, NULL, -1) == GST_STATE_CHANGE_FAILURE) {
+    g_error ("Failed to go into PLAYING state");
+  }
 }

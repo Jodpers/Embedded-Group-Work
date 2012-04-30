@@ -11,7 +11,7 @@
 void killGst();
 void playGst();
 void pauseGst();
-char * getTimeGst();
+int getTimeGst(char * trackTime);
 void seekGst();
 void set_ip_and_port(char *ip_in, int port_in);
 

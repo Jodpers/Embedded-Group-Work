@@ -54,4 +54,7 @@ void setup_threads(void);
 void start_threads(void);
 void closing_time(void);
 
+void start_logged_in_threads(void);
+void stop_logged_in_threads(void);
+
 #endif /* THREADS_H_ */

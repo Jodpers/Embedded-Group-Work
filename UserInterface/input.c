@@ -16,14 +16,13 @@
 #include "threads.h"
 #include "display.h"
 #include "debug.h"
+#include "gstClient.h"
 
 BYTE playing = FALSE;
 BYTE authentication = FALSE;
 char temp_string[BUFFER_SIZE] = {0};
 
 BYTE pause = FALSE;
-
-extern void playGst();
 
 BYTE play_track(char * buffer,int buf_len);
 
@@ -168,6 +167,12 @@ void input_track_number(char button_read){
     }
     break;
 
+
+  case DELETE:
+    delete_char();
+    if (input_len)
+      break;
+
   case CANCEL:
     reset_buffers();
 
@@ -185,9 +190,6 @@ void input_track_number(char button_read){
     move_cursor(LEFT);
     break;
 
-  case DELETE:
-    delete_char();
-    break;
 
   case ENTER_MENU:
     if (input_len == 0)

@@ -16,11 +16,13 @@
 #include "states.h"
 #include "debug.h"
 
-int state = INIT_STATE;	// State machine variable
-int logged_in = FALSE;  		// Client connected to server
+//int state = INIT_STATE;	// State machine variable
+//int logged_in = FALSE;  		// Client connected to server
 
-//int state = WAITING_LOGGED_IN; // State machine variable
-//int logged_in = TRUE;          // Client connected to server
+int state = WAITING_LOGGED_IN; // State machine variable
+int logged_in = TRUE;          // Client connected to server
+
+int already_logged_in = FALSE;
 
 /**
  *  @brief State Machine - controls the user interface.
@@ -86,7 +88,7 @@ void * state_machine(void){
 	  }
 	  else{
 	    if(button_read == 'C' && input_len == 0){
-	      alive = FALSE; // NEEDS WORK
+	      //alive = FALSE; // NEEDS WORK
 	    }
 	    display_string("Please Enter PIN.",NOT_BLOCKING);
 	    break;
@@ -99,47 +101,52 @@ void * state_machine(void){
 	  break;
 	  
 	case WAITING_LOGGED_IN:
+	  if (already_logged_in == FALSE)
+	  {
+	    start_logged_in_threads();
+	    already_logged_in = TRUE;
+	  }
 	  switch(button_read){
 	    
         case ACCEPT_PLAY:
           pause=~pause;
 
-          if (pause == TRUE)
-            {
-              pauseGst();
-            }
-            else if (pause == FALSE)
-            {
-              playGst();
-            }
-            printf("pause = %d\n",pause);
-            break;
+          if (pause != FALSE)
+          {
+            pauseGst();
+          }
+          else
+          {
+            playGst();
+          }
+          printf("pause = %d\n",pause);
+          break;
 
-          case ENTER_MENU:
-            pthread_mutex_lock(&state_Mutex);
-            state = MENU_SELECT;
-            pthread_mutex_unlock(&state_Mutex);
-            break;
+        case ENTER_MENU:
+          pthread_mutex_lock(&state_Mutex);
+          state = MENU_SELECT;
+          pthread_mutex_unlock(&state_Mutex);
+          break;
 
-          default:
-	    if (getFollower())
-	      {
-		printd("For you are a follower, you may not request a track. You have to listen to what i want.\n");
-	      }
-	    else
-	      {
-		if(button_read >= '0' && button_read <= '9'){
-		  pthread_mutex_lock(&state_Mutex);
-		  state = INPUTTING_TRACK_NUMBER;
-		  pthread_mutex_unlock(&state_Mutex);
-		}
-		else{
-		  display_string("Enter Track Number.",NOT_BLOCKING);
-		}
-	      }
-            break;
+        default:
+          if (getFollower())
+          {
+            printd("For you are a follower, you may not request a track. You have to listen to what i want.\n");
+          }
+          else
+          {
+            if(button_read >= '0' && button_read <= '9'){
+              pthread_mutex_lock(&state_Mutex);
+              state = INPUTTING_TRACK_NUMBER;
+              pthread_mutex_unlock(&state_Mutex);
+            }
+            else{
+              display_string("Enter Track Number.",NOT_BLOCKING);
+            }
           }
           break;
+      }
+      break;
 	
   case INPUTTING_TRACK_NUMBER:
     if(button_read){

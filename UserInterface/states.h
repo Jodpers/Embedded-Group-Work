@@ -21,12 +21,6 @@ enum ui_states{
     SUBMENU_SELECT
 } current_state;
 
-enum gst_states{
-    STOPPED,
-    PLAYING,
-    PAUSED
-} gstreamer_state;
-
 /* External Variables */
 extern int state;
 extern BYTE playing;

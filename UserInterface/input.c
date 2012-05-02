@@ -26,6 +26,9 @@ BYTE pause = FALSE;
 
 BYTE play_track(char * buffer,int buf_len);
 
+
+int already_logged_in = FALSE;
+
 /*------------------------------------------------------------------------------
  * User Interface State Machines
  *------------------------------------------------------------------------------
@@ -70,6 +73,13 @@ void input_pin(char button_read){
     	logged_in = TRUE;
         state = WAITING_LOGGED_IN;
     	pthread_mutex_unlock(&state_Mutex);
+    	
+    	/* Launch threads on log in */
+    	if (already_logged_in == FALSE)
+	    {
+	      start_logged_in_threads();
+	      already_logged_in = TRUE;
+	    }
 
     	display_string("Welcome.",BLOCKING);
     	display_string("Enter Track Number.",NOT_BLOCKING);
@@ -78,6 +88,7 @@ void input_pin(char button_read){
     	printd("Authentication Failed\n");
         pthread_mutex_lock(&state_Mutex);
     	logged_in = FALSE;
+    	already_logged_in = FALSE;
         pthread_mutex_unlock(&state_Mutex);
     	display_string("Please Enter VALID PIN!",NOT_BLOCKING);
 

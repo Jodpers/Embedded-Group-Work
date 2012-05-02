@@ -75,6 +75,7 @@ extern int input_len;
 extern int input_ptr;
 
 extern int logged_in; // (states.c)
+extern int already_logged_in;
 
 void update_display(void);
 

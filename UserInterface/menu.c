@@ -60,9 +60,10 @@ void menu_select(void){
     /* If button has been pressed, but an emergency packet has arrived,
      * check for it and respond by breaking out of the loop.
      */
-	pthread_mutex_lock(&state_Mutex);
-	state_read = state;
-	pthread_mutex_unlock(&state_Mutex);
+	  pthread_mutex_lock(&state_Mutex);
+	  state_read = state;
+	  pthread_mutex_unlock(&state_Mutex);
+    
     if(state_read == EMERGENCY || alive == FALSE){
       set_menu(FALSE); // in display.c
       break; // Get out if there's an emergency
@@ -107,15 +108,20 @@ void menu_select(void){
             break;
 
 		  case LOG_OUT:
-            set_menu(FALSE);
-            reset_buffers();
-		    display_string(" Goodbye ",BLOCKING);
-		    pthread_mutex_lock(&state_Mutex);
+		    {
+          set_menu(FALSE);
+          reset_buffers();
+  	      display_string(" Goodbye ",BLOCKING);
+	
+		      pthread_mutex_lock(&state_Mutex);
 	        logged_in = FALSE;
-            state = INIT_STATE;
-            state_read = state;
-            pthread_mutex_unlock(&state_Mutex);
-            printd("Logging Out\n");
+	        already_logged_in = FALSE;
+          state = INIT_STATE;
+          state_read = state;
+          pthread_mutex_unlock(&state_Mutex);
+  
+          printd("Logging Out\n");
+        }
 		    break;
 
 		  case EXIT_PROG:

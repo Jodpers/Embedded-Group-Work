@@ -106,8 +106,17 @@ void menu_select(void){
             break;
 
           case PLAYBACK:
+	    if (cont)
+	      {
+		cont = 0;
+		display_string(" Mode set to continuousplay only one track at a time",BLOCKING);
+	      }
+	    else
+	      {
+		cont = 1;
+		display_string(" Mode set to continuous",BLOCKING);
+	      }
 	    
-	    display_string("  ",BLOCKING);
             break;
 
 	    case LOG_OUT:

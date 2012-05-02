@@ -276,6 +276,8 @@ int parsePacket(char * buffer)
   extern pthread_t gst_control_thread;
   extern void * gst(int port, char ip[]);
 
+  extern int mac_changed;
+
   static int timeout = TIMEOUTVALUE;
   int state = 1;
   char loggedIn;
@@ -413,7 +415,18 @@ int parsePacket(char * buffer)
        
          case ACK: /* Do nothing */
           printd("%s", buffer);
-          state = WAITING;
+	  if (mac_changed == 1)
+	    {
+	      mac_changed = 0;
+	      reqCode == CLOSEST_MAC_ADDRESS;
+	      state = PACKET_CREATION;
+	      opcode = PLAY;
+	      
+	    }
+	  else
+	    {
+	      state = WAITING;
+	    }
           break;
         
 	case NAK: /* Resends last packet */

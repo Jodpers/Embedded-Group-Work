@@ -66,8 +66,8 @@ void * wifi_scan(void)
     bzero(new_mac, STRING_LENGTH);
 
     /* Execute a process listing */
-//    sprintf(command, "sudo iwlist wlan0 scan | awk -W interactive ' $4 ~ /Address/ { print $5} $1 ~ /Quality/ { print $1 } ' | cut -d= -f2 | cut -d/ -f1");
-    sprintf(command, "awk -W interactive ' $4 ~ /Address/ { print $5} $1 ~ /Quality/ { print $1 } ' scan.txt | cut -d= -f2 | cut -d/ -f1");
+    sprintf(command, "iwlist wlan0 scan | awk -W interactive ' $4 ~ /Address/ { print $5} $1 ~ /Quality/ { print $1 } ' | cut -d= -f2 | cut -d/ -f1");
+//    sprintf(command, "awk -W interactive ' $4 ~ /Address/ { print $5} $1 ~ /Quality/ { print $1 } ' scan.txt | cut -d= -f2 | cut -d/ -f1");
   
     /* Setup our pipe for reading and execute our command. */
     if((pipein_fp = popen(command,"r")) == NULL){

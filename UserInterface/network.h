@@ -30,6 +30,7 @@
 #define FIN_INDIV_TRACK '3'
 #define FIN_PLAYLIST_TRACK '4'
 #define END_OF_PLAYLIST '5'
+#define CLOSEST_MAC_ADDRESS '6'
 
 extern char task;
 extern char data[];

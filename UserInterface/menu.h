@@ -11,6 +11,7 @@
 
 void menu_select(void);
 void show_choice(int);
+int continous();
 
 extern void set_menu(BYTE);
 extern void wifi_scan(void);

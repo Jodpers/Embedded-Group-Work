@@ -15,10 +15,12 @@
 #include "threads.h"
 #include "display.h"
 #include "gstClient.h"
+#include "network.h"
 
 
 extern int gst_playing;
-
+extern int getFollower;
+extern int playCode;
 
 //#define MULTI 1
 
@@ -38,19 +40,27 @@ void * gst_control(void){
     pthread_attr_init(&gst_Attr);
     pthread_attr_setdetachstate(&gst_Attr, PTHREAD_CREATE_JOINABLE);
 
-#ifndef MULTI
-    if(pthread_create( &gst_thread, &gst_Attr,
-                                                (void *)gst, NULL) != 0){
-      perror("gst thread failed to start\n");
-      exit(EXIT_FAILURE);
-    }
-#else
-   if(pthread_create( &gst_thread, &gst_Attr,
-                                                (void *)gst_multicast, NULL) != 0){
-      perror("gst_multicast thread failed to start\n");
-      exit(EXIT_FAILURE);
-    }
-#endif
+    //#ifndef MULTI
+
+      if(getFollower == 0)
+	{
+	  if(pthread_create( &gst_thread, &gst_Attr,
+			     (void *)gst, NULL) != 0){
+	    perror("gst thread failed to start\n");
+	    exit(EXIT_FAILURE);
+	  }
+	}
+    //#else
+      else
+	{
+	  if(pthread_create( &gst_thread, &gst_Attr,
+			     (void *)gst_multicast, NULL) != 0){
+	    perror("gst_multicast thread failed to start\n");
+	    exit(EXIT_FAILURE);
+	  }
+	}
+
+   //#endif
 
     /* Destroy the thread attributes object, since it is no longer needed */
 
@@ -63,31 +73,45 @@ void * gst_control(void){
 
 
     /* do something */
-#ifndef MULTI
-    set_ip_and_port("127.0.0.1",port);
+    //#ifndef MULTI
+    //    set_ip_and_port("127.0.0.1",port);
+    
     printf("hi port:%d\n",port);
     status = pthread_join(gst_thread, &res);
-
+    
     if (status != 0)
-    {
-      errno = status;
-      perror("pthread_join");
-    }
-
+      {
+	errno = status;
+	perror("pthread_join");
+      }
+    
     printf("Joined with thread; returned value was %s\n", (char *) res);
     free(res);      /* Free memory allocated by thread */
-#else
-    set_multicast_ip_and_port("224.0.0.2",port);
+  
+    //#else
+    //  set_multicast_ip_and_port("224.0.0.2",port);
+    
+    /*	while(alive)
+	  {
+	    char trackTime[12] = {0};
+	    sleep(1);
+	    getTimeGst(trackTime);
+	    printf("track time: %s\n",trackTime);
+	  }
+	  }*/
+    //#endif
 
-    while(alive)
-    {
-      char trackTime[12] = {0};
-      sleep(1);
-      getTimeGst(trackTime);
-      printf("track time: %s\n",trackTime);
-    }
-#endif
-
+    pthread_mutex_lock(&network_Mutex);
+    task = PLAY;
+    if (continous())
+      {
+	playCode = FIN_PLAYLIST_TRACK;
+      }
+    else
+      {
+	playCode = FIN_INDIV_TRACK;
+      }
+    pthread_mutex_unlock(&network_Mutex);
   }
   pthread_exit(0);
 }

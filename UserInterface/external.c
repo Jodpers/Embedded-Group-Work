@@ -15,6 +15,9 @@
 #include "network.h"
 #include "debug.h"
 
+extern int continous();
+extern char playCode;
+
 BYTE check_pin(char * buffer, int buf_len){
 
 	BYTE valid = FALSE;
@@ -44,6 +47,16 @@ BYTE play_track(char * buffer,int buf_len){
   data[buf_len] = '\0';
   printd("data after strcpy= %s\n", data);
   task = PLAY;
+
+  if (continous())
+    {
+      playCode = PLAYLIST;
+    }
+  else
+    {
+      playCode = PLAY_TRACK_ONLY;
+    }
+
   pthread_cond_signal(&network_Signal);
   pthread_mutex_unlock(&network_Mutex);
   
@@ -53,9 +66,4 @@ BYTE play_track(char * buffer,int buf_len){
   valid = data[0];
   pthread_mutex_unlock(&request_Mutex);
   return valid;	
-}
-
-char * closest_MAC(void){
-
-  return;
 }

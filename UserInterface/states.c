@@ -122,7 +122,7 @@ void * state_machine(void){
           break;
 
         default:
-          if (getFollower())
+          if (getFollower() == 1)
           {
             printd("For you are a follower, you may not request a track. You have to listen to what i want.\n");
           }

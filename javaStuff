@@ -9,3 +9,9 @@ gcc -c calc_mean.c -o calc_mean.o
 gcc -c -fPIC calc_mean.c -o calc_mean.o    
 gcc -shared -Wl,-soname,libmean.so.1 -o libmean.so.1.0.1  calc_mean.o
 output must begin with lib
+
+gst-launch filesrc location=/home/.ogg ! oggdemux ! vorbisdec ! audioconvert ! audio/x-raw-int,channels=1,depth=16,width=16,rate=44100 ! rtpL16pay ! udpsink host=224.0.0.1 port=12000
+
+
+
+gst-launch udpsrc multicast-group=224.0.0.1 port=12000 ! "application/x-rtp,media=(string)audio, clock-rate=(int)44100, width=16,height=16, encoding-name=(string)L16, encoding-params=(string)1, channels=(int)1, channel-positions=(int)1, payload=(int)96" ! gstrtpjitterbuffer do-lost=true ! rtpL16depay ! audioconvert ! alsasink sync=false

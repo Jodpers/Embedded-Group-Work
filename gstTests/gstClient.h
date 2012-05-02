@@ -11,11 +11,10 @@
 void killGst();
 void playGst();
 void pauseGst();
-long long int getTimeGst();
+int getTimeGst(char * trackTime);
 void seekGst();
 void set_ip_and_port(char *ip_in, int port_in);
 
-void * gst_multicast(void);
 #ifndef STANDALONE
 void * gst(void);
 #endif

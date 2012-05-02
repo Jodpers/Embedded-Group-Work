@@ -14,11 +14,35 @@
 #include <time.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <errno.h>
+#include <string.h>
+#include <sys/time.h>
 
 #include "top.h"
+#include "display.h"
 #include "threads.h"
+#include "gstClient.h"
+#include "debug.h"
+
+#define GST_TIME    1
+#define WIFI_TIME   6
+
+#define TIMEOUT 1
+
+
+
+enum gst_states {STOPPED, READY, PAUSED, PLAYING} gst_state;
 
 extern void wifi_scan(void);
+
+int count = 0;
+
+void show_time(void)
+{
+  char str[6];
+  sprintf(str,"%02d%02d",((count / 60) % 99), count % 60);
+  display_time(str);
+}
 
 /**
  *  @brief Timer Thread - used to aid time specific tasks.
@@ -30,42 +54,70 @@ extern void wifi_scan(void);
  *  @return Void.
  */
 void * timer(void){
-    time_t start_time, current_time;
-    time_t gst_ping, wifi_ping;
+  struct timespec timeToWait;
+  struct timeval now;
+  int err, init = FALSE;
+  int paused_blink = FALSE;
 
-    int gst_time = 100;
-    int wifi_time = 1000;
 
-    current_time = clock() / (CLOCKS_PER_SEC/1000);
-    start_time = current_time;
+  //extern char closest_mac[];
 
-    gst_ping = current_time + gst_time;
-    wifi_ping = current_time + wifi_time;
+  gettimeofday(&now,NULL);
+  timeToWait.tv_sec = now.tv_sec+1;
+  timeToWait.tv_nsec = 0;
 
-    while (alive)
+
+  while(alive && logged_in)
+  {
+
+    long long int time = 0;
+
+    pthread_mutex_lock(&timer_Mutex);
+    err = pthread_cond_timedwait(&timer_Signal, &timer_Mutex, &timeToWait);
+/*    if (err == ETIMEDOUT) {
+      printd("timer timed out\n");
+    }
+    else
     {
-      usleep(100000);
-
-      current_time = clock() / (CLOCKS_PER_SEC/1000);
-//      printf("current_time: %ld\n",current_time);
-
-    if (current_time >= gst_ping){
-      pthread_mutex_lock(&timer_Mutex);
-      pthread_cond_signal(&timer_Signal);
-      pthread_mutex_unlock(&timer_Mutex);
-      gst_ping = current_time + gst_time;
-//      printf("gst_ping: %ld\n",gst_ping);
+      printd("timer called\n");
     }
+*/
+    pthread_mutex_unlock(&timer_Mutex);
 
-      if(current_time >= wifi_ping)
+    gettimeofday(&now,NULL);
+
+    if (time = getTimeGst())
+    {
+      if (init == FALSE)
       {
-        pthread_mutex_lock(&timer_Mutex);
-
-        pthread_cond_signal(&timer_Signal);
-        pthread_mutex_unlock(&timer_Mutex);
-        wifi_ping = current_time + wifi_time;
-//        printf("\twifi_ping: %ld\n",wifi_ping);
+        timeToWait.tv_sec = now.tv_sec;
+        timeToWait.tv_nsec = time % (1000000000UL);
+        init = TRUE;
       }
+      else
+      {
+        timeToWait.tv_sec = now.tv_sec + TIMEOUT;
+        timeToWait.tv_nsec = 0;
+      }
+      count = time / (1000000000UL);
+      show_time();
+      paused_blink = FALSE;
     }
-    return 0;
+    else
+    {
+      timeToWait.tv_sec = now.tv_sec+1;
+      timeToWait.tv_nsec = 0;
+      //display_time("    ");
+      paused_blink = TRUE;
+      init = FALSE;
+    }
+
+    /*
+    if (strlen(closest_mac) != 0)
+    {
+      printd("timer seeing mac: %s\n",closest_mac);
+    }
+    */
+  }
+  pthread_exit(0);
 }

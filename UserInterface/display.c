@@ -159,6 +159,25 @@ void update_display(void){
         }
       break;
       
+
+    case DISPLAYING_TIME:
+      cursor_blink = FALSE;
+      for(i=0;i<COLS;i++){
+        digits[i] = display_char(display_buffer[i]);
+      }
+      digits[1] |= CURSOR_VALUE;
+
+      display_flag = WAITING;
+      break;
+
+    case CLEARING_TIME:
+      cursor_blink = TRUE;
+      for(i=0;i<COLS;i++){
+        digits[i] = 0;
+      }
+      display_flag = WAITING;
+
+
     case INPUTTING:
       for(i=0;i<COLS;i++){
         digits[i] = display_char(input_buffer[i+cursor_offset]);
@@ -480,15 +499,17 @@ void display_input_buffer(void){
  *  @param Void.
  *  @return Void.
  */
-void display_time(void){
+void display_time(char *in){
+  if (display_flag == WAITING && (0 == strlen(input_buffer)))
+  {
+    strcpy(display_buffer,in);
+    display_flag = DISPLAYING_TIME;
+  }
+}
 
-  /* TODO */
-  /*
-  long time;
-  time = gst_get_time();
-  sprintf(display_buffer,"%0.2d.0.2d%", time / 60, time % 60);
-  display_flag = CHANGED;
-  */
+void clear_time(void){
+  bzero(display_buffer,BUFFER_SIZE);
+  display_flag = CLEARING_TIME;
 }
 
 /**

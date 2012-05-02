@@ -14,6 +14,8 @@ enum display_states{
 	WAITING,
 	CHANGED,
 	INPUTTING,
+    DISPLAYING_TIME,
+    CLEARING_TIME,
 	WRITING
 } display_state;
 
@@ -46,7 +48,6 @@ enum display_states{
    10   4
     --8-- 80
 *******************/
-#define CURSOR_VAL		0x80
 
 extern const BYTE numtab[];
 extern const BYTE uitab[];
@@ -74,8 +75,7 @@ extern int input_len;
 extern int input_ptr;
 
 extern int logged_in; // (states.c)
-
-extern int gst_state;
+extern int already_logged_in;
 
 void update_display(void);
 
@@ -86,8 +86,9 @@ void move_cursor(int);
 BYTE display_char(char);
 void display_string(char *,BYTE);
 void display_input_buffer(void);
-void display_time(void);
 void display_volume(long);
+void display_time(char *in);
+void clear_time(void);
 
 void set_menu(BYTE);
 extern void reset_buffers(void);

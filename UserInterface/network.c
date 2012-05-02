@@ -93,6 +93,9 @@ void * networkingFSM(void)
 	  strncpy(localRecPacket, receivedPacket, PACKETLEN);
 	  pthread_mutex_unlock(&network_Mutex);
 	  
+	  if (alive == FALSE)
+	    break;              /* If the signal to die comes, then actually die! */
+	  
 	  if (opcode == RECEIVE)
 	    {
 	      printd("sentt:%d\n", sentt);
@@ -190,19 +193,21 @@ int networkSetup()
     {
 
       if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) 
-	{
-	  perror("client: socket");
-	  continue;
-	}
-      
-      if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) 
-	{
-	  close(sockfd);
-	  perror("client: connect");
-	  continue;
-	}
+	    {
+	      perror("client: socket");
+	      continue;
+	    }
+          
+          if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) 
+	    {
+	      close(sockfd);
+	      perror("client: connect");
+	      continue;
+	    }
       break;
     }
+    
+    
   if (p == NULL) 
     {
       //  fprintf(stderr, "client: failed to connect\n");
@@ -231,11 +236,11 @@ void * receive(void)
     {
       char buffer[MAXDATASIZE];
       if ((numbytes = recv(sockfd, buffer, MAXDATASIZE-1, 0)) == -1) // Blocking if statement
-	{
-	  perror("recv");
-	  alive = FALSE;
-	  break;
-	}
+	    {
+	      perror("recv");
+	      alive = FALSE;
+	      break;
+	    }
 
       printd("Packet received: %s\n", buffer);      
       buffer[numbytes] = '\0';

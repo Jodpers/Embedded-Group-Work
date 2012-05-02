@@ -99,7 +99,8 @@ void menu_select(void){
 
 		  case LOCATION:
 		    //Request Location Information
-	        //wifi_scan();
+		    
+		    
 		    break;
 
           case SCROLL:

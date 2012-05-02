@@ -17,6 +17,7 @@
 #include "display.h"
 #include "debug.h"
 #include "gstClient.h"
+#include "networking.h"
 
 BYTE playing = FALSE;
 BYTE authentication = FALSE;
@@ -165,6 +166,10 @@ void input_track_number(char button_read){
         display_string(temp_string,BLOCKING);
 	playGst();
       }
+      else(playing == END_OF_PLAYLIST)
+	{
+	  display_string("End of playlist. Please select a track or playlist\n",BLOCKING);
+	}
        else{
         display_string("Track not found.",BLOCKING);
       }

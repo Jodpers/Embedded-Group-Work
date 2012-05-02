@@ -25,9 +25,14 @@
 #define PASS '1'
 #define FAIL '0'
 
+#define PLAY_TRACK_ONLY '1'
+#define PLAYLIST '2'
+#define FIN_INDIV_TRACK '3'
+#define FIN_PLAYLIST_TRACK '4'
+#define END_OF_PLAYLIST '5'
+
 extern char task;
 extern char data[];
-
 
 extern int networkSetup();
 #endif /* NETWORK_H_ */

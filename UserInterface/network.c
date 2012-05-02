@@ -51,6 +51,7 @@ char packet[PACKETLEN] = {0};
 char opcode;
 int sentt = 0;
 int follower;
+char reqtype = 0;
 
 char * msg;
 
@@ -310,6 +311,10 @@ int parsePacket(char * buffer)
 	  free(tmp);
           break;
 
+  //10  unauthenticated
+  //110 indiv
+  //111 leader
+  //112 follower
 
 	case PIN: //format: 111,port.ip
 	  printd("buffer[1]:%c\n",buffer[1]);
@@ -321,7 +326,7 @@ int parsePacket(char * buffer)
 	      tmp = (char*) malloc(1); 
 	      tmp[0] = buffer[2];
 
-	      follower = atoi(tmp); 
+	      follower = atoi(tmp); //Follower: 0 = Indiv, 1= Follower ,2=Leader
 	      
 	      /*Copy out Port*/
 	      i = 3;
@@ -384,6 +389,14 @@ int parsePacket(char * buffer)
 	      pthread_cond_signal(&request_Signal);
 	      pthread_mutex_unlock(&request_Mutex);
 	    }
+	  if (buffer[1] == END_OF_PLAYLIST)
+	    {
+	      printd("End of playlist reached");
+	      pthread_mutex_lock(&request_Mutex);
+	      data[0] = END_OF_PLAYLIST;
+	      pthread_cond_signal(&request_Signal);
+	      pthread_mutex_unlock(&request_Mutex);
+	    }
 	  break;
 
         case TRACKINFO:
@@ -442,6 +455,12 @@ int parsePacket(char * buffer)
 int createPacket(char * localData)
 {
 
+  //211 - play track only - client sent
+  //222 - play playlist - client sent
+  //23 - finished indiv track, will send ack - client sent
+  //24 finished track in playlist - client sent
+  //25 - End of playlist - server sent
+
 
   bzero(packet, PACKETLEN); // Clears the packet
 
@@ -457,6 +476,10 @@ int createPacket(char * localData)
 	{
 	  return  WAITING;
 	}
+      
+      sprintf(packet, "%c%c%s\n", opcode, reqtype, localData); // request packet, 
+      break;
+
     case TRACKINFO:
       sprintf(packet, "%c%s\n", opcode, localData); // request packet, used for play and track info
       break;
@@ -472,7 +495,6 @@ int createPacket(char * localData)
     }
   return SEND;
 }
-
 
 int getFollower()
 {

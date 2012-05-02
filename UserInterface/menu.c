@@ -16,6 +16,7 @@
 #include "display.h"
 #include "debug.h"
 
+int continous = 0;
 
 /**
  *  @brief Menu selection routine.
@@ -189,4 +190,9 @@ void show_choice(int choice){
   }
 
   return;
+}
+
+int continous()
+{
+  return continous;
 }

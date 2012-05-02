@@ -418,8 +418,8 @@ int parsePacket(char * buffer)
 	  if (mac_changed == 1)
 	    {
 	      mac_changed = 0;
-	      reqCode == CLOSEST_MAC_ADDRESS;
-	      state = PACKET_CREATION;
+	      reqCode = CLOSEST_MAC_ADDRESS;
+	      state = CREATEHEADERS;
 	      opcode = PLAY;
 	      
 	    }

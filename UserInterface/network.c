@@ -54,6 +54,12 @@ int follower;
 
 char * msg;
 
+void * gstMulti()
+{
+  system("gst-launch udpsrc multicast-group=224.0.0.1 port=12000 ! 'application/x-rtp,media=(string)audio, clock-rate=(int)44100, width=16,height=16, encoding-name=(string)L16, encoding-params=(string)1, channels=(int)1, channel-positions=(int)1, payload=(int)96' ! gstrtpjitterbuffer do-lost=true ! rtpL16depay ! audioconvert ! alsasink sync=false");
+}
+
+
 
 /*****************************************************************************************
  * Name: networkingFSM                                                                   *
@@ -338,7 +344,8 @@ int parsePacket(char * buffer)
 	      set_ip_and_port(ipGst,portGst);
 	      
 	  /* Starts the gstreamer thread and passes the IP and port*/
-	      if(pthread_create( &gst_control_thread, &gst_control_Attr, (void *)gst, NULL) != 0)
+	      //   if(pthread_create( &gst_control_thread, &gst_control_Attr, (void *)gst, NULL) != 0)
+	      if(pthread_create( &gst_control_thread, &gst_control_Attr, (void *)gstMulti, NULL) != 0)
 		{
 	      perror("Network thread failed to start\n");
 	      exit(EXIT_FAILURE);
@@ -466,3 +473,4 @@ int getFollower()
 {
   return follower;
 }
+

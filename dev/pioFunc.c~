@@ -1,0 +1,13 @@
+static void usbPioDisconnect(struct usb_interface *interface)
+  {
+          struct usbPiodeviceT *usbPiodevice;
+
+          /*Retrieve data saved with usb_set_intfdata - Free memory*/
+          com_details = usb_get_intfdata(interface); //TODO Free memory
+
+          /*Remove link between struct endpoint_com_details and interface*/
+          usb_set_intfdata(interface, NULL);
+
+          /* give back our minor */
+          usb_deregister_dev(interface, &usb_pio_keypad_class);
+  }

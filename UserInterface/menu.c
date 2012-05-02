@@ -16,7 +16,7 @@
 #include "display.h"
 #include "debug.h"
 
-int continous = 0;
+int cont = 0;
 
 /**
  *  @brief Menu selection routine.
@@ -106,17 +106,19 @@ void menu_select(void){
             break;
 
           case PLAYBACK:
+	    
+	    display_string("  ",BLOCKING);
             break;
 
-		  case LOG_OUT:
-		    {
-          set_menu(FALSE);
-          reset_buffers();
-  	      display_string(" Goodbye ",BLOCKING);
+	    case LOG_OUT:
+	      {
+		set_menu(FALSE);
+		reset_buffers();
+		display_string(" Goodbye ",BLOCKING);
 	
-		      pthread_mutex_lock(&state_Mutex);
-	        logged_in = FALSE;
-	        already_logged_in = FALSE;
+		pthread_mutex_lock(&state_Mutex);
+		logged_in = FALSE;
+		already_logged_in = FALSE;
           state = INIT_STATE;
           state_read = state;
           pthread_mutex_unlock(&state_Mutex);
@@ -194,5 +196,5 @@ void show_choice(int choice){
 
 int continous()
 {
-  return continous;
+  return cont;
 }

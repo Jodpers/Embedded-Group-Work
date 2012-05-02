@@ -19,7 +19,8 @@
 
 
 extern int gst_playing;
-extern int follower;
+extern int getFollower;
+extern int playCode;
 
 //#define MULTI 1
 
@@ -104,12 +105,13 @@ void * gst_control(void){
     task = PLAY;
     if (continous())
       {
-	data[0] = FIN_PLAYLIST_TRACK;
+	playCode = FIN_PLAYLIST_TRACK;
       }
     else
       {
-	data[0] = FIN_INDIV_TRACK;
+	playCode = FIN_INDIV_TRACK;
       }
+    pthread_mutex_unlock(&network_Mutex);
   }
   pthread_exit(0);
 }

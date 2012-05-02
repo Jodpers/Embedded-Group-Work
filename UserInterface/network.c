@@ -51,8 +51,8 @@ char packet[PACKETLEN] = {0};
 char opcode;
 int sentt = 0;
 int follower;
-char reqtype = 0;
-
+char playcode = '0';
+char reqCode = '0';
 char * msg;
 
 void * gstMulti()
@@ -92,6 +92,7 @@ void * networkingFSM(void)
 	  pthread_cond_wait(&network_Signal, &network_Mutex);
 	  opcode = task;
 	  strncpy(localRecPacket, receivedPacket, PACKETLEN);
+	  reqCode = playcode;
 	  pthread_mutex_unlock(&network_Mutex);
 	  
 	  if (alive == FALSE)
@@ -455,12 +456,12 @@ int parsePacket(char * buffer)
 int createPacket(char * localData)
 {
 
-  //211 - play track only - client sent
-  //222 - play playlist - client sent
+  //21 - play track only - client sent
+  //22 - play playlist - client sent
   //23 - finished indiv track, will send ack - client sent
-  //24 finished track in playlist - client sent
+  //24 - finished track in playlist - client sent
   //25 - End of playlist - server sent
-
+  //26 - Send new mac address - client send
 
   bzero(packet, PACKETLEN); // Clears the packet
 
@@ -477,7 +478,7 @@ int createPacket(char * localData)
 	  return  WAITING;
 	}
       
-      sprintf(packet, "%c%c%s\n", opcode, reqtype, localData); // request packet, 
+      sprintf(packet, "%c%c%s\n", opcode, reqCode, localData); // request packet, 
       break;
 
     case TRACKINFO:

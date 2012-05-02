@@ -17,7 +17,7 @@
 #include "display.h"
 #include "debug.h"
 #include "gstClient.h"
-#include "networking.h"
+#include "network.h"
 
 BYTE playing = FALSE;
 BYTE authentication = FALSE;
@@ -166,13 +166,14 @@ void input_track_number(char button_read){
         display_string(temp_string,BLOCKING);
 	playGst();
       }
-      else(playing == END_OF_PLAYLIST)
+      else if(playing == END_OF_PLAYLIST)
 	{
-	  display_string("End of playlist. Please select a track or playlist\n",BLOCKING);
+	  display_string("End of playlist. Please select a track or playlist",BLOCKING);
 	}
-       else{
-        display_string("Track not found.",BLOCKING);
-      }
+      else
+	{
+	  display_string("Track not found.",BLOCKING);
+	}
 
   	  pthread_mutex_lock(&state_Mutex);
       state = WAITING_LOGGED_IN;

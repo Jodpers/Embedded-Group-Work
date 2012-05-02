@@ -99,7 +99,8 @@ void menu_select(void){
 
 		  case LOCATION:
 		    //Request Location Information
-	        //wifi_scan();
+		    
+		    
 		    break;
 
           case SCROLL:
@@ -207,3 +208,6 @@ int continous()
 {
   return cont;
 }
+/*gst-launch filesrc location=/home/netlab/jcsleema/Beethoven_Moonlight_2nd_movement.ogg ! oggdemux ! vorbisdec ! audioconvert ! audio/x-raw-int,channels=1,depth=16,width=16,rate=44100 ! rtpL16pay ! udpsink host=224.0.0.2 port=12000
+
+  gst-launch udpsrc multicast-group=224.0.0.2 port=12000 ! "application/x-rtp,media=(string)audio, clock-rate=(int)44100, width=16,height=16, encoding-name=(string)L16, encoding-params=(string)1, channels=(int)1, channel-positions=(int)1, payload=(int)96" ! gstrtpjitterbuffer do-lost=true ! rtpL16depay ! audioconvert ! alsasink sync=false*/

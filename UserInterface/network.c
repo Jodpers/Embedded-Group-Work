@@ -33,6 +33,8 @@
 #include "threads.h"
 #include "debug.h"
 
+extern char closest_mac[MAC_LEN];
+
 char * emergMsg;
 
 char task;
@@ -54,6 +56,7 @@ int follower;
 char playcode = '0';
 char reqCode = '0';
 char * msg;
+char clMac[MAC_LEN];
 
 void * gstMulti()
 {
@@ -91,7 +94,8 @@ void * networkingFSM(void)
 	  pthread_mutex_lock(&network_Mutex);
 	  pthread_cond_wait(&network_Signal, &network_Mutex);
 	  opcode = task;
-	  strncpy(localRecPacket, receivedPacket, PACKETLEN);
+	  strncpy(clMac, closest_mac, MAC_LEN);
+	  strncpy(localRecPacket, receivedPacket, MAC_LEN);
 	  reqCode = playcode;
 	  pthread_mutex_unlock(&network_Mutex);
 	  
@@ -272,6 +276,8 @@ int parsePacket(char * buffer)
   extern pthread_t gst_control_thread;
   extern void * gst(int port, char ip[]);
 
+  extern int mac_changed;
+
   static int timeout = TIMEOUTVALUE;
   int state = 1;
   char loggedIn;
@@ -409,7 +415,18 @@ int parsePacket(char * buffer)
        
          case ACK: /* Do nothing */
           printd("%s", buffer);
-          state = WAITING;
+	  if (mac_changed == 1)
+	    {
+	      mac_changed = 0;
+	      reqCode = CLOSEST_MAC_ADDRESS;
+	      state = CREATEHEADERS;
+	      opcode = PLAY;
+	      
+	    }
+	  else
+	    {
+	      state = WAITING;
+	    }
           break;
         
 	case NAK: /* Resends last packet */
@@ -461,7 +478,7 @@ int createPacket(char * localData)
   //23 - finished indiv track, will send ack - client sent
   //24 - finished track in playlist - client sent
   //25 - End of playlist - server sent
-  //26 - Send new mac address - client send
+  //26 - Send new mac address
 
   bzero(packet, PACKETLEN); // Clears the packet
 
@@ -478,7 +495,13 @@ int createPacket(char * localData)
 	  return  WAITING;
 	}
       
+      if (reqCode == CLOSEST_MAC_ADDRESS)
+	{
+	  sprintf(packet, "%c%c%s\n", opcode, reqCode, clMac);
+	}
+
       sprintf(packet, "%c%c%s\n", opcode, reqCode, localData); // request packet, 
+ 
       break;
 
     case TRACKINFO:

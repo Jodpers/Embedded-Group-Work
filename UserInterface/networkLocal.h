@@ -37,4 +37,6 @@ void * receive(void);
 int parsePacket(char * buffer);
 int createPacket(char * localData);
 
+#define MAC_LEN 18
+
 #endif /* NETWORKLOCAL_H_ */   

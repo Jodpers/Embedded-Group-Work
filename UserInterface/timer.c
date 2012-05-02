@@ -86,12 +86,13 @@ void * timer(void){
 
     gettimeofday(&now,NULL);
 
-    if (time = getTimeGst())
+    if (time = getTimeGst()) //nanoseconds into current stream
     {
       if (init == FALSE)
       {
-        timeToWait.tv_sec = now.tv_sec;
-        timeToWait.tv_nsec = time % (1000000000UL);
+        long long int nano_offset = (1000000000UL - time);
+        timeToWait.tv_sec = now.tv_sec + (nano_offset / 1000000000UL);
+        timeToWait.tv_nsec = nano_offset % 1000000000UL;
         init = TRUE;
       }
       else

@@ -1,0 +1,15 @@
+multicast server
+gst-launch filesrc location="Dr. SyntaxSession1_Track4.mp3" ! ffdemux_mp3 ! rtpmpapay ! udpsink host=224.0.0.2 port=12000
+
+
+multicast client
+gst-launch udpsrc multicast-group=224.0.0.2 port=12000 ! "application/x-rtp, media=(string)audio, clock-rate=(int)90000, endcoding-name=(string)MPA, payload=(int)96" ! rtpmpadepay ! mad ! alsasink sync=false
+
+
+unicast server
+gst-launch filesrc location="Dr. SyntaxSession1_Track4.mp3" ! ffdemux_mp3 ! rtpmpapay ! udpsink host=192.168.1.49 port=12000
+
+unicast client
+
+gst-launch udpsrc port=12000 ! "application/x-rtp, media=(string)audio, clock-rate=(int)90000, endcoding-name=(string)MPA, payload=(int)96" ! rtpmpadepay ! mad ! alsasink sync=false
+

@@ -22,6 +22,7 @@ extern int gst_playing;
 extern int getFollower;
 extern int playCode;
 
+extern int continous();
 //#define MULTI 1
 
 
@@ -40,28 +41,15 @@ void * gst_control(void){
     pthread_attr_init(&gst_Attr);
     pthread_attr_setdetachstate(&gst_Attr, PTHREAD_CREATE_JOINABLE);
 
-    //#ifndef MULTI
-
-      if(getFollower == 0)
-	{
-	  if(pthread_create( &gst_thread, &gst_Attr,
-			     (void *)gst, NULL) != 0){
-	    perror("gst thread failed to start\n");
-	    exit(EXIT_FAILURE);
+    if(getFollower != -1)
+	  {
+	    if(pthread_create( &gst_thread, &gst_Attr,
+			       (void *)gst, NULL) != 0){
+	      perror("gst thread failed to start\n");
+	      exit(EXIT_FAILURE);
+	    }
 	  }
-	}
-    //#else
-      else
-	{
-	  if(pthread_create( &gst_thread, &gst_Attr,
-			     (void *)gst_multicast, NULL) != 0){
-	    perror("gst_multicast thread failed to start\n");
-	    exit(EXIT_FAILURE);
-	  }
-	}
-
-   //#endif
-
+	  
     /* Destroy the thread attributes object, since it is no longer needed */
 
     status = pthread_attr_destroy(&gst_Attr);
@@ -71,45 +59,32 @@ void * gst_control(void){
       perror("pthread_attr_destroy");
     }
 
-
-    /* do something */
-    //#ifndef MULTI
-    //    set_ip_and_port("127.0.0.1",port);
-    
-    printf("hi port:%d\n",port);
     status = pthread_join(gst_thread, &res);
     
     if (status != 0)
-      {
-	errno = status;
-	perror("pthread_join");
-      }
-    
-    printf("Joined with thread; returned value was %s\n", (char *) res);
-    free(res);      /* Free memory allocated by thread */
-  
-    //#else
-    //  set_multicast_ip_and_port("224.0.0.2",port);
-    
-    /*	while(alive)
-	  {
-	    char trackTime[12] = {0};
-	    sleep(1);
-	    getTimeGst(trackTime);
-	    printf("track time: %s\n",trackTime);
-	  }
-	  }*/
-    //#endif
+    {
+      errno = status;
+      perror("pthread_join");
+    }
+    if (res == (void *)-1)
+    {
+      printf("gst thread exited abnormally!\n");
+    }
+    else
+    {
+      printf("Joined with thread; returned value was %s\n", (char *) res);
+      free(res);      /* Free memory allocated by thread */
+    }
 
     pthread_mutex_lock(&network_Mutex);
     task = PLAY;
     if (continous())
       {
-	playCode = FIN_PLAYLIST_TRACK;
+      	playCode = FIN_PLAYLIST_TRACK;
       }
     else
       {
-	playCode = FIN_INDIV_TRACK;
+      	playCode = FIN_INDIV_TRACK;
       }
     pthread_mutex_unlock(&network_Mutex);
   }

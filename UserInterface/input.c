@@ -68,35 +68,33 @@ void input_pin(char button_read){
       reset_buffers();
 
       if(authentication == TRUE){
-    	printd("Authentication Passed\n");
+        printd("Authentication Passed\n");
 
-    	pthread_mutex_lock(&state_Mutex);
-    	logged_in = TRUE;
+    	  pthread_mutex_lock(&state_Mutex);
+    	  logged_in = TRUE;
         state = WAITING_LOGGED_IN;
-    	pthread_mutex_unlock(&state_Mutex);
-    	
-    	/* Launch threads on log in */
-    	if (already_logged_in == FALSE)
-	    {
-	      start_logged_in_threads();
-	      already_logged_in = TRUE;
-	    }
+      	pthread_mutex_unlock(&state_Mutex);
+      	
+      	/* Launch threads on log in */
+      	if (already_logged_in == FALSE)
+	      {
+	        start_logged_in_threads();
+	        already_logged_in = TRUE;
+	      }
 
-    	display_string("Welcome.",BLOCKING);
-    	display_string("Enter Track Number.",NOT_BLOCKING);
+      	display_string("Welcome.",BLOCKING);
+      	display_string("Enter Track Number.",NOT_BLOCKING);
       }
       else{
-    	printd("Authentication Failed\n");
+      	printd("Authentication Failed\n");
         pthread_mutex_lock(&state_Mutex);
-    	logged_in = FALSE;
-    	already_logged_in = FALSE;
-        pthread_mutex_unlock(&state_Mutex);
-    	display_string("Please Enter VALID PIN!",NOT_BLOCKING);
-
-
-        pthread_mutex_lock(&state_Mutex);
+      	logged_in = FALSE;
+      	already_logged_in = FALSE;
         state = WAITING_LOGGED_OUT;
         pthread_mutex_unlock(&state_Mutex);
+      	display_string("Please Enter VALID PIN!",NOT_BLOCKING);
+
+
       }
     }
     break;
@@ -167,13 +165,13 @@ void input_track_number(char button_read){
 	playGst();
       }
       else if(playing == END_OF_PLAYLIST)
-	{
-	  display_string("End of playlist. Please select a track or playlist",BLOCKING);
-	}
+	    {
+	      display_string("End of playlist.",BLOCKING); //to james, only 50 chars!!
+	    }
       else
-	{
-	  display_string("Track not found.",BLOCKING);
-	}
+	    {
+	      display_string("Track not found.",BLOCKING);
+	    }
 
   	  pthread_mutex_lock(&state_Mutex);
       state = WAITING_LOGGED_IN;

@@ -13,9 +13,9 @@
 #include <gst/gst.h>
 #include <glib.h>
 
-//#define STANDALONE 1
+#define STANDALONE 1
 
-//#define OGG
+#define OGG
 
 #include "gstClient.h"
 
@@ -94,13 +94,14 @@ void * gst(void)
 #endif
 {
 
-  GstElement *src, *conv, *sink;
+  GstElement *src, *sink;
 #ifdef OGG
-  GstElement *demuxer, *decoder;
+  GstElement *demuxer, *decoder, *conv;
 #else
-  GstElement *ffdemux_mp3, *ffdec_mp3;
+  GstElement *rtpmpadepay, *filter, *mad;
 #endif
   GstBus *bus;
+  GstCaps *filtercaps;
   
   printf("gst thread alive!\n");
   
@@ -111,7 +112,7 @@ void * gst(void)
 
   /* Check input arguments, used before intergration for testing */
 #ifdef STANDALONE
-  if (argc != 3) {
+  if (argc != 2) {
     g_printerr ("Usage: %s <IP> <PORT>\n", argv[0]);
     return -1;
   }
@@ -120,25 +121,27 @@ void * gst(void)
 
   /* Create gstreamer elements */
   pipeline = gst_pipeline_new ("client");
-  src      = gst_element_factory_make ("tcpserversrc",  "src"); 
 
 #ifdef OGG
+  src      = gst_element_factory_make ("tcpserversrc",  "src"); 
   demuxer  = gst_element_factory_make ("oggdemux",      "ogg-demuxer");
   decoder  = gst_element_factory_make ("vorbisdec",     "vorbis-decoder");
   conv     = gst_element_factory_make ("audioconvert",  "converter");
     
 #else
 /*  MP3 */
-  ffdemux_mp3  = gst_element_factory_make ("ffdemux_mp3", "ffdemux_mp3");
-  ffdec_mp3  = gst_element_factory_make ("ffdec_mp3", "ffdec_mp3");
+  src         = gst_element_factory_make ("udpsrc",  "src");
+  filter      = gst_element_factory_make ("capsfilter", "filter");
+  rtpmpadepay = gst_element_factory_make ("rtpmpadepay", "rtpmpadepay");
+  mad         = gst_element_factory_make ("mad", "mad");
 #endif
 
-  sink     = gst_element_factory_make ("autoaudiosink", "audio-output"); 
+  sink        = gst_element_factory_make ("alsasink", "sink");
   
 #ifdef OGG
   if (!pipeline || !src || !demuxer || !decoder || !conv || !sink)
 #else
-  if (!pipeline || !src || !ffdemux_mp3 || !ffdec_mp3 || !sink)
+  if (!pipeline || !src || !filter || !rtpmpadepay || !mad || !sink)
 #endif
     {
       g_printerr ("One element could not be created. Exiting.\n");
@@ -153,8 +156,8 @@ void * gst(void)
 
   /* we set the input filename to the source element */
 #ifdef STANDALONE
-  g_object_set (G_OBJECT (src), "host", argv[1], NULL); /*Changed from location*/
-  g_object_set (G_OBJECT (src), "port", atoi(argv[2]), NULL);
+//  g_object_set (G_OBJECT (src), "host", argv[1], NULL); /*Changed from location*/
+  g_object_set (G_OBJECT (src), "port", atoi(argv[1]), NULL);
 #else
   g_object_set (G_OBJECT (src), "host", ip, NULL); 
   g_object_set (G_OBJECT (src), "port", port, NULL);
@@ -183,18 +186,30 @@ void * gst(void)
      when the "pad-added" is emitted.*/
 #else
   /* we add all elements into the pipeline */
-  gst_bin_add_many (GST_BIN (pipeline), src, ffdemux_mp3, ffdec_mp3, sink, NULL);
-  
+  gst_bin_add_many (GST_BIN (pipeline), src, filter, rtpmpadepay, mad, sink, NULL);
+
   /* we link the elements together */
-  gst_element_link (src, ffdemux_mp3);
-  gst_element_link (ffdec_mp3, sink);
-  g_signal_connect (ffdemux_mp3, "pad-added", G_CALLBACK (on_pad_added), ffdec_mp3);
+  gst_element_link_many (src, filter, rtpmpadepay, mad, sink, NULL);
+  /*
+  gst_element_link_many (src, filter, rtpmpadepay, NULL);
+  gst_element_link_many (mad, sink, NULL);
+  g_signal_connect (rtpmpadepay, "pad-added", G_CALLBACK (on_pad_added), mad);
+*/
+
+    /* we add capabilities to the pipeline */
+  filtercaps = gst_caps_new_simple ("application/x-rtp",
+     "media", G_TYPE_STRING, ("audio"),
+     "clock-rate", G_TYPE_INT, 90000,
+     "encoding-name", G_TYPE_STRING, "MPA",
+     "payload", G_TYPE_INT, 96,
+     NULL);
+     
+  g_object_set (G_OBJECT (filter), "caps", filtercaps, NULL);
+  gst_caps_unref (filtercaps);
+       
 #endif
 
   /* Set the pipeline to "playing" state*/
-#ifdef STANDALONE
-  g_print ("Now playing: %s\n", argv[1]);
-#endif
   gst_element_set_state(pipeline, GST_STATE_PLAYING);
 
   /* wait until it's up and running or failed */

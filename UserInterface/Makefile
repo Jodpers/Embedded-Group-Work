@@ -3,6 +3,9 @@
 OBJS = display.o external.o gst.o input.o keypad.o menu.o network.o pio_term.o volume.o states.o threads.o timer.o wifi_scan.o gstClient.o 
 MOBJS = main.o
 CC = gcc
+#ARCH=arm
+#CC=/home/student/buildroot/output/host/usr/bin/arm-unknown-linux-uclibcgnueabi-gcc
+
 LFLAGS = -Wall -g -pthread -lasound `pkg-config --cflags --libs gstreamer-0.10` # lasound is required for alsa libs used in volume control
 EXE = client
 

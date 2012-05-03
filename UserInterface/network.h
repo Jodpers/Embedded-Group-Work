@@ -11,7 +11,7 @@
 /* Lengths of data received from keypad thread */
 #define PINLEN 4
 #define TRACKLEN 18
-#define PACKETLEN 22 /* Op Code = 1, Location = 1, MAC = 18, newline = 1 */
+#define PACKETLEN 25 /* Op Code = 1, Location = 1, MAC = 18, newline = 1 */
 
 /* for parsing and create headers state machine*/
 #define EMERGENCY '4'

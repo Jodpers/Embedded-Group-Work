@@ -32,6 +32,7 @@
 #include "networkLocal.h"
 #include "threads.h"
 #include "debug.h"
+#include "gstClient.h"
 
 extern char closest_mac[MAC_LEN];
 
@@ -52,18 +53,11 @@ char packet[PACKETLEN] = {0};
 
 char opcode;
 int sentt = 0;
-int follower;
-char playcode = '0';
+int follower = -1;
+char playCode = '0';
 char reqCode = '0';
 char * msg;
 char clMac[MAC_LEN];
-
-void * gstMulti()
-{
-  system("gst-launch udpsrc multicast-group=224.0.0.1 port=12000 ! 'application/x-rtp,media=(string)audio, clock-rate=(int)44100, width=16,height=16, encoding-name=(string)L16, encoding-params=(string)1, channels=(int)1, channel-positions=(int)1, payload=(int)96' ! gstrtpjitterbuffer do-lost=true ! rtpL16depay ! audioconvert ! alsasink sync=false");
-}
-
-
 
 /*****************************************************************************************
  * Name: networkingFSM                                                                   *
@@ -82,7 +76,8 @@ void * networkingFSM(void)
   char localData[PACKETLEN] = {0};
   char localRecPacket[MAXDATASIZE]  = {0};
   int len = 0;
- 
+
+  extern int mac_changed;
 
   while (alive)
     {      
@@ -90,13 +85,27 @@ void * networkingFSM(void)
       switch (state)
 	{
 	  //This thread will sleep after entering this state
-	case WAITING:	  
+	case WAITING:
+	  printf("going to sleep\n");	  
 	  pthread_mutex_lock(&network_Mutex);
 	  pthread_cond_wait(&network_Signal, &network_Mutex);
 	  opcode = task;
-	  strncpy(clMac, closest_mac, MAC_LEN);
-	  strncpy(localRecPacket, receivedPacket, MAC_LEN);
-	  reqCode = playcode;
+	  if (mac_changed == 1)
+    {
+      mac_changed = 0;
+      
+      reqCode = CLOSEST_MAC_ADDRESS;
+      state = CREATEHEADERS;
+      opcode = PLAY;
+	    strncpy(clMac, closest_mac, MAC_LEN);
+	    break;
+    }
+	  else
+    {  
+  	  bzero(localRecPacket,MAXDATASIZE);
+      strncpy(localRecPacket, receivedPacket, MAC_LEN);
+      reqCode = playCode;
+	  }
 	  pthread_mutex_unlock(&network_Mutex);
 	  
 	  if (alive == FALSE)
@@ -107,13 +116,13 @@ void * networkingFSM(void)
 	      printd("sentt:%d\n", sentt);
 	      if (sentt == 0) /* This was added, as some times an empty packet was being 
                                  sent after the socket was init'd */ 
-		{
-		  /* Do nothing receiving packet with out sending*/
-		}
+		    {
+		      /* Do nothing receiving packet with out sending*/
+		    }
 	      else
-		{
-		  state = PARSEPACKET;
-		}
+		    {
+		      state = PARSEPACKET;
+		    }
 	      
 	      break;
 	    }
@@ -131,10 +140,10 @@ void * networkingFSM(void)
 	  
 	  printd("packet at sending time:%s\n", packet);
 	  len = strlen(packet);
-	  printd("len: %d\n", len);
+	  printd("len: %d\npacket: %s\n", len, packet);
 	  if (len > 0)
 	    {
-	      send(sockfd, packet, len+1, 0);
+	      send(sockfd, packet, len, 0);
 	      printd("sent\n");
 	    }
 	  state = WAITING;
@@ -248,8 +257,12 @@ void * receive(void)
 	      break;
 	    }
 
-      printd("Packet received: %s\n", buffer);      
+      printd("Packet received: %s\n", buffer);
+      printf("numbytes %d\n",numbytes);
       buffer[numbytes] = '\0';
+      printf("buffer again: %s\n", buffer);
+      printf("bzero(receivedPacket)\n");
+      bzero(receivedPacket, MAXDATASIZE);
       
       pthread_mutex_lock(&network_Mutex);
       strncpy(receivedPacket, buffer, numbytes);
@@ -272,11 +285,6 @@ void * receive(void)
  ****************************************************************************************/
 int parsePacket(char * buffer)
 {
-  extern pthread_attr_t gst_control_Attr;
-  extern pthread_t gst_control_thread;
-  extern void * gst(int port, char ip[]);
-
-  extern int mac_changed;
 
   static int timeout = TIMEOUTVALUE;
   int state = 1;
@@ -284,7 +292,7 @@ int parsePacket(char * buffer)
   char emergency = '0';
 
   char * tmp;
-  int portGst;
+  int portGst = 0;
   char * ipGst;
   int i,len;
   int j = 0;
@@ -294,29 +302,27 @@ int parsePacket(char * buffer)
   /*Checks that buffer isn't empty*/
   if(strlen(buffer))
     {
-      switch (buffer[0])
-        {
-	case EMERGENCY:
-          printd("Emergency, stop, leave the building! \n\n");
+    switch (buffer[0])
+      {
+      case EMERGENCY:
+        printd("Emergency, stop, leave the building! \n\n");
 	  
-	  len = strlen(buffer);
-	  tmp = (char*) malloc (len-1);
-	  emergMsg = (char*) malloc (len-1);
-	  i = 0;
-	  for(i = 0; i < len; i++)
-	    {
-	      tmp[j] = buffer[j+1]; 
-	    }
+	      len = strlen(buffer);
+	      tmp = (char*) malloc (len-1);
+	      
+	      for(i = 0; i < len-1; i++)
+	        {
+	          tmp[i] = buffer[i+1]; 
+	        }
 
-	  pthread_mutex_lock(&state_Mutex);
-	  data[0] = 1;
-	  strcpy(emergMsg, tmp);
-	  pthread_cond_signal(&state_Signal);
-	  pthread_mutex_unlock(&state_Mutex);
-	  state = CREATEHEADERS;
-	  opcode = ACK;
-	  free(tmp);
-          break;
+	      pthread_mutex_lock(&state_Mutex);
+	      data[0] = 1;
+	      pthread_cond_signal(&state_Signal);
+	      pthread_mutex_unlock(&state_Mutex);
+	      state = CREATEHEADERS;
+	      opcode = ACK;
+	      free(tmp);
+        break;
 
   //10  unauthenticated
   //110 indiv
@@ -326,54 +332,53 @@ int parsePacket(char * buffer)
 	case PIN: //format: 111,port.ip
 	  printd("buffer[1]:%c\n",buffer[1]);
 
-          if (buffer[1] == PASS)
-            {
-              loggedIn = PASS;      
-              printd("PIN Authenticated\n");
-	      tmp = (char*) malloc(1); 
+    if (buffer[1] == PASS)
+      {
+        loggedIn = PASS;      
+        printd("PIN Authenticated\n");
+  
+        tmp = (char*) malloc (16);
+        bzero(tmp,16);
 	      tmp[0] = buffer[2];
 
 	      follower = atoi(tmp); //Follower: 0 = Indiv, 1= Follower ,2=Leader
 	      
 	      /*Copy out Port*/
-	      i = 3;
-	      
+	      j = 0;
 	      while(buffer[j+3] != ',')
-		{
-		  tmp = (char*) malloc (j);
-		  tmp[j] = buffer[j+3];
-		  j++;
-		}
+		    {
+		      tmp[j] = buffer[j+3];
+		      j++;
+		    }
+		    j++;
+		    printf("tmp: %s\n",tmp);
 
 	      portGst = atoi(tmp);
 	      free(tmp);
-	      tmp = (char*) malloc (IPLEN);     
-	      i += 1;
-	      j = 0;
 	      ipGst = (char*) malloc(IPLEN * sizeof (char));
-	      
-	      while(buffer[j+3] != ',')
-		{
-		  ipGst[j] = buffer[j+3]; 
-		  j++;
-		}
+	      bzero(ipGst,IPLEN);
+	      i=0;
+	      while(buffer[j+3] != ',' && buffer[j+3] != '\0')
+		    {
+		      printf("i %d j %d \n",i,j);
+		      ipGst[i++] = buffer[j+3]; 
+		      j++;
+		    }
+		    printf("buffer: %s\n",buffer);
+		    printf("ipGst: %s\nportGst %d\n",ipGst,portGst);
 	      
 	      set_ip_and_port(ipGst,portGst);
+	      free(ipGst);
 	      
 	  /* Starts the gstreamer thread and passes the IP and port*/
-	      //   if(pthread_create( &gst_control_thread, &gst_control_Attr, (void *)gst, NULL) != 0)
-	      if(pthread_create( &gst_control_thread, &gst_control_Attr, (void *)gstMulti, NULL) != 0)
-		{
-	      perror("Network thread failed to start\n");
-	      exit(EXIT_FAILURE);
-		}
-            }
-          else
-            {
-              loggedIn = FAIL;
-              printd("PIN failed\n");
 
-            }
+      }
+      else
+      {
+        loggedIn = FAIL;
+        printd("PIN failed\n");
+        follower = -1;
+      }
 	  
 	  //returns the result of the log in attempt to the UI
 	  pthread_mutex_lock(&request_Mutex);
@@ -407,30 +412,20 @@ int parsePacket(char * buffer)
 	  break;
 
         case TRACKINFO:
-          printd("%s", buffer);	  
+          printd("trackinfo:%s\n", buffer);	  
 	  state = CREATEHEADERS;
 	  opcode = ACK;
           break;
 
        
          case ACK: /* Do nothing */
-          printd("%s", buffer);
-	  if (mac_changed == 1)
-	    {
-	      mac_changed = 0;
-	      reqCode = CLOSEST_MAC_ADDRESS;
-	      state = CREATEHEADERS;
-	      opcode = PLAY;
-	      
-	    }
-	  else
-	    {
-	      state = WAITING;
-	    }
+          printd("ACK: %s\n", buffer);
+
+	        state = WAITING;
           break;
         
 	case NAK: /* Resends last packet */
-      printd("%s", buffer);
+      printd("NAK: %s\n", buffer);
 
 	  if (timeout-- > 0) // Stops resending after it gets bored.
 	    {
@@ -444,14 +439,14 @@ int parsePacket(char * buffer)
 	  break;
 
         case MULTICAST: 
-          printd("%s", buffer);
+          printd("multicast:%s\n", buffer);
 
           state = CREATEHEADERS;
           opcode = ACK;
           break;
 
 	default:
-          printd("Unknown packet:%s", buffer);
+          printd("Unknown packet:%s\n", buffer);
           state = CREATEHEADERS;
           opcode = NAK;
           break;
@@ -483,6 +478,8 @@ int createPacket(char * localData)
   bzero(packet, PACKETLEN); // Clears the packet
 
   sentt= 1; //This is used to stop any packets being sent before a packet has been sent.
+  
+  printf("opcode = %d\n",opcode);
   switch (opcode)
     {
     case PIN:
@@ -491,16 +488,18 @@ int createPacket(char * localData)
 
     case PLAY:
       if (follower == TRUE)
-	{
-	  return  WAITING;
-	}
+	    {
+	      return  WAITING;
+	    }
       
       if (reqCode == CLOSEST_MAC_ADDRESS)
-	{
-	  sprintf(packet, "%c%c%s\n", opcode, reqCode, clMac);
-	}
-
+	    {
+	      sprintf(packet, "%c%c%s\n", opcode, reqCode, clMac);
+	      break;
+	    }
+	    
       sprintf(packet, "%c%c%s\n", opcode, reqCode, localData); // request packet, 
+      
  
       break;
 

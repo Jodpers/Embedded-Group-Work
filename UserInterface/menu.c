@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <sys/types.h>  //threads
 #include <pthread.h>
+#include <string.h>
 
 #include "top.h"
 #include "menu.h"
@@ -104,19 +105,26 @@ void menu_select(void){
 		    break;
 
           case SCROLL:
+            pthread_mutex_lock(&state_Mutex);
+            state = SUBMENU_SELECT;
+            state_read = state;
+            pthread_mutex_unlock(&state_Mutex);
+            printf("Scroll Delay Selected\n");
+            setup_scroll_delay();
+            show_choice(choice); // After return, display correct choice again
             break;
 
           case PLAYBACK:
-	    if (cont)
-	      {
-		cont = 0;
-		display_string(" Single File Plackback ",BLOCKING);
-	      }
-	    else
-	      {
-		cont = 1;
-		display_string(" Continuous Playback ",BLOCKING);
-	      }
+	          if (cont)
+	            {
+		      cont = 0;
+		      display_string(" Single File Plackback ",BLOCKING);
+	            }
+	          else
+	            {
+		      cont = 1;
+		      display_string(" Continuous Playback ",BLOCKING);
+	            }
 	    
             break;
 
@@ -139,6 +147,7 @@ void menu_select(void){
 
 		  case EXIT_PROG:
 		    printf("Exiting\n");
+		    alive = FALSE;
 		    exit(1);
           default:
 
@@ -204,10 +213,107 @@ void show_choice(int choice){
   return;
 }
 
+void setup_scroll_delay(void)
+{
+  char delay_value[2] = {'\0'};
+  int scroll_delay_read;
+  char button_read = FALSE;  // Local snapshot of Global 'Button'
+  int state_read = SUBMENU_SELECT;
+
+
+  set_menu(FALSE);
+
+  set_menu(TRUE);
+  scroll_delay_read = get_scroll_delay();
+  delay_value[0] = scroll_delay_read + '0';
+  reset_buffers();
+  display_string(delay_value,NOT_BLOCKING);
+  insert_char(delay_value[0]);
+  printf("scroll delay: %c\n",delay_value[0]);
+
+  set_menu(FALSE);
+
+  while(alive && state_read == SUBMENU_SELECT){
+
+    scroll_delay_read = get_scroll_delay();
+    delay_value[0] = scroll_delay_read + '0';
+    printf("scroll delay: %c\n",delay_value[0]);
+
+    reset_buffers();
+    display_string(delay_value,BLOCKING);
+    insert_char(delay_value[0]);
+
+    bzero(delay_value,2);
+
+    pthread_mutex_lock(&button_Mutex);
+    pthread_cond_wait(&button_Signal, &button_Mutex); // Wait for press
+    button_read = button;               // Read the button pressed
+    pthread_mutex_unlock(&button_Mutex);
+
+
+    pthread_mutex_lock(&state_Mutex);
+    state_read = state;
+    pthread_mutex_unlock(&state_Mutex);
+    if(state_read == EMERGENCY_STATE || alive == FALSE){
+      //set_menu(FALSE); // in display.c
+      break; // Get out if there's an emergency
+    }
+
+
+/* Button has been pressed. Now what? */
+    switch(button_read){
+      case '1':
+      case '2':
+      case '3':
+      case '4':
+      case '5':
+      case '6':
+      case '7':
+      case '8':
+      case '9':
+        set_scroll_delay(button_read - '0');
+        break;
+
+      case 'B': // Down
+        if(--scroll_delay_read <= 1){
+          scroll_delay_read = 1;
+          printf("scroll delay: MIN\n");
+        }
+        set_scroll_delay(scroll_delay_read);
+        break;
+
+      case 'F': // Up
+        if(++scroll_delay_read >= 9){
+          scroll_delay_read = 9;
+          printf("scroll delay: MAX\n");
+        }
+        set_scroll_delay(scroll_delay_read);
+        break;
+
+      case 'A':
+      case 'C':
+      case 'E':
+        pthread_mutex_lock(&state_Mutex);
+        reset_buffers();
+        state = MENU_SELECT; // Go back to menu
+        state_read = state;
+        pthread_mutex_unlock(&state_Mutex);
+        set_menu(TRUE);
+        break;
+
+      case '0':
+      case 'D':
+        default:
+        break;
+    }
+  }
+  return;
+
+}
+
+
 int continous()
 {
   return cont;
 }
-/*gst-launch filesrc location=/home/netlab/jcsleema/Beethoven_Moonlight_2nd_movement.ogg ! oggdemux ! vorbisdec ! audioconvert ! audio/x-raw-int,channels=1,depth=16,width=16,rate=44100 ! rtpL16pay ! udpsink host=224.0.0.2 port=12000
 
-  gst-launch udpsrc multicast-group=224.0.0.2 port=12000 ! "application/x-rtp,media=(string)audio, clock-rate=(int)44100, width=16,height=16, encoding-name=(string)L16, encoding-params=(string)1, channels=(int)1, channel-positions=(int)1, payload=(int)96" ! gstrtpjitterbuffer do-lost=true ! rtpL16depay ! audioconvert ! alsasink sync=false*/

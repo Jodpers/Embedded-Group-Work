@@ -20,6 +20,8 @@
 /* Button pressed 1-16 or -1 for multiple buttons */
 char button = FALSE;
 
+extern int scroll_delay;
+
 /* Unsigned char array containing 4 values to be displayed */
 BYTE digits[COLS] = {0};
 
@@ -43,7 +45,7 @@ BYTE digits[COLS] = {0};
  */
 void * keypad(void){
   int col;
-  int timeout = SCROLL_DELAY;
+  int timeout = scroll_delay;
   char str[6];
   
   while(alive){
@@ -54,7 +56,7 @@ void * keypad(void){
 
     if(--timeout == 0){
       update_display(); ///< display.c
-      timeout = SCROLL_DELAY;
+      timeout = scroll_delay;
     }
     pthread_mutex_unlock(&display_Mutex);
 

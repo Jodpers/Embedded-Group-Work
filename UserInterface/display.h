@@ -92,4 +92,7 @@ void clear_time(void);
 
 void set_menu(BYTE);
 extern void reset_buffers(void);
+
+int set_scroll_delay(int);
+int get_scroll_delay(void);
 #endif /* DISPLAY_H_ */

@@ -104,10 +104,10 @@ void * wifi_scan(void)
         strcpy(old_mac,closest_mac);
         
 	      
-	      pthread_mutex_lock(&network_Mutex);
-	      pthread_cond_signal(&network_Signal); //wake up the network thread
+	      //pthread_mutex_lock(&network_Mutex);
+	      pthread_cond_broadcast(&network_Signal); //wake up the network thread
 	      
-    	  pthread_mutex_unlock(&network_Mutex);
+    	  //pthread_mutex_unlock(&network_Mutex);
     	  
       }
     }

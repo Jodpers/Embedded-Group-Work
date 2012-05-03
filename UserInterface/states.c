@@ -162,3 +162,26 @@ void * state_machine(void){
   }
   pthread_exit(0);
 }
+
+void set_emergency(int in_state)
+{
+  static int prev_state;
+
+  if (in_state == TRUE)
+  {
+      prev_state = state;
+      
+      pthread_mutex_lock(&state_Mutex);
+      state = EMERGENCY_STATE;
+      pthread_cond_broadcast(&state_Signal);
+      pthread_mutex_unlock(&state_Mutex);
+  }
+  else if (in_state == FALSE)
+  {
+      pthread_mutex_lock(&state_Mutex);
+      state = prev_state;
+      pthread_cond_broadcast(&state_Signal);
+      pthread_mutex_unlock(&state_Mutex);
+      
+  }
+}

@@ -58,6 +58,7 @@ char reqCode = '0';
 char clMac[MAC_LEN] = {'\0'};
 
 extern int logged_in; // (states.c)
+extern void set_emergency(int state);
 
 /*****************************************************************************************
  * Name: networkingFSM                                                                   *
@@ -260,7 +261,7 @@ void * receive(void)
 	    }
 
       printd("Packet received: \"%s\"\n", buffer);
-      printf("numbytes %d\n",numbytes);
+      printd("numbytes %d\n",numbytes);
       if (strlen(buffer) != 0)      //encase we get a null packet
       {
         buffer[numbytes] = '\0';
@@ -309,7 +310,7 @@ int parsePacket(char * buffer)
       {
       case EMERGENCY:
         printd("Emergency, stop, leave the building! \n\n");
-	  
+	  /*
 	      len = strlen(buffer);
 	      tmp = (char*) malloc (len-1);
 	      
@@ -317,16 +318,14 @@ int parsePacket(char * buffer)
 	        {
 	          tmp[i] = buffer[i+1]; 
 	        }
-
+*/
         
-	      pthread_mutex_lock(&state_Mutex);
 	      data[0] = 1;
-	      state = EMERGENCY;
-	      pthread_cond_signal(&state_Signal);
-	      pthread_mutex_unlock(&state_Mutex);
+	      set_emergency(TRUE);  //states.c
+	      
 	      state = CREATEHEADERS;
 	      opcode = ACK;
-	      free(tmp);
+	      //free(tmp);
         break;
 
   //10  unauthenticated
@@ -347,7 +346,7 @@ int parsePacket(char * buffer)
 	        tmp[0] = buffer[2];
 
 	        follower = atoi(tmp); //Follower: 0 = Indiv, 1= Follower ,2=Leader
-	        printf("tmp:%s\n",tmp);
+	        
 	        /*Copy out Port*/
 	        j = 0;
 	        while(buffer[j+3] != ',')
@@ -356,7 +355,6 @@ int parsePacket(char * buffer)
 		        j++;
 		      }
 		      j++;
-		      printf("tmp: %s\n",tmp);
 
 	        portGst = atoi(tmp);
 	        free(tmp);
@@ -365,7 +363,6 @@ int parsePacket(char * buffer)
 	        i=0;
 	        while(buffer[j+3] != ',' && buffer[j+3] != '\0')
 		      {
-		        printf("i %d j %d \n",i,j);
 		        ipGst[i++] = buffer[j+3]; 
 		        j++;
 		      }
@@ -394,6 +391,7 @@ int parsePacket(char * buffer)
 	        break;
 	  
 	      case PLAY:
+	        printf("buffer[1] = %d\n",buffer[1]);
 	        if (buffer[1] == FAIL)
           {
             state = CREATEHEADERS; 
@@ -412,6 +410,15 @@ int parsePacket(char * buffer)
             pthread_cond_signal(&request_Signal);
             pthread_mutex_unlock(&request_Mutex);
           }
+	        if (buffer[1] == '1')
+          {
+            printd("Track Found\n");
+            pthread_mutex_lock(&request_Mutex);
+            data[0] = '1';
+            pthread_cond_signal(&request_Signal);
+            pthread_mutex_unlock(&request_Mutex);
+          }
+          
 	        break;
 
         case TRACKINFO:
@@ -502,6 +509,7 @@ int createPacket(char * localData)
       
       if (reqCode == CLOSEST_MAC_ADDRESS)
 	    {
+	      printf("Sending Closest Mac\n");
 	      sprintf(packet, "%c%c%s\n", opcode, reqCode, clMac);
 	    }
  

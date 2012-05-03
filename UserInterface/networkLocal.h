@@ -22,9 +22,9 @@
 /* server info */
 #define PORT "4444"
 
-//#define IP "164.11.222.69"
+#define IP "164.11.222.69"
 //#define IP "192.168.1.47"
-#define IP "localhost"
+//#define IP "localhost"
 
 #define IPLEN 16
 

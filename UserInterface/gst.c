@@ -31,8 +31,6 @@ void * gst_control(void){
   int status = 0;
   void *res;
 
-  int port = 5000;
-
   while(alive && logged_in)
   {
     pthread_t gst_thread;

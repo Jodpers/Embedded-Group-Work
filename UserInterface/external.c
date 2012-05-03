@@ -42,9 +42,8 @@ BYTE check_pin(char * buffer, int buf_len){
 BYTE play_track(char * buffer,int buf_len){
 
   BYTE valid = FALSE;
-  printf("here before hanging\n");
   pthread_mutex_lock(&network_Mutex);
-  printd("track buffer:%s\nbuffer_len: %d\n %u",buffer, buf_len,strlen(buffer));
+  printd("track buffer:%s\nbuffer_len: %d\n %u\n",buffer, buf_len,strlen(buffer));
   strncpy(data,buffer,buf_len);
   data[buf_len] = '\0';
   printd("data after strcpy= %s\n", data);
@@ -64,8 +63,9 @@ BYTE play_track(char * buffer,int buf_len){
   
   pthread_mutex_lock(&request_Mutex);
   pthread_cond_wait(&request_Signal, &request_Mutex);
-  printd("data = %s", data);
+  printd("PLAY TRACK VALID?  %c\n", data[0]);
   valid = data[0];
   pthread_mutex_unlock(&request_Mutex);
-  return valid;	
+
+  return valid - '0';
 }

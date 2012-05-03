@@ -106,8 +106,8 @@ void * timer(void){
     }
     else
     {
-      timeToWait.tv_sec = now.tv_sec+1;
-      timeToWait.tv_nsec = 0;
+      timeToWait.tv_sec = now.tv_sec;//+1;
+      timeToWait.tv_nsec = 500000000UL;//0;
       //display_time("    ");
       paused_blink = TRUE;
       init = FALSE;

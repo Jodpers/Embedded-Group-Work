@@ -56,6 +56,7 @@ void input_pin(char button_read){
 
   switch(button_read){
 
+  case ENTER_MENU:
   case ACCEPT_PLAY:
     if(input_len < PIN_MAX){
       display_string("PIN too short.",BLOCKING);
@@ -120,9 +121,6 @@ void input_pin(char button_read){
     delete_char();
     break;
 
-  case ENTER_MENU:
-    break;
-
   default:
     if (button_read >= '0' && button_read <= '9')   /* 0-9*/
       insert_char(button_read);
@@ -148,6 +146,17 @@ void input_track_number(char button_read){
 
   switch(button_read){
 
+
+  case ENTER_MENU:
+    if (input_len == 0)
+    {
+      pthread_mutex_lock(&state_Mutex);
+      state = MENU_SELECT;
+      pthread_mutex_unlock(&state_Mutex);
+      break;
+    }
+
+
   case ACCEPT_PLAY:
     printf("input_len: %d\n",input_len);
     if(input_len < TRACK_MIN || input_len >= TRACK_MAX){
@@ -162,7 +171,7 @@ void input_track_number(char button_read){
         sprintf(temp_string,"Track Number %s Playing",input_buffer);
         reset_buffers();
         display_string(temp_string,BLOCKING);
-	playGst();
+	      //playGst();
       }
       else if(playing == END_OF_PLAYLIST)
 	    {
@@ -203,16 +212,6 @@ void input_track_number(char button_read){
 
   case BACK:
     move_cursor(LEFT);
-    break;
-
-
-  case ENTER_MENU:
-    if (input_len == 0)
-    {
-      pthread_mutex_lock(&state_Mutex);
-      state = MENU_SELECT;
-      pthread_mutex_unlock(&state_Mutex);
-    }
     break;
 
   default:

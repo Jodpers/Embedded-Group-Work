@@ -12,7 +12,7 @@
 #include <gst/gst.h>
 #include <glib.h>
 
-//#define STANDALONE 1
+#define STANDALONE 1
 
 //#define OGG
 
@@ -249,43 +249,6 @@ gst-launch udpsrc multicast-group=224.0.0.2 port=4444 caps="application/x-rtp, m
 #else
   pthread_exit(0);
 #endif
-}
-
-void killGst()
-{
-  g_main_loop_quit(loop);
-}
-
-void playGst()
-{
-  gst_element_set_state(pipeline, GST_STATE_PLAYING);
-}
-
-void pauseGst()
-{
-  gst_element_set_state(pipeline, GST_STATE_PAUSED);
-}
-
-void getTimeGst(char * trackTime)
-{
-
-  GstFormat format = GST_FORMAT_TIME; //Time in nanoseconds 
-  gint64 curPos; //Stores the current position
-  GstClockTime timer;
-  if(gst_playing)
-    {
-      if(gst_element_query_position(pipeline, &format, &curPos))
-      {
-        /* The maximum time supported is by this print statement is 9 hours 59 minutes
-           and 59 seconds */
-        snprintf(trackTime, 11, "%u:%02u:%.2u.%2.2u\n", GST_TIME_ARGS (curPos));
-        printf("trackTime %s\n",trackTime);
-        snprintf(trackTime, 11, "%u:%02u:%.2u\n", GST_TIME_ARGS (curPos));
-      }
-      printf("timer: %lu\n",timer);
-    }
-                      
-  return;
 }
 
   /* http://gstreamer.freedesktop.org/data/doc/gstreamer/head/gstreamer/html/GstElement.html#gst-element-seek-simple */

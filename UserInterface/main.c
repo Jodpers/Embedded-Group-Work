@@ -66,7 +66,7 @@ int main (void) {
   while((ret = getchar()) != 'x' && alive){
     if (ret == 'e'){
       pthread_mutex_lock(&state_Mutex);
-      if (state == EMERGENCY){
+      if (state == EMERGENCY_STATE){
         state = prev_state;
         if(state == SUBMENU_SELECT){
           state = MENU_SELECT;
@@ -74,7 +74,7 @@ int main (void) {
       }
       else {
         prev_state = state;
-        state = EMERGENCY;
+        state = EMERGENCY_STATE;
       }
   	  pthread_cond_broadcast(&state_Signal);
 	  pthread_mutex_unlock(&state_Mutex);

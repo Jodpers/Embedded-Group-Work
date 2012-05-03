@@ -65,7 +65,7 @@ void menu_select(void){
 	  state_read = state;
 	  pthread_mutex_unlock(&state_Mutex);
     
-    if(state_read == EMERGENCY || alive == FALSE){
+    if(state_read == EMERGENCY_STATE || alive == FALSE){
       set_menu(FALSE); // in display.c
       break; // Get out if there's an emergency
     }
@@ -110,12 +110,12 @@ void menu_select(void){
 	    if (cont)
 	      {
 		cont = 0;
-		display_string(" Mode set to continuousplay only one track at a time",BLOCKING);
+		display_string(" Single File Plackback ",BLOCKING);
 	      }
 	    else
 	      {
 		cont = 1;
-		display_string(" Mode set to continuous",BLOCKING);
+		display_string(" Continuous Playback ",BLOCKING);
 	      }
 	    
             break;

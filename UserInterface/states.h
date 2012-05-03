@@ -12,7 +12,7 @@
 /* State Table */
 enum ui_states{
     INIT_STATE,
-    EMERGENCY,
+    EMERGENCY_STATE,
     WAITING_LOGGED_OUT,
     INPUTTING_PIN,
     WAITING_LOGGED_IN,

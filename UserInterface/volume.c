@@ -134,7 +134,7 @@ void volume(void){
     pthread_mutex_lock(&state_Mutex);
     state_read = state;
     pthread_mutex_unlock(&state_Mutex);
-    if(state_read == EMERGENCY || alive == FALSE){
+    if(state_read == EMERGENCY_STATE || alive == FALSE){
       set_menu(FALSE); // in display.c
       break; // Get out if there's an emergency
     }

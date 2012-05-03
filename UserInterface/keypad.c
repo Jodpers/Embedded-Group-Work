@@ -72,7 +72,7 @@ void * keypad(void){
       pthread_mutex_unlock(&button_Mutex);
     }
   }
-  return 0;
+    pthread_exit(0);
 }
 
 /**

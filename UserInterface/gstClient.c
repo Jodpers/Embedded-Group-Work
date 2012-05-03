@@ -132,11 +132,12 @@ gst-launch -v udpsrc multicast-group=224.0.0.2 port=12000 ! "application/x-rtp, 
   gst_caps_unref (filtercaps);
   
   /* setup the source element */
-  if (getFollower > 0)  // If the follower number is 1 or 2 then its multicast
+  if (getFollower() > 0)  // If the follower number is 1 or 2 then its multicast
   {
     g_object_set (G_OBJECT (src), "multicast-group", ip, NULL);
   }
   g_object_set (G_OBJECT (src), "port", port, NULL);
+  g_object_set (G_OBJECT (sink), "sync", FALSE, NULL);
 
   /* we add a message handler */
   bus = gst_pipeline_get_bus (GST_PIPELINE (pipeline));

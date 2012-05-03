@@ -36,8 +36,6 @@
 
 extern char closest_mac[MAC_LEN];
 
-char * emergMsg;
-
 char task;
 char data[PACKETLEN] = {0}; /* Setting to NULL */
 
@@ -56,8 +54,10 @@ int sentt = 0;
 int follower = -1;
 char playCode = '0';
 char reqCode = '0';
-char * msg;
-char clMac[MAC_LEN];
+//char * msg;
+char clMac[MAC_LEN] = {'\0'};
+
+extern int logged_in; // (states.c)
 
 /*****************************************************************************************
  * Name: networkingFSM                                                                   *
@@ -81,7 +81,7 @@ void * networkingFSM(void)
 
   while (alive)
     {      
-      
+      printf("netFSM state %d\n",state);
       switch (state)
 	{
 	  //This thread will sleep after entering this state
@@ -90,7 +90,7 @@ void * networkingFSM(void)
 	  pthread_mutex_lock(&network_Mutex);
 	  pthread_cond_wait(&network_Signal, &network_Mutex);
 	  opcode = task;
-	  if (mac_changed == 1)
+	  if (mac_changed == 1 && logged_in)
     {
       mac_changed = 0;
       
@@ -98,6 +98,7 @@ void * networkingFSM(void)
       state = CREATEHEADERS;
       opcode = PLAY;
 	    strncpy(clMac, closest_mac, MAC_LEN);
+      pthread_mutex_unlock(&network_Mutex);
 	    break;
     }
 	  else
@@ -162,7 +163,7 @@ void * networkingFSM(void)
     }
          
   close(sockfd);
-  return 0;
+  pthread_exit(0);
 }
 /*****************************************************************************************
  * Name: get_in_addr                                                                     *
@@ -250,6 +251,7 @@ void * receive(void)
   while(alive)
     {
       char buffer[MAXDATASIZE];
+      bzero(buffer,MAXDATASIZE);
       if ((numbytes = recv(sockfd, buffer, MAXDATASIZE-1, 0)) == -1) // Blocking if statement
 	    {
 	      perror("recv");
@@ -257,20 +259,21 @@ void * receive(void)
 	      break;
 	    }
 
-      printd("Packet received: %s\n", buffer);
+      printd("Packet received: \"%s\"\n", buffer);
       printf("numbytes %d\n",numbytes);
-      buffer[numbytes] = '\0';
-      printf("buffer again: %s\n", buffer);
-      printf("bzero(receivedPacket)\n");
-      bzero(receivedPacket, MAXDATASIZE);
-      
-      pthread_mutex_lock(&network_Mutex);
-      strncpy(receivedPacket, buffer, numbytes);
-      task = RECEIVE;
-      pthread_cond_signal(&network_Signal);
-      pthread_mutex_unlock(&network_Mutex);
+      if (strlen(buffer) != 0)      //encase we get a null packet
+      {
+        buffer[numbytes] = '\0';
+        bzero(receivedPacket, MAXDATASIZE);
+        
+        pthread_mutex_lock(&network_Mutex);
+        strncpy(receivedPacket, buffer, numbytes);
+        task = RECEIVE;
+        pthread_cond_signal(&network_Signal);
+        pthread_mutex_unlock(&network_Mutex);
+      }
     }
-  return 0;
+  pthread_exit(0);
 }
 
 /****************************************************************************************
@@ -315,8 +318,10 @@ int parsePacket(char * buffer)
 	          tmp[i] = buffer[i+1]; 
 	        }
 
+        
 	      pthread_mutex_lock(&state_Mutex);
 	      data[0] = 1;
+	      state = EMERGENCY;
 	      pthread_cond_signal(&state_Signal);
 	      pthread_mutex_unlock(&state_Mutex);
 	      state = CREATEHEADERS;
@@ -329,92 +334,90 @@ int parsePacket(char * buffer)
   //111 leader
   //112 follower
 
-	case PIN: //format: 111,port.ip
-	  printd("buffer[1]:%c\n",buffer[1]);
+	    case PIN: //format: 111,port.ip
+	      printd("buffer[1]:%c\n",buffer[1]);
 
-    if (buffer[1] == PASS)
-      {
-        loggedIn = PASS;      
-        printd("PIN Authenticated\n");
-  
-        tmp = (char*) malloc (16);
-        bzero(tmp,16);
-	      tmp[0] = buffer[2];
+        if (buffer[1] == PASS)
+          {
+          loggedIn = PASS;      
+          printd("PIN Authenticated\n");
+    
+          tmp = (char*) malloc (16);
+          bzero(tmp,16);
+	        tmp[0] = buffer[2];
 
-	      follower = atoi(tmp); //Follower: 0 = Indiv, 1= Follower ,2=Leader
-	      
-	      /*Copy out Port*/
-	      j = 0;
-	      while(buffer[j+3] != ',')
-		    {
-		      tmp[j] = buffer[j+3];
+	        follower = atoi(tmp); //Follower: 0 = Indiv, 1= Follower ,2=Leader
+	        printf("tmp:%s\n",tmp);
+	        /*Copy out Port*/
+	        j = 0;
+	        while(buffer[j+3] != ',')
+		      {
+		        tmp[j] = buffer[j+3];
+		        j++;
+		      }
 		      j++;
-		    }
-		    j++;
-		    printf("tmp: %s\n",tmp);
+		      printf("tmp: %s\n",tmp);
 
-	      portGst = atoi(tmp);
-	      free(tmp);
-	      ipGst = (char*) malloc(IPLEN * sizeof (char));
-	      bzero(ipGst,IPLEN);
-	      i=0;
-	      while(buffer[j+3] != ',' && buffer[j+3] != '\0')
-		    {
-		      printf("i %d j %d \n",i,j);
-		      ipGst[i++] = buffer[j+3]; 
-		      j++;
-		    }
-		    printf("buffer: %s\n",buffer);
-		    printf("ipGst: %s\nportGst %d\n",ipGst,portGst);
-	      
-	      set_ip_and_port(ipGst,portGst);
-	      free(ipGst);
-	      
-	  /* Starts the gstreamer thread and passes the IP and port*/
-
-      }
-      else
-      {
-        loggedIn = FAIL;
-        printd("PIN failed\n");
-        follower = -1;
-      }
+	        portGst = atoi(tmp);
+	        free(tmp);
+	        ipGst = (char*) malloc(IPLEN * sizeof (char));
+	        bzero(ipGst,IPLEN);
+	        i=0;
+	        while(buffer[j+3] != ',' && buffer[j+3] != '\0')
+		      {
+		        printf("i %d j %d \n",i,j);
+		        ipGst[i++] = buffer[j+3]; 
+		        j++;
+		      }
+		      printf("buffer: %s\n",buffer);
+		      printf("ipGst: %s\nportGst %d\n",ipGst,portGst);
+	        
+	        set_ip_and_port(ipGst,portGst);
+	        free(ipGst);
+	         
+          }
+          else
+          {
+            loggedIn = FAIL;
+            printd("PIN failed\n");
+            follower = -1;
+          }
 	  
-	  //returns the result of the log in attempt to the UI
-	  pthread_mutex_lock(&request_Mutex);
-	  data[0] = loggedIn;
-	  pthread_cond_signal(&request_Signal);
-	  pthread_mutex_unlock(&request_Mutex);
+	        //returns the result of the log in attempt to the UI
+	        pthread_mutex_lock(&request_Mutex);
+	        data[0] = loggedIn;
+	        pthread_cond_signal(&request_Signal);
+	        pthread_mutex_unlock(&request_Mutex);
 
-	  state = CREATEHEADERS;
-	  opcode = ACK;
-	  break;
+	        state = CREATEHEADERS;
+	        opcode = ACK;
+	        break;
 	  
-	case PLAY:
-	  if (buffer[1] == FAIL)
-	    {
-	      state = CREATEHEADERS; 
-	      opcode = ACK;
-	      
-	      pthread_mutex_lock(&request_Mutex);
-	      data[0] = FAIL;
-	      pthread_cond_signal(&request_Signal);
-	      pthread_mutex_unlock(&request_Mutex);
-	    }
-	  if (buffer[1] == END_OF_PLAYLIST)
-	    {
-	      printd("End of playlist reached");
-	      pthread_mutex_lock(&request_Mutex);
-	      data[0] = END_OF_PLAYLIST;
-	      pthread_cond_signal(&request_Signal);
-	      pthread_mutex_unlock(&request_Mutex);
-	    }
-	  break;
+	      case PLAY:
+	        if (buffer[1] == FAIL)
+          {
+            state = CREATEHEADERS; 
+            opcode = ACK;
+            
+            pthread_mutex_lock(&request_Mutex);
+            data[0] = FAIL;
+            pthread_cond_signal(&request_Signal);
+            pthread_mutex_unlock(&request_Mutex);
+          }
+	        if (buffer[1] == END_OF_PLAYLIST)
+          {
+            printd("End of playlist reached");
+            pthread_mutex_lock(&request_Mutex);
+            data[0] = END_OF_PLAYLIST;
+            pthread_cond_signal(&request_Signal);
+            pthread_mutex_unlock(&request_Mutex);
+          }
+	        break;
 
         case TRACKINFO:
           printd("trackinfo:%s\n", buffer);	  
-	  state = CREATEHEADERS;
-	  opcode = ACK;
+      	  state = CREATEHEADERS;
+	        opcode = ACK;
           break;
 
        
@@ -424,19 +427,19 @@ int parsePacket(char * buffer)
 	        state = WAITING;
           break;
         
-	case NAK: /* Resends last packet */
-      printd("NAK: %s\n", buffer);
+        case NAK: /* Resends last packet */
+            printd("NAK: %s\n", buffer);
 
-	  if (timeout-- > 0) // Stops resending after it gets bored.
-	    {
-	      state = SEND;
-	    }
-	  else
-	    {
-	      timeout = TIMEOUTVALUE;
-	      state = WAITING;
-	    }
-	  break;
+          if (timeout-- > 0) // Stops resending after it gets bored.
+            {
+              state = SEND;
+            }
+          else
+            {
+              timeout = TIMEOUTVALUE;
+              state = WAITING;
+            }
+          break;
 
         case MULTICAST: 
           printd("multicast:%s\n", buffer);
@@ -445,7 +448,7 @@ int parsePacket(char * buffer)
           opcode = ACK;
           break;
 
-	default:
+	      default:
           printd("Unknown packet:%s\n", buffer);
           state = CREATEHEADERS;
           opcode = NAK;
@@ -479,7 +482,7 @@ int createPacket(char * localData)
 
   sentt= 1; //This is used to stop any packets being sent before a packet has been sent.
   
-  printf("opcode = %d\n",opcode);
+  printf("opcode = %c\n",opcode);
   switch (opcode)
     {
     case PIN:
@@ -489,17 +492,18 @@ int createPacket(char * localData)
     case PLAY:
       if (follower == TRUE)
 	    {
+          printf("follower\n");
 	      return  WAITING;
 	    }
+          printf("in PLAY state\n");
+      
+	    
+      sprintf(packet, "%c%c%s\n", opcode, reqCode, localData); // request packet, 
       
       if (reqCode == CLOSEST_MAC_ADDRESS)
 	    {
 	      sprintf(packet, "%c%c%s\n", opcode, reqCode, clMac);
-	      break;
 	    }
-	    
-      sprintf(packet, "%c%c%s\n", opcode, reqCode, localData); // request packet, 
-      
  
       break;
 

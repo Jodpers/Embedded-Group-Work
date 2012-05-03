@@ -29,7 +29,7 @@ enum display_states{
 #define BLOCKING        1
 
 #define PIN_MAX		  	4
-#define TRACK_MIN       1
+#define TRACK_MIN     1
 #define TRACK_MAX	  	8
 #define DIGITS_MAX		3
 

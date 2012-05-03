@@ -15,7 +15,7 @@
 
 #define STANDALONE 1
 
-#define OGG
+//#define OGG
 
 #include "gstClient.h"
 
@@ -136,7 +136,7 @@ void * gst(void)
   mad         = gst_element_factory_make ("mad", "mad");
 #endif
 
-  sink        = gst_element_factory_make ("alsasink", "sink");
+  sink        = gst_element_factory_make ("autoaudiosink", "sink");
   
 #ifdef OGG
   if (!pipeline || !src || !demuxer || !decoder || !conv || !sink)

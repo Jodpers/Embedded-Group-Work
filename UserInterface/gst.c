@@ -19,7 +19,7 @@
 
 
 extern int gst_playing;
-extern int getFollower;
+extern int getFollower();
 extern int playCode;
 
 extern int continous();
@@ -41,7 +41,7 @@ void * gst_control(void){
     pthread_attr_init(&gst_Attr);
     pthread_attr_setdetachstate(&gst_Attr, PTHREAD_CREATE_JOINABLE);
 
-    if(getFollower != -1)
+    if(getFollower() != -1)
 	  {
 	    if(pthread_create( &gst_thread, &gst_Attr,
 			       (void *)gst, NULL) != 0){
